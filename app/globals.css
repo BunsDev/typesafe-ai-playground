@@ -39,6 +39,10 @@
   --success: #84d1b9;
   --error: #ff969b;
   --shadow: 0 2px 6px #00000010;
+  --duck-1: #b8aaeb;
+  --duck-2: #84d1b9;
+  --duck-3: #e0b073;
+  --duck-4: #86b6dd;
 }
 * {
   box-sizing: border-box;
