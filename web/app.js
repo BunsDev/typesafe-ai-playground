@@ -18,6 +18,8 @@
   const formatState = (value) => typeof value === "string" ? value : JSON.stringify(value, null, 2);
   const percent = (value) => Number.isFinite(Number(value)) ? (Number(value) * 100).toFixed(1) + "%" : "—";
   const width = (value) => Math.max(0, Math.min(100, Number(value) * 100 || 0));
+  const testLabels = {puzzle:"Answer-key puzzle", judgment:"Open-ended choice", consistency:"Consistency probe"};
+  const inputSignature = () => JSON.stringify({stateText:draft().stateText, stateMode:draft().stateMode, questions:draft().questions, model:$("model-input").value});
 
   initialize();
 
@@ -53,7 +55,7 @@
           ids.add(item.id);
         });
         for (const [id, item] of Object.entries(saved.drafts)) {
-          if (ids.has(id) && typeof item.stateText === "string") drafts[id] = {stateText:item.stateText, questions:L.normalizeQuestions(item.questions)};
+          if (ids.has(id) && typeof item.stateText === "string") drafts[id] = {stateText:item.stateText, stateMode:["auto","text","json"].includes(item.stateMode) ? item.stateMode : "auto", questions:L.normalizeQuestions(item.questions)};
         }
         activeId = ids.has(saved.activeId) ? saved.activeId : builtins[0].id;
         if (typeof saved.model === "string") model = saved.model;
@@ -94,6 +96,12 @@
   }
 
   function wireEvents() {
+    $("collection-filter").addEventListener("change", () => { $("category-filter").value = "all"; renderCategories(); renderLibrary(); });
+    $("test-notes-button").addEventListener("click", showTestNotes);
+    $("mobile-nav").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-mobile-view]");
+      if (button) setMobileView(button.dataset.mobileView);
+    });
     $("example-search").addEventListener("input", renderLibrary);
     $("category-filter").addEventListener("change", renderLibrary);
     $("saved-filter").addEventListener("click", () => {
@@ -103,19 +111,28 @@
     });
     $("example-list").addEventListener("click", (event) => {
       const button = event.target.closest("[data-example]");
-      if (button && !busy) openExample(button.dataset.example);
+      if (button && !busy) {
+        openExample(button.dataset.example);
+        setMobileView("test");
+      }
     });
     $("state-input").addEventListener("input", () => {
       draft().stateText = $("state-input").value;
       updateDraftNote(); updateStateNote(); markResultsEdited(); scheduleSave();
     });
     $("model-input").addEventListener("input", () => { markResultsEdited(); scheduleSave(); });
+    $("state-mode").addEventListener("change", () => {
+      draft().stateMode = $("state-mode").value;
+      updateDraftNote(); updateStateNote(); markResultsEdited(); persist();
+    });
     $("format-state-button").addEventListener("click", () => attempt(() => {
       const value = JSON.parse($("state-input").value);
       L.validateState(value);
       draft().stateText = JSON.stringify(value, null, 2);
+      draft().stateMode = "json";
+      $("state-mode").value = "json";
       $("state-input").value = draft().stateText;
-      updateDraftNote(); persist(); toast("JSON formatted.");
+      updateDraftNote(); updateStateNote(); markResultsEdited(); persist(); toast("JSON formatted.");
     }));
     $("copy-payload-button").addEventListener("click", () => attempt(async () => {
       await navigator.clipboard.writeText(JSON.stringify(currentPayload(), null, 2));
@@ -126,7 +143,7 @@
     $("preview-pair-button").addEventListener("click", () => attempt(() => {
       const comparison = active().comparison;
       $("comparison-path").textContent = "Only " + comparison.path.join(".") + " changes to " + JSON.stringify(comparison.value) + ".";
-      $("comparison-preview").textContent = formatState(L.comparisonState(L.parseState(draft().stateText), comparison));
+      $("comparison-preview").textContent = formatState(L.comparisonState(L.parseState(draft().stateText, draft().stateMode), comparison));
       $("comparison-dialog").showModal();
     }));
     $("select-all-button").addEventListener("click", () => {
@@ -200,28 +217,36 @@
 
   function renderCategories() {
     const current = $("category-filter").value;
-    const names = [...new Set(examples().map((item) => item.category))];
+    const collection = $("collection-filter").value;
+    const collections = [...new Set(examples().map((item) => item.collection))];
+    $("collection-filter").innerHTML = '<option value="all">All collections</option>' + collections.map((name) => '<option value="' + esc(name) + '">' + esc(name) + ' (' + examples().filter((e) => e.collection === name).length + ')</option>').join("");
+    if (collections.includes(collection)) $("collection-filter").value = collection;
+    $("collection-options").innerHTML = collections.map((name) => '<option value="' + esc(name) + '"></option>').join("");
+    const pool = examples().filter((e) => $("collection-filter").value === "all" || e.collection === $("collection-filter").value);
+    const names = [...new Set(pool.map((item) => item.category))];
     $("category-filter").innerHTML = '<option value="all">All categories</option>' + names.map((name) =>
-      '<option value="' + esc(name) + '">' + esc(name) + ' (' + examples().filter((e) => e.category === name).length + ')</option>').join("");
+      '<option value="' + esc(name) + '">' + esc(name) + ' (' + pool.filter((e) => e.category === name).length + ')</option>').join("");
     if (names.includes(current)) $("category-filter").value = current;
-    $("category-options").innerHTML = names.map((name) => '<option value="' + esc(name) + '"></option>').join("");
+    $("category-options").innerHTML = [...new Set(examples().map((e) => e.category))].map((name) => '<option value="' + esc(name) + '"></option>').join("");
     $("example-total").textContent = examples().length;
   }
 
   function renderLibrary() {
     const query = $("example-search").value.trim().toLowerCase();
     const category = $("category-filter").value;
+    const collection = $("collection-filter").value;
     const visible = examples().filter((item) =>
+      (collection === "all" || item.collection === collection) &&
       (!onlySaved || item.custom) &&
       (category === "all" || item.category === category) &&
-      (!query || [item.title,item.category,item.description,item.tryThis,...item.questions.map((q) => q.label)].join(" ").toLowerCase().includes(query))
+      (!query || [item.title,item.category,item.collection,item.description,item.tryThis,...item.questions.map((q) => q.label)].join(" ").toLowerCase().includes(query))
     );
     $("library-count").textContent = visible.length + " of " + examples().length + " examples";
     $("example-list").innerHTML = visible.map((item) =>
       '<button type="button" class="example-item" data-example="' + esc(item.id) + '" aria-current="' + (activeId === item.id) + '"' + (busy ? " disabled" : "") + '>' +
       '<span class="example-category">' + esc(item.category) + '<span class="example-badge">' + (item.custom ? "SAVED" : item.comparison ? "A/B" : "") + '</span></span>' +
       '<strong>' + esc(item.title) + '</strong><p>' + esc(item.description) + '</p></button>'
-    ).join("") || '<div class="empty-state"><strong>No matching examples</strong><p>Try another search, or clear the category and My examples filters.</p></div>';
+    ).join("") || '<div class="empty-state"><strong>No matching examples</strong><p>Try another search, or clear the collection, category and My examples filters.</p></div>';
   }
 
   function openExample(id) {
@@ -232,6 +257,9 @@
     $("example-category").textContent = item.category;
     $("example-title").textContent = item.title;
     $("example-description").textContent = item.description;
+    $("test-kind").hidden = !item.test;
+    $("test-kind").textContent = item.test ? testLabels[item.test.kind] : "";
+    $("test-notes-button").hidden = !item.test;
     $("example-tip").textContent = item.tryThis ? "Try this: " + item.tryThis : "";
     $("source-link").hidden = !item.source;
     if (item.source) {
@@ -239,6 +267,7 @@
       $("source-link").title = item.source.label;
     }
     $("state-input").value = draft().stateText;
+    $("state-mode").value = draft().stateMode;
     $("comparison-panel").hidden = !item.comparison;
     if (item.comparison) $("comparison-summary").textContent = item.comparison.labelA + " → " + item.comparison.labelB + " · one field";
     renderLibrary(); renderQuestions(); updateStateNote(); updateDraftNote();
@@ -249,14 +278,14 @@
 
   function updateStateNote() {
     try {
-      const state = L.parseState(draft().stateText);
+      const state = L.parseState(draft().stateText, draft().stateMode);
       $("state-format-note").textContent = typeof state === "string" ? "Plain text" : "JSON";
     } catch (error) { $("state-format-note").textContent = error.message; }
   }
 
   function updateDraftNote() {
     const original = L.draftFor(active());
-    $("draft-indicator").hidden = original.stateText === draft().stateText && JSON.stringify(original.questions) === JSON.stringify(draft().questions);
+    $("draft-indicator").hidden = original.stateText === draft().stateText && original.stateMode === draft().stateMode && JSON.stringify(original.questions) === JSON.stringify(draft().questions);
     $("input-kind").textContent = active().custom || !$("draft-indicator").hidden ? "Your local example" : "Synthetic starter data";
     updateRunControls();
   }
@@ -275,6 +304,19 @@
           '<button type="button" class="text-button" data-action="' + action + '" data-question="' + esc(q.id) + '"' + (busy ? " disabled" : "") + '>' + label + '</button>').join("") + '</div></article>';
     }).join("");
     updateRunControls();
+  }
+
+  function showTestNotes() {
+    const item = active(), test = item.test;
+    if (!test) return;
+    $("test-notes-title").textContent = item.title;
+    $("test-notes-kind").textContent = testLabels[test.kind];
+    $("test-notes-copy").textContent = test.note;
+    $("test-reference-answers").innerHTML = ["A", "B"].filter((side) => test["expected" + side]).map((side) =>
+      '<div class="reference-answer"><strong>' + (item.comparison ? 'Variant ' + side + ' · ' + esc(item.comparison["label" + side]) : 'Reference answer') + '</strong>' +
+      Object.entries(test["expected" + side]).map(([key, value]) => '<div><code>' + esc(key) + ': ' + esc(value) + '</code></div>').join("") + '</div>'
+    ).join("");
+    $("test-notes-dialog").showModal();
   }
 
   function updateRunControls() {
@@ -345,6 +387,7 @@
     $("save-dialog-title").textContent = blank ? "New example" : "Save as new example";
     $("save-dialog-note").textContent = blank ? "Create an example, then edit its input and questions in the workspace." : "Save the current input and questions as a separate example.";
     $("new-example-title").value = blank ? "" : active().title + " — my version";
+    $("new-example-collection").value = blank ? "My experiments" : active().collection;
     $("new-example-category").value = blank ? "My examples" : active().category;
     $("new-example-description").value = blank ? "" : active().description;
     $("new-example-tip").value = blank ? "" : active().tryThis;
@@ -357,20 +400,22 @@
       const base = newExampleMode ? {
         state:{message:"Could you send the report by Friday?"},
         questions:[{id:"request_present",label:"A request is present",type:"noul",instructions:"Does this message ask the reader to do something?"}]
-      } : {...active(), state:L.parseState(draft().stateText), questions:L.clone(draft().questions)};
+      } : {...active(), state:L.parseState(draft().stateText, draft().stateMode), questions:L.clone(draft().questions)};
       const item = L.normalizeExample({...base, id:"custom-" + crypto.randomUUID(), custom:true,
         title:$("new-example-title").value, category:$("new-example-category").value,
+        collection:$("new-example-collection").value,
         description:$("new-example-description").value, tryThis:$("new-example-tip").value
       });
       custom.push(item);
       $("example-dialog").close();
       clearLibraryFilters();
-      renderCategories(); openExample(item.id);
+      renderCategories(); openExample(item.id); setMobileView("test");
       toast("Example saved. It is available under My examples.");
     } catch (error) { $("example-error").textContent = error.message; }
   }
 
   function clearLibraryFilters() {
+    $("collection-filter").value = "all";
     $("example-search").value = ""; $("category-filter").value = "all";
     onlySaved = false; $("saved-filter").setAttribute("aria-pressed","false");
   }
@@ -382,14 +427,14 @@
       if (raw.length > 2 * 1024 * 1024) throw new Error("Import a library smaller than 2 MB.");
       const imported = L.importExamples(raw, examples().map((e) => e.id));
       custom.push(...imported);
-      clearLibraryFilters(); renderCategories(); openExample(imported[0].id);
+      clearLibraryFilters(); renderCategories(); openExample(imported[0].id); setMobileView("test");
       $("import-dialog").close();
       toast(imported.length + " examples imported.");
     } catch (error) { $("import-error").textContent = error.message; }
   }
 
   function currentPayload() {
-    return L.buildPayload(draft().stateText, draft().questions, $("model-input").value);
+    return L.buildPayload(draft().stateText, draft().questions, $("model-input").value, draft().stateMode);
   }
 
   async function requestRun(payload) {
@@ -416,7 +461,7 @@
     const item = L.clone(active());
     const questions = L.clone(selected());
     const started = performance.now();
-    const inputSnapshot = JSON.stringify({stateText:draft().stateText, questions:draft().questions, model:$("model-input").value});
+    const inputSnapshot = inputSignature();
     setBusy(true);
     $("result-status").textContent = "Running";
     $("results-meta").textContent = item.title + (pair ? " · two requests" : " · one request");
@@ -434,12 +479,14 @@
       };
       resultsByExample[item.id] = latestRun;
       renderResults();
+      setMobileView("results");
       toast(pair ? "A/B comparison complete." : "Run complete.");
     } catch (error) {
       latestRun = null;
       delete resultsByExample[item.id];
       $("result-status").textContent = "Error";
       $("results-content").innerHTML = '<div class="error-card">' + esc(error.message) + '</div>';
+      setMobileView("results");
       $("export-run-button").disabled = true;
       $("results-note").textContent = pair ? "One or both requests failed; no comparison shown." : "Adjust the input or retry.";
       toast(error.message, true);
@@ -449,13 +496,27 @@
   function setBusy(value) {
     busy = value;
     $("run-button").textContent = value ? "Running…" : "Run example";
-    for (const id of ["state-input","model-input","new-example-button","save-example-button","new-question-button","reset-example-button","select-all-button","format-state-button","import-button"]) $(id).disabled = value;
+    for (const id of ["state-input","state-mode","model-input","new-example-button","save-example-button","new-question-button","reset-example-button","select-all-button","format-state-button","import-button"]) $(id).disabled = value;
     renderQuestions(); renderLibrary();
+  }
+
+  function setMobileView(view) {
+    if (!["library","test","results"].includes(view)) return;
+    document.querySelector(".workspace").dataset.mobileView = view;
+    document.querySelectorAll(".mobile-nav-button").forEach((button) => {
+      const active = button.dataset.mobileView === view;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+    if (window.matchMedia("(max-width: 660px)").matches) {
+      const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+      window.scrollTo({top:0, behavior});
+    }
   }
 
   function markResultsEdited() {
     if (!latestRun) return;
-    const signature = JSON.stringify({stateText:draft().stateText, questions:draft().questions, model:$("model-input").value});
+    const signature = inputSignature();
     $("result-status").textContent = signature === latestRun.inputSnapshot ? "Complete" : "Input changed";
   }
 
@@ -472,7 +533,7 @@
     const modelNames = [...new Set(run.responses.map((r) => r.model).filter(Boolean))].join(" / ") || "Model unavailable";
     const tokens = run.responses.reduce((sum,r) => sum + (r.usage?.input_tokens || 0), 0);
     $("results-meta").textContent = run.title + " · " + modelNames + " · " + run.durationMs + " ms · " + tokens + " input tokens";
-    $("results-note").textContent = run.pair ? "One pair is exploratory; repeat before drawing bias conclusions." : "Latest run for this example · not saved after reload.";
+    $("results-note").textContent = run.pair ? "One comparison is exploratory. Check assumptions and repeat before drawing conclusions." : "Latest run for this example · not saved after reload.";
     $("results-content").innerHTML = run.questions.map((q) =>
       '<article class="result-card"><div class="result-card-head"><h3>' + esc(q.label) + '</h3><span class="type-pill type-' + q.type + '">' + q.type + '</span></div>' +
       (run.pair ? renderPair(q,run) : renderAnswer(run.responses[0].answers?.[q.id],q)) + '</article>'

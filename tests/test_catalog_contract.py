@@ -1,5 +1,6 @@
 """Check the complete authored library against the actual proxy contract."""
 import json
+from copy import deepcopy
 from pathlib import Path
 import unittest
 from server import validate_payload
@@ -15,11 +16,18 @@ class CatalogContractTests(unittest.TestCase):
                 with self.subTest(example=example["id"]):
                     self.assertNotIn(example["id"], seen)
                     seen.add(example["id"])
-                    questions = example.get("questions", pack["questions"])
+                    questions = example.get("questions") or pack["questions"]
                     payload = validate_payload({
                         "state": example["state"],
                         "model": "jev-latest",
                         "questions": {q["id"]: q for q in questions},
                     })
                     self.assertEqual(len(payload["questions"]), len(questions))
-        self.assertGreaterEqual(len(seen), 60)
+                    if "comparison" in example:
+                        variant = deepcopy(example["state"])
+                        node = variant
+                        for key in example["comparison"]["path"][:-1]:
+                            node = node[key]
+                        node[example["comparison"]["path"][-1]] = example["comparison"]["value"]
+                        self.assertEqual(validate_payload({**payload, "state": variant})["state"], variant)
+        self.assertGreaterEqual(len(seen), 110)

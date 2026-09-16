@@ -60,6 +60,9 @@ def validate_payload(payload: Any) -> dict[str, Any]:
     for key, question in questions.items():
         if not isinstance(key, str) or not key.strip():
             raise ValidationError("Every question needs a name.")
+        clean_question_key = key.strip()
+        if clean_question_key in normalized_questions:
+            raise ValidationError("Question names must be unique after trimming whitespace.")
         if not isinstance(question, dict):
             raise ValidationError(f"Question '{key}' must be an object.")
 
@@ -81,6 +84,8 @@ def validate_payload(payload: Any) -> dict[str, Any]:
             normalized_criteria: dict[str, str] = {}
             for criterion_key, description in criteria.items():
                 clean_key = _nonempty_string(criterion_key, f"Question '{key}' criterion name")
+                if clean_key in normalized_criteria:
+                    raise ValidationError(f"Question '{key}' choice names must be unique after trimming whitespace.")
                 normalized_criteria[clean_key] = _nonempty_string(
                     description, f"Question '{key}' criterion '{clean_key}'"
                 )
@@ -94,7 +99,7 @@ def validate_payload(payload: Any) -> dict[str, Any]:
                 _nonempty_string(item, f"Question '{key}' score level") for item in criteria
             ]
 
-        normalized_questions[key.strip()] = normalized
+        normalized_questions[clean_question_key] = normalized
 
     model = payload.get("model", DEFAULT_MODEL)
     if not isinstance(model, str) or not model.strip():

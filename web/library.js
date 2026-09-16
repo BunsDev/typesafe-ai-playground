@@ -20,12 +20,17 @@
     throw new Error("State must be non-empty text, a JSON object, or an array.");
   }
 
-  function parseState(raw) {
+  function parseState(raw, mode = "auto") {
     if (!raw.trim()) throw new Error("Enter some state before running.");
-    try { return validateState(JSON.parse(raw)); }
+    if (!["auto", "text", "json"].includes(mode)) throw new Error("Choose Auto, Text, or JSON input format.");
+    if (mode === "text") return raw;
+    try {
+      const parsed = JSON.parse(raw);
+      return mode === "auto" && !object(parsed) && !Array.isArray(parsed) ? raw : validateState(parsed);
+    }
     catch (error) {
       if (!(error instanceof SyntaxError)) throw error;
-      if (/^[\[{]/.test(raw.trim())) throw new Error("This looks like JSON but is invalid. Fix its syntax or enter plain text.");
+      if (mode === "json" || /^[\[{]/.test(raw.trim())) throw new Error("This JSON is invalid. Fix its syntax or choose Text for literal input.");
       return raw;
     }
   }
@@ -84,6 +89,7 @@
       id: identifier(example.id, "Example ID"),
       title: text(example.title, "Example title"),
       category: text(example.category, "Category"),
+      collection: typeof example.collection === "string" ? text(example.collection, "Collection") : "Use cases",
       description: text(example.description, "Description"),
       state: validateState(example.state),
       questions: normalizeQuestions(example.questions),
@@ -95,6 +101,19 @@
       result.comparison.labelA = text(example.comparison.labelA, "Variant A label");
       result.comparison.labelB = text(example.comparison.labelB, "Variant B label");
     }
+    if (example.test) {
+      const test = example.test;
+      if (!object(test) || !["puzzle", "judgment", "consistency"].includes(test.kind)) throw new Error("Test kind must be puzzle, judgment, or consistency.");
+      result.test = {kind:test.kind, note:text(test.note, "Test notes")};
+      for (const side of ["expectedA", "expectedB"]) {
+        if (test[side] === undefined) continue;
+        if (test.kind === "judgment") throw new Error("Open-ended judgments must not have an answer key.");
+        if (!object(test[side]) || !Object.keys(test[side]).length) throw new Error("An answer key must map question keys to reference choices.");
+        result.test[side] = Object.fromEntries(Object.entries(test[side]).map(([key, value]) => [identifier(key, "Reference question key"), text(value, "Reference answer")]));
+      }
+      if (test.kind === "puzzle" && (!result.test.expectedA || (result.comparison && !result.test.expectedB))) throw new Error("Puzzles need reference answers for each variant.");
+      if (result.test.expectedB && !result.comparison) throw new Error("A variant B answer needs a comparison.");
+    }
     if (object(example.source) && typeof example.source.url === "string" && /^https:\/\//.test(example.source.url)) result.source = {label: String(example.source.label || "Source"), url: example.source.url};
     if (example.custom === true) result.custom = true;
     return result;
@@ -104,21 +123,21 @@
     if (!object(catalog) || catalog.schemaVersion !== 1 || !Array.isArray(catalog.packs)) throw new Error("Unsupported catalog format.");
     const examples = catalog.packs.flatMap((pack) => {
       if (!Array.isArray(pack.examples)) throw new Error("Each category needs examples.");
-      return pack.examples.map((example) => normalizeExample({...example, category: pack.title, questions: example.questions || pack.questions, source: pack.source}));
+      return pack.examples.map((example) => normalizeExample({...example, category: pack.title, collection:example.collection || pack.collection, questions: example.questions || pack.questions, source: example.source || pack.source}));
     });
     if (!examples.length || new Set(examples.map((e) => e.id)).size !== examples.length) throw new Error("Catalog example IDs must be unique.");
     return examples;
   }
 
   function draftFor(example) {
-    return {stateText: typeof example.state === "string" ? example.state : JSON.stringify(example.state, null, 2), questions: clone(example.questions)};
+    return {stateText: typeof example.state === "string" ? example.state : JSON.stringify(example.state, null, 2), stateMode:typeof example.state === "string" ? "text" : "auto", questions: clone(example.questions)};
   }
 
-  function buildPayload(stateText, questions, model = "jev-latest") {
+  function buildPayload(stateText, questions, model = "jev-latest", stateMode = "auto") {
     const all = normalizeQuestions(questions);
     const selected = all.filter((q) => q.enabled && q.selected);
     if (!selected.length) throw new Error("Select at least one question.");
-    return {state: parseState(stateText), model: model.trim() || "jev-latest", questions: Object.fromEntries(selected.map((q) => [q.id, {
+    return {state: parseState(stateText, stateMode), model: model.trim() || "jev-latest", questions: Object.fromEntries(selected.map((q) => [q.id, {
       type:q.type, instructions:q.instructions, ...(q.type === "noul" ? {} : {criteria:clone(q.criteria)})
     }]))};
   }
@@ -146,7 +165,7 @@
   function exportExamples(examples, drafts = {}) {
     return {schemaVersion:1, examples:examples.map((example) => {
       const draft = own(drafts, example.id) ? drafts[example.id] : draftFor(example);
-      return normalizeExample({...example, state:parseState(draft.stateText), questions:draft.questions});
+      return normalizeExample({...example, state:parseState(draft.stateText, draft.stateMode), questions:draft.questions});
     })};
   }
 

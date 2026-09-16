@@ -18,14 +18,29 @@
         <span id="connection-status" class="status-chip">Checking connection</span>
       </div>
     </header>
-    <main class="workspace" aria-label="Example playground">
-      <aside class="panel library-panel" aria-label="Use-case library">
+    <nav id="mobile-nav" class="mobile-nav" aria-label="Playground stages">
+      <button type="button" class="mobile-nav-button is-active" data-mobile-view="library" aria-controls="library-panel" aria-pressed="true">
+        <span class="mobile-nav-index">01</span><span>Browse</span>
+      </button>
+      <button type="button" class="mobile-nav-button" data-mobile-view="test" aria-controls="test-panel" aria-pressed="false">
+        <span class="mobile-nav-index">02</span><span>Build</span>
+      </button>
+      <button type="button" class="mobile-nav-button" data-mobile-view="results" aria-controls="results-panel" aria-pressed="false">
+        <span class="mobile-nav-index">03</span><span>Results</span>
+      </button>
+    </nav>
+    <main class="workspace" data-mobile-view="library" aria-label="Example playground">
+      <aside id="library-panel" class="panel library-panel" aria-label="Use-case library">
         <div class="panel-heading">
           <h1>Examples <span id="example-total" class="count">0</span></h1>
           <button id="new-example-button" class="button" type="button">+ New</button>
         </div>
         <label class="sr-only" for="example-search">Search examples</label>
-        <input id="example-search" type="search" placeholder="Search use cases…" autocomplete="off" />
+        <input id="example-search" type="search" placeholder="Search examples…" autocomplete="off" />
+        <div class="collection-filter">
+          <label for="collection-filter">Collection</label>
+          <select id="collection-filter"><option value="all">All collections</option></select>
+        </div>
         <div class="library-filters">
           <label class="sr-only" for="category-filter">Category</label>
           <select id="category-filter"><option value="all">All categories</option></select>
@@ -39,9 +54,9 @@
         </div>
       </aside>
 
-      <section class="panel test-panel" aria-labelledby="example-title">
+      <section id="test-panel" class="panel test-panel" aria-labelledby="example-title">
         <div class="example-heading">
-          <div class="eyebrow"><span id="example-category">Use case</span><span id="draft-indicator" class="draft-indicator" hidden>Edited · saved locally</span></div>
+          <div class="eyebrow"><span id="example-category">Use case</span><span id="test-kind" class="test-kind" hidden></span><span id="draft-indicator" class="draft-indicator" hidden>Edited · saved locally</span></div>
           <h2 id="example-title">Loading examples…</h2>
           <p id="example-description"></p>
         </div>
@@ -54,6 +69,8 @@
           <div class="section-toolbar">
             <h3>Input state</h3>
             <div class="toolbar-actions">
+              <label class="sr-only" for="state-mode">Input format</label>
+              <select id="state-mode" class="input-mode"><option value="auto">Auto</option><option value="text">Text</option><option value="json">JSON</option></select>
               <button id="format-state-button" class="text-button" type="button">Format</button>
               <button id="copy-payload-button" class="text-button" type="button">Copy request</button>
             </div>
@@ -80,7 +97,8 @@
         <div class="example-footer">
           <p id="example-tip"></p>
           <div class="footer-actions">
-            <a id="source-link" target="_blank" rel="noreferrer" hidden>Workflow inspiration ↗</a>
+            <button id="test-notes-button" class="text-button" type="button" hidden>Test notes</button>
+            <a id="source-link" target="_blank" rel="noreferrer" hidden>Background ↗</a>
             <span class="spacer"></span>
             <button id="reset-example-button" class="text-button" type="button">Reset example</button>
             <button id="save-example-button" class="button" type="button">Save as new example</button>
@@ -88,7 +106,7 @@
         </div>
       </section>
 
-      <section class="panel results-panel" aria-labelledby="results-title">
+      <section id="results-panel" class="panel results-panel" aria-labelledby="results-title">
         <div class="panel-heading"><h2 id="results-title">Results</h2><span id="result-status" class="count">Ready</span></div>
         <div id="results-meta" class="results-meta"></div>
         <div id="results-content" class="results-content scroll-region" aria-live="polite">
@@ -120,6 +138,7 @@
       <div class="dialog-heading"><h2 id="save-dialog-title">Save as new example</h2><button type="button" class="close-button" data-close="example-dialog" aria-label="Close example editor">×</button></div>
       <p class="muted" id="save-dialog-note">Save the current input and questions as a separate example.</p>
       <label>Example name<input id="new-example-title" required maxlength="100" /></label>
+      <label>Collection<input id="new-example-collection" list="collection-options" required /><datalist id="collection-options"></datalist></label>
       <label>Category<input id="new-example-category" list="category-options" required /><datalist id="category-options"></datalist></label>
       <label>Description<textarea id="new-example-description" rows="2" required></textarea></label>
       <label>Something to try <span class="muted">(optional)</span><input id="new-example-tip" /></label>
@@ -136,6 +155,14 @@
       <p id="import-error" class="form-error" role="alert"></p>
       <div class="dialog-footer"><button type="button" class="button" data-close="import-dialog">Cancel</button><button type="submit" class="button button-primary">Import examples</button></div>
     </form>
+  </dialog>
+
+  <dialog id="test-notes-dialog" aria-labelledby="test-notes-title">
+    <div class="dialog-heading"><h2 id="test-notes-title">Test notes</h2><button type="button" class="close-button" data-close="test-notes-dialog" aria-label="Close test notes">×</button></div>
+    <p id="test-notes-kind" class="test-kind"></p>
+    <p id="test-notes-copy"></p>
+    <div id="test-reference-answers" class="reference-answers"></div>
+    <p class="muted">These notes describe the original example. Editing its input or questions may change the expected result. Notes and answer keys are never sent to TypeSafe.</p>
   </dialog>
 
   <dialog id="comparison-dialog">

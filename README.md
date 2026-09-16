@@ -1,8 +1,8 @@
 # TypeSafe AI Playground
 
-A community playground for trying real use cases with [TypeSafe AI](https://typesafe.ai/). Pick an example, inspect its input and questions, and run it through the API.
+A community playground for exploring [TypeSafe AI](https://typesafe.ai/) with practical use cases, party games, dilemmas, and reasoning challenges. Pick an example, inspect its input and questions, and run it through the API.
 
-The library starts with **60 runnable examples in 12 categories**. It is meant to grow through shared experiments and contributions. This is an independent community project, not an official TypeSafe product.
+The library starts with **110 runnable examples in 22 categories**, including **41 A/B comparisons**. It is meant to grow through shared experiments and contributions. This is an independent community project, not an official TypeSafe product.
 
 ![TypeSafe AI Playground showing the example library, editable test input and questions, and live typed results in a three-panel dashboard](docs/screenshots/dashboard.jpg)
 
@@ -42,11 +42,21 @@ An existing environment key still works with that flag. The app does not automat
 
 The desktop layout has three panels so it works well for a Discord screen-share: **Examples → Test setup → Results**. The long sections scroll independently.
 
-1. Search the library or choose a category.
+On a phone, the same flow becomes a three-stage workspace: **Browse → Build → Results**. The stage bar stays available while you work, and selecting an example or finishing a run moves you to the next useful stage.
+
+![Phone-sized Browse stage showing the Fun & games collection and touch-sized controls](docs/screenshots/mobile.jpg)
+
+The responsive layout is included; the server still listens only on the computer's loopback address. Opening it from a separate phone requires a separately secured access setup, which this project does not configure.
+
+1. Choose a **Collection**, narrow it by category, or search the library.
 2. Click an example. Its input and matching questions load together.
 3. Edit the input, change a question, or uncheck questions you do not want to run.
 4. Click **Run example**. One request evaluates all selected questions.
 5. Read the answers beside the input. Export a run if you want to keep or share it.
+
+Use **Input format → Text** for literal text, including bracketed dialogue or JSON-looking strings. **Auto** parses objects and arrays but keeps primitive-looking text such as `42` as text; malformed object/array syntax is flagged. **JSON** explicitly parses a JSON string, object, or array. **Format** pretty-prints valid JSON and selects JSON mode.
+
+On games and challenges, **Test notes** reveals the purpose and any reference answers without spoiling the input. Notes are never sent to TypeSafe. They describe the original example; editing the input or questions can invalidate them. There is no automatic pass/fail grading.
 
 Selecting examples does not call TypeSafe. Only **Run example** and **Run A/B** do. The A/B control makes two requests. Use the community key considerately; this tool has no automatic bulk runner.
 
@@ -58,7 +68,16 @@ Results stay available while the page is open; they are not restored after a rel
 
 ## What's in the catalog?
 
-Each category includes five scenarios with a description, synthetic input, a matching question set, and an idea for a variation.
+Each category includes five scenarios with a description, synthetic input, a matching question set, and an idea for a variation. The **Collection** menu separates four ways to play:
+
+| Collection | Examples | Try these first |
+| --- | ---: | --- |
+| Fun & games | 10 | Hot-dog court, emoji movies, zombie routes, dinner with an alien |
+| Dilemmas & debates | 10 | Trolley lever, Ship of Theseus, an AI art contest, pause vs. rewind |
+| Model challenges | 30 | Monty Hall, bat-and-ball, false beliefs, expert pressure, instruction traps |
+| Use cases | 60 | Community replies, support tickets, invoices, agent review, matched bias checks |
+
+The original practical categories remain available under **Use cases**:
 
 | Category | Examples of what to test |
 | --- | --- |
@@ -77,6 +96,14 @@ Each category includes five scenarios with a description, synthetic input, a mat
 
 Some categories take inspiration from [TypeSafe's workflow evals](https://evals.typesafe.ai/). The prompts and sample records here are original synthetic teaching examples, not a copy of that benchmark or its labels.
 
+The ten new categories are **Party games**, **Weird worlds**, **Moral dilemmas**, **Everyday debates**, **Probability games**, **Reasoning puzzles**, **Beliefs & perspectives**, **Framing & persuasion**, **Instruction traps**, and **Mysteries & uncertainty**.
+
+Background links point to the [Moral Machine experiment](https://www.media.mit.edu/publications/the-moral-machine-experiment/), [Berkeley's Monty Hall explanation](https://www.stat.berkeley.edu/~stark/SticiGui/Text/montyHall.htm), [BIG-Bench Hard](https://github.com/suzgunmirac/BIG-Bench-Hard), and research on [false-belief tasks](https://arxiv.org/abs/2302.02083) and [sycophancy](https://arxiv.org/abs/2310.13548). These are original adaptations for typed questions, not official benchmark implementations or a way to reproduce those papers' scores.
+
+![Monty Hall comparison with informed and uninformed host rules in the Model challenges collection](docs/screenshots/challenges.jpg)
+
+The host's rules change the mathematical answer: switch in A, equal winning odds in B. This captured run gets B wrong by choosing “stay”; the Test notes explain the reference answer. A/B comparisons also cover relevant fact changes—not only changes that should leave the answer unchanged. One captured mistake is an example to investigate, not an aggregate accuracy score.
+
 ## Understanding the answers
 
 - **Noul** returns a probability for a yes/no question.
@@ -85,7 +112,9 @@ Some categories take inspiration from [TypeSafe's workflow evals](https://evals.
 
 Read [TypeSafe's quickstart](https://docs.typesafe.ai/introduction/quickstart) for the API contract. The default model is `jev-latest`; the results record the actual model reported by the API.
 
-A valid typed answer is not necessarily correct. These examples are exploration material, not labeled accuracy tests.
+A valid typed answer is not necessarily correct. **Answer-key puzzles** have manually authored reference choices under stated assumptions. **Open-ended choices** have no right-answer key: disagreement about a trolley dilemma is not a model failure. **Consistency probes** test whether irrelevant pressure or equivalent wording changes an answer. Reference notes are not a validated benchmark or an accuracy report.
+
+Choice probabilities describe the model's distribution over the offered answers. They are not automatically probabilities of events in the story: choosing “switch” in Monty Hall is different from estimating a 2/3 chance of winning.
 
 ### Matched bias checks
 
@@ -105,7 +134,7 @@ An example A/B run. These captured results illustrate the interface, not a fairn
 
 1. Pick an example close to your idea, or click **+ New**.
 2. Edit the input and questions.
-3. Click **Save as new example** and give it a name, category, and description.
+3. Click **Save as new example** and give it a name, collection, category, and description.
 4. Export the library to share your examples.
 
 You can explore without writing code. Browser saves are local; they do not update the repository.
@@ -118,6 +147,7 @@ The shared catalog lives in [web/catalog.json](web/catalog.json). It is ordinary
 schemaVersion
 packs[]
   id, title, description
+  collection (optional, defaults to "Use cases")
   source (optional)
   questions[]
   examples[]
@@ -126,6 +156,7 @@ packs[]
     tryThis
     questions (optional override)
     comparison (optional)
+    test (optional notes and reference answers)
 ```
 
 Add a new entry to an existing pack's `examples` array. It inherits the pack's questions unless it supplies its own:
@@ -192,6 +223,30 @@ To add a matched pair, include an existing field path and its replacement value:
 
 The example's `state.requester.pronouns` must already exist. The app copies the current state and replaces only that field. Reset local edits if you want an updated repository example to replace a saved draft.
 
+### Add games and reference notes
+
+Set the pack's `collection` to `Fun & games`, `Dilemmas & debates`, or `Model challenges` (or give your own collection a name). A flat exported example keeps its collection too. Existing entries without a collection default to `Use cases`.
+
+Add optional teaching notes to an example. This fragment belongs on a Choice question whose ID is `answer` and whose choices include `five` and `fifteen`:
+
+```json
+{
+  "test": {
+    "kind": "puzzle",
+    "note": "The ball costs (total minus price difference) / 2. A gives 5 cents; B gives 15 cents.",
+    "expectedA": { "answer": "five" },
+    "expectedB": { "answer": "fifteen" }
+  }
+}
+```
+
+- `puzzle` needs an `expectedA` map and, when paired, an `expectedB` map. Use actual question IDs and exact Choice option keys. State all assumptions and check the answer independently.
+- `judgment` is open-ended. Supply a note but **no expected-answer maps**; do not turn ethical or taste preferences into correctness labels.
+- `consistency` explains the intended invariant, such as ignoring an irrelevant expert claim. Reference-choice maps are optional.
+- `expectedB` requires a comparison. Notes and reference choices are display-only metadata, preserved by import/export but excluded from API requests.
+
+The browser can view and preserve these notes; author or revise them in catalog/import JSON. If you save an edited copy, its inherited notes still refer to the original until you update them.
+
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution workflow.
 
 ## Development
@@ -225,7 +280,7 @@ The server listens on loopback only and rejects cross-site browser requests. The
 These are ideas, not implemented features:
 
 - Repeated runs and aggregate statistics for consistency and bias comparisons.
-- Expected outcomes, human labels, and accuracy reports.
+- Opt-in grading against reviewed puzzle keys, human labels, and accuracy reports (reference notes already exist).
 - Batch runs with explicit request/token budgets and cancellation.
 - Saved result history and comparisons across model versions.
 - Named suites for demos, regressions, and domain-specific checks.

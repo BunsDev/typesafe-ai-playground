@@ -55,6 +55,23 @@ class ServerContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "at least two criteria"):
             validate_payload(payload)
 
+    def test_question_keys_cannot_collide_after_trimming(self):
+        self.payload["questions"][" intent "] = self.payload["questions"]["urgent"]
+        with self.assertRaisesRegex(ValueError, "Question names must be unique"):
+            validate_payload(self.payload)
+
+    def test_choice_keys_cannot_collide_after_trimming(self):
+        self.payload["questions"]["intent"]["criteria"] = {"yes": "First", " yes ": "Second"}
+        with self.assertRaisesRegex(ValueError, "choice names must be unique"):
+            validate_payload(self.payload)
+
+    def test_noncolliding_keys_are_still_trimmed(self):
+        self.payload["questions"] = {" intent ": self.payload["questions"]["intent"]}
+        self.payload["questions"][" intent "]["criteria"] = {" yes ": "First", " no ": "Second"}
+        result = validate_payload(self.payload)
+        self.assertEqual(list(result["questions"]), ["intent"])
+        self.assertEqual(list(result["questions"]["intent"]["criteria"]), ["yes", "no"])
+
     def test_request_has_bearer_auth_but_no_key_in_body(self):
         request = build_typesafe_request(self.payload, "secret-value", "https://example.test/run")
         self.assertEqual(request.get_header("Authorization"), "Bearer secret-value")
