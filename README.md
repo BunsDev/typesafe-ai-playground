@@ -66,9 +66,19 @@ Browser storage is specific to the browser and address, including the port. It d
 
 Results stay available while the page is open; they are not restored after a reload. **Export run** saves the request, answers, model returned by the API, timing, and token usage. Exported data can include whatever you entered in the input, so review it before sharing.
 
+## Workflow chat
+
+Open **Workflow chat** to discuss a case against an editable decision tree. The starter workflow covers a damaged delivery: sender-caused damage, delivery-caused damage, and first or repeat buyer-caused damage. Expand any rule to change its condition or recommended action, or add a rule for another scenario.
+
+Describe the incident in the composer. The assistant asks for missing cause, evidence, or incident history before recommending an action. Each message makes one TypeSafe request using the conversation and current rules. Recommendations require a recognized rule and a model-reported support probability of at least 80%; that threshold is a demo guard, not proof that the facts are true. Refunds, fines, resends, and bans are displayed only and never executed.
+
+Use **Stop** to abort a pending browser request, **Export case** to save the conversation and decision snapshots, or **New case** to reset the chat. Rule edits affect subsequent messages. Cases and rule edits stay in memory for this page; export before leaving or refreshing. Conversations are bounded at 40 messages (20 user/assistant exchanges) and 40,000 serialized characters, and each message at 8,000 characters. Starting a new case preserves the edited rules.
+
 ## Conversation lab
 
-Open **Conversation lab** in the header and paste a chat directly. Auto-detection supports Discord speaker/timestamp headers, `Name: message` lines, and plain text. The preview preserves multiline replies and shows each speaker, timestamp, and message. With no reliable speaker headers, plain text stays one message with an unknown speaker. Use **Paste format** to override an ambiguous detection. Parsing happens locally without API calls.
+The workspace fills the window with independently scrolling panels. On narrow screens, use **Conversation** and **Results** to switch panels. Running an experiment reveals Results automatically.
+
+Open **Conversation lab** in the header and paste a chat directly. Auto-detection supports Discord speaker/timestamp headers, `Name: message` lines, and plain text. The preview preserves multiline replies and shows each speaker, timestamp, and message. With no reliable speaker headers, plain text stays one message with an unknown speaker. Auto-detection of `Name: message` expects the first line to be a speaker header; choose that format explicitly if your paste starts with introductory text. Use **Paste format** to override an ambiguous detection. Parsing happens locally without API calls.
 
 **Who gets the reply?** evaluates each speaker's latest message using the context preceding it. Later messages are excluded. It makes one request per speaker in parallel batches of three, with no eight-speaker cap. Progress reports completed batches. Each request has its own timeout; cancelling stops queued work and aborts browser requests. Successful results survive individual failures, but an incomplete contest cannot declare a winner. Retrying a run sends new requests for every candidate. The highest reply probability that meets your threshold wins. The result highlights the recipient and their message; ties, missing scores, and nobody meeting the threshold are shown explicitly. Scores are independent model judgments, not a normalized ranking or a measure of correctness.
 
@@ -270,12 +280,14 @@ Python runs the local server using only its standard library. HTML, CSS, and Jav
 ```sh
 python3 -m unittest discover -s tests -v
 python3 -m py_compile server.py run.py
-node --test tests/test_catalog.js tests/test_conversation.js
+node --test tests/test_catalog.js tests/test_conversation.js tests/test_workflow.js
 node --check web/app.js
 node --check web/library.js
 node --check web/theme.js
 node --check web/conversation.js
 node --check web/conversation-ui.js
+node --check web/workflow.js
+node --check web/workflow-ui.js
 ```
 
 The tests use synthetic data and mocked provider responses. No API key or paid calls are needed.
