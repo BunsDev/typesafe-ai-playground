@@ -83,7 +83,7 @@ To test another image:
 
 The image loader accepts PNG, JPEG, WebP, and GIF files up to 4 MB and 20 megapixels. It follows at most three redirects, blocks private/reserved network addresses, pins the resolved connection, and normalizes images to a maximum of 2,000 pixels per side. Animated GIFs use the first frame.
 
-English OCR runs in your browser using a lazily loaded Tesseract worker. Its runtime and language data load from Tesseract's configured public CDNs. If recognition fails or finds no caption, you can enter text and context manually. Loading an image does **not** call Jev.
+English OCR runs in your browser using a lazily loaded Tesseract worker. It compares a standard pass with a contrast pass for outlined white lettering, rejects low-confidence fragments, and uses large vertical gaps to suggest setup and punchline. Identical captions in separate panels are preserved. Review both fields: OCR can confuse letters such as `I` and `l`, and the spatial split does not interpret the joke or handle every layout. Its runtime and language data load from Tesseract's configured public CDNs. If recognition fails or finds no caption, you can enter text and context manually. Loading an image does **not** call Jev.
 
 **Jev evaluates the reviewed text and visual description, not image pixels.** URLs are not a substitute for visual context. The output is a closed-set humor/tone classification, possible confusion, and an estimated probability the joke lands. This is subjective feedback, not measured audience engagement or a promise of virality.
 

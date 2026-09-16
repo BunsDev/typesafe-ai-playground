@@ -83,15 +83,15 @@ export function Memes() {
             <MemeImageInput
               disabled={busy}
               onBusy={setReadingImage}
-              onReady={(url, text, image) => {
+              onReady={(url, captions, image) => {
                 setPreview(image);
                 setInput({
                   name: "Custom image",
-                  setup: "",
-                  punchline: "",
+                  setup: captions.setup,
+                  punchline: captions.punchline,
                   context: "",
                   audience: input.audience,
-                  imageText: text,
+                  imageText: captions.text,
                   imageUrl: url,
                 });
                 setResult(null);
