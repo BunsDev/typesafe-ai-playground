@@ -265,7 +265,7 @@ test("meta meme, image URL OCR review, and GitHub link are usable", async ({
     (route) =>
       route.fulfill({
         contentType: "application/javascript",
-        body: `self.onmessage=({data:m})=>self.postMessage({workerId:m.workerId,jobId:m.jobId,action:m.action,status:'resolve',data:m.action==='recognize'?{text:'OCR meme caption'}:{}});`,
+        body: `self.onmessage=({data:m})=>self.postMessage({workerId:m.workerId,jobId:m.jobId,action:m.action,status:'resolve',data:m.action==='recognize'?{text:'OCR meme caption\\nOCR punchline',blocks:[{paragraphs:[{lines:[{text:'OCR meme caption',confidence:95,bbox:{x0:20,y0:20,x1:400,y1:60}},{text:'OCR punchline',confidence:95,bbox:{x0:20,y0:800,x1:400,y1:840}}]}]}]}:{}});`,
       }),
   );
   let calls = 0;
@@ -273,7 +273,8 @@ test("meta meme, image URL OCR review, and GitHub link are usable", async ({
     calls++;
     const p = route.request().postDataJSON();
     expect(p.state.imageText).toBe("Reviewed meme caption");
-    expect(p.state.setup).toBe("");
+    expect(p.state.setup).toBe("OCR meme caption");
+    expect(p.state.punchline).toBe("OCR punchline");
     return route.fulfill({
       json: { answers: { lands: { type: "noul", noul: 0.7 } } },
     });
@@ -283,7 +284,13 @@ test("meta meme, image URL OCR review, and GitHub link are usable", async ({
     .fill("https://example.com/meme.png");
   await page.getByRole("button", { name: "Read image", exact: true }).click();
   await expect(page.getByLabel("Recognized image text")).toHaveValue(
+    "OCR meme caption\n\nOCR punchline",
+  );
+  await expect(page.getByLabel("Setup / top text")).toHaveValue(
     "OCR meme caption",
+  );
+  await expect(page.getByLabel("Punchline / bottom text")).toHaveValue(
+    "OCR punchline",
   );
   expect(calls).toBe(0);
   await page.getByLabel("Recognized image text").fill("Reviewed meme caption");
@@ -319,4 +326,32 @@ test("question JSON stays synchronized and protects concurrent edits", async ({
   );
   await page.locator(".question-edit").first().locator("summary").click();
   await expect(page.getByLabel("Include this question")).toBeChecked();
+});
+
+test("unreadable meme text does not report a successful extraction", async ({
+  page,
+}) => {
+  await page.goto("/memes");
+  const image = await (await page.request.get("/memes/meta-meme.png")).body();
+  await page.route("**/api/meme-image", (route) =>
+    route.fulfill({ contentType: "image/png", body: image }),
+  );
+  await page.route(
+    "https://cdn.jsdelivr.net/npm/tesseract.js@*/dist/worker.min.js",
+    (route) =>
+      route.fulfill({
+        contentType: "application/javascript",
+        body: `self.onmessage=({data:m})=>self.postMessage({workerId:m.workerId,jobId:m.jobId,action:m.action,status:'resolve',data:m.action==='recognize'?{text:'--',blocks:[{paragraphs:[{lines:[{text:'--',confidence:95,bbox:{x0:0,y0:0,x1:20,y1:20}}]}]}]}:{}});`,
+      }),
+  );
+  await page
+    .getByLabel("Image address URL")
+    .fill("https://example.com/unreadable.png");
+  await page.getByRole("button", { name: "Read image", exact: true }).click();
+  await expect(page.locator(".ocr-status")).toContainText(
+    "No caption detected",
+  );
+  await expect(page.getByLabel("Recognized image text")).toHaveValue("");
+  await expect(page.getByLabel("Setup / top text")).toHaveValue("");
+  await expect(page.getByLabel("Punchline / bottom text")).toHaveValue("");
 });

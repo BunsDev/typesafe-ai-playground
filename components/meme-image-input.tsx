@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { ImagePlus, LoaderCircle } from "lucide-react";
+import type { MemeCaptions } from "../lib/meme-captions";
 import { readMemeText } from "../lib/ocr";
 import { errorMessage } from "../lib/client";
 import { ErrorNote } from "./ui";
@@ -10,7 +11,7 @@ export function MemeImageInput({
   onBusy,
 }: {
   disabled: boolean;
-  onReady: (url: string, text: string, preview: string) => void;
+  onReady: (url: string, captions: MemeCaptions, preview: string) => void;
   onBusy: (busy: boolean) => void;
 }) {
   const [url, setUrl] = useState("");
@@ -45,9 +46,9 @@ export function MemeImageInput({
       }
       const blob = await response.blob();
       preview = URL.createObjectURL(blob);
-      let text = "";
+      let captions: MemeCaptions = { text: "", setup: "", punchline: "" };
       try {
-        text = await readMemeText(blob, signal, setStatus);
+        captions = await readMemeText(blob, signal, setStatus);
       } catch (e) {
         if (signal.aborted) throw e;
         setError(
@@ -55,11 +56,13 @@ export function MemeImageInput({
         );
       }
       signal.throwIfAborted();
-      onReady(source, text, preview);
+      onReady(source, captions, preview);
       preview = "";
       setStatus(
-        text
-          ? "Caption extracted. Review the text before testing."
+        captions.text
+          ? captions.punchline
+            ? "Setup and punchline detected by position. Review both before testing."
+            : "Caption detected. Review the setup and add a punchline if needed."
           : "No caption detected. Add the caption or describe the scene.",
       );
     } catch (e) {
