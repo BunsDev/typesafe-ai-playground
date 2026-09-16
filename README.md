@@ -76,6 +76,8 @@ Use **Stop** to abort a pending browser request, **Export case** to save the con
 
 ## Conversation lab
 
+The workspace fills the window with independently scrolling panels. On narrow screens, use **Conversation** and **Results** to switch panels. Running an experiment reveals Results automatically.
+
 Open **Conversation lab** in the header and paste a chat directly. Auto-detection supports Discord speaker/timestamp headers, `Name: message` lines, and plain text. The preview preserves multiline replies and shows each speaker, timestamp, and message. With no reliable speaker headers, plain text stays one message with an unknown speaker. Auto-detection of `Name: message` expects the first line to be a speaker header; choose that format explicitly if your paste starts with introductory text. Use **Paste format** to override an ambiguous detection. Parsing happens locally without API calls.
 
 **Who gets the reply?** evaluates each speaker's latest message using the context preceding it. Later messages are excluded. It makes one request per speaker in parallel batches of three, with no eight-speaker cap. Progress reports completed batches. Each request has its own timeout; cancelling stops queued work and aborts browser requests. Successful results survive individual failures, but an incomplete contest cannot declare a winner. Retrying a run sends new requests for every candidate. The highest reply probability that meets your threshold wins. The result highlights the recipient and their message; ties, missing scores, and nobody meeting the threshold are shown explicitly. Scores are independent model judgments, not a normalized ranking or a measure of correctness.

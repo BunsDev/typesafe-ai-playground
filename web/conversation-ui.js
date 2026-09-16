@@ -168,6 +168,11 @@
       throw error;
     } finally { clearTimeout(timeout); signal.removeEventListener("abort",abort); }
   }
+  function setLabView(view) {
+    document.querySelector(".lab-grid").dataset.labView=view;
+    document.querySelectorAll("button[data-lab-view]").forEach(button=>button.setAttribute("aria-pressed",String(button.dataset.labView===view)));
+  }
+  document.querySelectorAll("button[data-lab-view]").forEach(button=>button.addEventListener("click",()=>setLabView(button.dataset.labView)));
   async function run(event) {
     event.preventDefault();
     if (busy) return;
@@ -179,7 +184,8 @@
       const input = {transcript:$("lab-transcript").value,policy:$("lab-policy").value,model:$("lab-model").value,format:$("lab-format").value};
       requests = mode === "contest" ? C.buildCandidates(input) : [{variant:"context",payload:C.buildRequest(input,true)}];
       if (mode === "compare") requests.push({variant:"latest",payload:C.buildRequest(input,false)});
-    } catch (error) { $("lab-error").textContent = error.message; if (!$("lab-policy").value.trim()) $("lab-settings").open = true; return; }
+    } catch (error) { $("lab-error").textContent = error.message; if (!$("lab-policy").value.trim()) $("lab-settings").open = true; if (window.matchMedia("(max-width:800px)").matches) setLabView("output"); return; }
+    if (window.matchMedia("(max-width:800px)").matches) setLabView("output");
     busy = true; $("lab-results").setAttribute("aria-busy","true"); $("lab-progress").hidden = false; $("lab-progress").value = 0; $("lab-progress").max = requests.length; $("lab-fields").disabled = true; $("lab-export").disabled = true;
     latest = null; render();
     $("lab-status").textContent = "Running " + requests.length + " request(s)…";

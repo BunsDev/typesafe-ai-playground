@@ -82,6 +82,8 @@
   document.querySelectorAll('[data-example]').forEach(button=>button.addEventListener('click',()=>{$("workflow-message").value=button.dataset.example;$("workflow-message").focus();}));
   $("workflow-export").addEventListener('click',()=>{const url=URL.createObjectURL(new Blob([JSON.stringify({rules,turns,runs},null,2)],{type:'application/json'}));const a=node('a');a.href=url;a.download='workflow-case.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
   renderRules();reset();
-  if(window.matchMedia('(max-width:800px)').matches) $("workflow-policy").open=false;
+  const narrowScreen=window.matchMedia('(max-width:800px)');
+  if(narrowScreen.matches) $("workflow-policy").open=false;
+  narrowScreen.addEventListener('change',event=>{if(event.matches) $("workflow-policy").open=false;});
   fetch('/api/health').then(response=>{if(!response.ok) throw new Error();return response.json();}).then(health=>{$("workflow-health").textContent=health.configured?'API ready':'API key needed';$("workflow-health").classList.add(health.configured?'status-ready':'status-offline');}).catch(()=>{$("workflow-health").textContent='Server offline'; $("workflow-health").classList.add("status-offline");});
 })();

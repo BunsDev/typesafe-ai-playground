@@ -30,8 +30,9 @@
       <div><span class="workspace-eyebrow">Conversation lab</span><h1>Give the right message a reply.</h1><p>Paste a conversation. Set the policy. See who gets the bot’s attention.</p></div>
       <span class="local-badge">Preview only · no messages sent</span>
     </div>
-    <div class="lab-grid">
-      <section class="panel lab-inputs" aria-labelledby="setup-heading">
+    <nav class="lab-mobile-tabs" aria-label="Conversation workspace panels"><button class="button" type="button" data-lab-view="input" aria-controls="lab-input-panel" aria-pressed="true">Conversation</button><button class="button" type="button" data-lab-view="output" aria-controls="lab-output-panel" aria-pressed="false">Results</button></nav>
+    <div class="lab-grid" data-lab-view="input">
+      <section id="lab-input-panel" class="panel lab-inputs" aria-labelledby="setup-heading">
         <div class="lab-section-heading"><div><span class="workspace-eyebrow">Input</span><h2 id="setup-heading">Your conversation</h2></div><span class="surface-caption">Paste → preview → run</span></div>
         <form id="lab-form">
           <fieldset id="lab-fields">
@@ -52,7 +53,7 @@
         </form>
         <details class="lab-disclosure"><summary><span>Frame guide</span><span class="disclosure-hint">Six conversation types</span></summary><dl id="lab-definitions" class="disclosure-body"></dl></details>
       </section>
-      <section class="panel lab-output" aria-labelledby="lab-results-heading">
+      <section id="lab-output-panel" class="panel lab-output" aria-labelledby="lab-results-heading">
         <div class="lab-section-heading"><div><span class="workspace-eyebrow">Output</span><h2 id="lab-results-heading" tabindex="-1">The reply decision</h2></div><button id="lab-export" class="button" disabled>Export JSON</button></div>
         <div class="lab-run-status"><p id="lab-status" role="status">Ready when you are.</p><button id="lab-cancel" type="button" class="text-button" hidden>Cancel run</button></div>
         <progress id="lab-progress" max="1" value="0" aria-label="Candidate evaluation progress" hidden></progress>
