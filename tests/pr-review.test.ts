@@ -215,3 +215,12 @@ test("cancelled review leaves queued hunks explicitly unclassified", async () =>
     "needs_review",
   );
 });
+
+test("plain single-file unified diff has no phantom metadata file", () => {
+  const pr = parsePullRequest({
+    diff: "--- a/src/util.ts\n+++ b/src/util.ts\n@@ -1 +1 @@\n-const x = 1;\n+const x = 2;\n",
+  });
+  assert.equal(pr.files.length, 1);
+  assert.equal(pr.files[0].path, "src/util.ts");
+  assert.equal(pr.files[0].hunks.length, 1);
+});

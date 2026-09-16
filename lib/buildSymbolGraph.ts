@@ -252,18 +252,21 @@ export async function buildSymbolGraph(
         const id = prior?.id || `${file.path}#${name}`;
         const previous = nodes.get(id);
         const parameters = added?.parameters || prior?.parameters || [];
-        const wasPublic = removed?.exported || prior?.exported || false;
+        const wasPublic = removed?.exported ?? prior?.exported ?? false;
+        const isPublic = added?.exported ?? (removed ? false : wasPublic);
         const publicChanged =
-          wasPublic &&
-          ((!!removed && !added) ||
-            (!!removed &&
-              !!added &&
-              (removed.signature !== added.signature ||
-                removed.exported !== added.exported)) ||
-            (!removed &&
-              !!prior &&
-              !!added &&
-              JSON.stringify(prior.parameters) !== JSON.stringify(parameters)));
+          wasPublic !== isPublic ||
+          (wasPublic &&
+            ((!!removed && !added) ||
+              (!!removed &&
+                !!added &&
+                (removed.signature !== added.signature ||
+                  removed.exported !== added.exported)) ||
+              (!removed &&
+                !!prior &&
+                !!added &&
+                JSON.stringify(prior.parameters) !==
+                  JSON.stringify(parameters))));
         const node: SymbolNode = {
           id,
           filePath: file.path,
@@ -271,7 +274,7 @@ export async function buildSymbolGraph(
           kind: added?.kind || prior?.kind || removed?.kind || "module",
           parameters,
           previousParameters: removed?.parameters || prior?.parameters,
-          exported: added?.exported || prior?.exported,
+          exported: isPublic,
           publicChanged: publicChanged || previous?.publicChanged,
           calls: [
             ...new Set([...(previous?.calls || []), ...(prior?.calls || [])]),

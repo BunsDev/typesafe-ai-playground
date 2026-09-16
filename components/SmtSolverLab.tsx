@@ -46,6 +46,7 @@ export function SmtSolverLab() {
   const abort = useRef<AbortController | null>(null);
   useEffect(() => () => abort.current?.abort(), []);
   function invalidate() {
+    setBench([]);
     setResult(null);
     setError("");
     setProgress("");

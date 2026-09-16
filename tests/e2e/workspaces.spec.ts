@@ -805,6 +805,11 @@ test("SMT decomposes independent groups and records measured benchmark rows", as
     timeout: 25000,
   });
   await expect(page.getByText(/5 abstentions or unknowns/)).toBeVisible();
+  await page.locator(".solver-options > summary").click();
+  await page.getByLabel("Full exact check required").check();
+  await expect(
+    page.getByText("No benchmark measurements yet.", { exact: false }),
+  ).toBeVisible();
 });
 
 test("every workspace has a distinct branded OG and matching Twitter preview", async ({

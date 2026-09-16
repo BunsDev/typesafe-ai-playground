@@ -234,3 +234,24 @@ test("literal parameter type changes remain public API evidence after lexical ma
   assert.equal(a.impact.publicApiChanged, true);
   assert.ok(a.checks.findings.some((f) => f.kind === "public_api"));
 });
+
+test("export additions and removals are public API changes", async () => {
+  for (const [before, after, exported] of [
+    ["function helper() {}", "export function helper() {}", true],
+    ["export function helper() {}", "function helper() {}", false],
+    ["", "export function helper() {}", true],
+  ] as const) {
+    const result = await analyzeGovernance({
+      title: "Change public surface",
+      description: "",
+      policy: "[]",
+      manifest: "",
+      diff: `diff --git a/src/util.ts b/src/util.ts\n--- a/src/util.ts\n+++ b/src/util.ts\n@@ -1,${before ? 1 : 0} +1 @@\n${before ? "-" + before + "\n" : ""}+${after}\n`,
+    });
+    assert.equal(result.impact.publicApiChanged, true);
+    assert.equal(
+      result.impact.changedSymbols.find((s) => s.name === "helper")?.exported,
+      exported,
+    );
+  }
+});
