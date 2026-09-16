@@ -35,18 +35,16 @@ export function toHistory(messages: Message[], limit = 40): ChatMessage[] {
 export function splitDocs(text: string): DocSnippet[] {
   const snippets: DocSnippet[] = [];
   let title = "Documentation";
-  for (const block of text.replace(/\r\n?/g, "\n").split(/\n\s*\n/)) {
-    const lines = block
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean);
-    if (lines.length && /^#{1,6}\s+/.test(lines[0]))
-      title = lines.shift()!.replace(/^#{1,6}\s+/, "");
-    for (const line of lines) {
-      const content = line.replace(/^[-*•]\s+/, "").trim();
-      if (content)
-        snippets.push({ id: `D${snippets.length + 1}`, title, content });
+  for (const line of text.replace(/\r\n?/g, "\n").split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    if (/^#{1,6}\s+/.test(trimmed)) {
+      title = trimmed.replace(/^#{1,6}\s+/, "");
+      continue;
     }
+    const content = trimmed.replace(/^[-*•]\s+/, "").trim();
+    if (content)
+      snippets.push({ id: `D${snippets.length + 1}`, title, content });
   }
   return snippets;
 }
