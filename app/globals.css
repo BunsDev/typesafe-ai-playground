@@ -1646,3 +1646,61 @@ blockquote {
     transition: none !important;
   }
 }
+
+/* Keep compact controls comfortable on touch screens, including tablets. */
+@media (pointer: coarse) {
+  .button,
+  .icon-button,
+  .send-button,
+  .sidebar nav a,
+  .suggestions button,
+  summary {
+    min-height: 44px;
+  }
+  .icon-button,
+  .send-button {
+    min-width: 44px;
+  }
+  input:not([type="checkbox"]):not([type="range"]),
+  select {
+    min-height: 44px;
+  }
+  input[type="range"] {
+    min-height: 32px;
+  }
+  .field-options label {
+    min-height: 44px;
+  }
+}
+@media (max-width: 650px) {
+  .app-footer {
+    padding-bottom: max(9px, env(safe-area-inset-bottom));
+  }
+  .composer-area {
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+}
+@media (max-height: 500px) and (min-width: 651px) {
+  .app-header {
+    height: 48px;
+  }
+  .workspace {
+    padding-top: 14px;
+    gap: 12px;
+  }
+  .page-heading p,
+  .page-heading .eyebrow,
+  .app-footer {
+    display: none;
+  }
+  .page-heading h1 {
+    font-size: 22px;
+  }
+  .workspace {
+    padding-bottom: 12px;
+  }
+  .panel-heading {
+    height: 48px;
+    min-height: 48px;
+  }
+}

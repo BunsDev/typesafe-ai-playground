@@ -116,7 +116,9 @@ test("meme test displays classifications and preserves a clear failure state", a
     }),
   );
   await page.getByRole("button", { name: "Test meme", exact: true }).click();
-  await expect(page.locator("main").getByRole("alert")).toContainText("Rate limit reached");
+  await expect(page.locator("main").getByRole("alert")).toContainText(
+    "Rate limit reached",
+  );
   await expect(page.locator(".meme-verdict")).toHaveCount(0);
 });
 test("workflow renders supported policy action without executing it", async ({
@@ -185,4 +187,57 @@ test("example edits persist across refresh", async ({ page }) => {
     .toContain("My saved example");
   await page.reload();
   await expect(page.locator("#example-state")).toHaveValue("My saved example");
+});
+
+test("responsive boundaries and short landscape keep actions reachable", async ({
+  page,
+}, info) => {
+  test.skip(info.project.name !== "desktop", "Viewport matrix runs once.");
+  for (const [width, height] of [
+    [320, 568],
+    [650, 700],
+    [651, 700],
+    [844, 390],
+    [900, 700],
+    [1024, 768],
+    [1200, 800],
+    [1440, 900],
+    [2560, 1440],
+  ]) {
+    await page.setViewportSize({ width, height });
+    for (const route of [
+      "/",
+      "/conversation",
+      "/workflow",
+      "/extraction",
+      "/memes",
+    ]) {
+      await page.goto(route);
+      await expect(page.locator("h1")).toBeVisible();
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+        `${route} at ${width}x${height}`,
+      ).toBe(true);
+      const action = page.getByRole("button", {
+        name:
+          route === "/"
+            ? "Run example"
+            : route === "/conversation"
+              ? "Pick a recipient"
+              : route === "/workflow"
+                ? "Send message"
+                : route === "/extraction"
+                  ? "Run extraction"
+                  : "Test meme",
+        exact: true,
+      });
+      await action.scrollIntoViewIfNeeded();
+      const bounds = await action.boundingBox();
+      expect(bounds, `${route} action bounds`).not.toBeNull();
+      expect(bounds!.y).toBeGreaterThanOrEqual(0);
+      expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(height);
+    }
+  }
 });
