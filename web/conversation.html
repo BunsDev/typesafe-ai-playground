@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f4f6f8" />
+  <title>Conversation lab · TypeSafe AI</title>
+  <script src="/theme.js"></script>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/conversation.css" />
+  <script src="/conversation.js" defer></script>
+  <script src="/conversation-ui.js" defer></script>
+</head>
+<body class="conversation-page">
+  <header class="topbar">
+    <a class="wordmark" href="/">TypeSafe AI <span class="muted">/ Playground</span></a>
+    <div class="topbar-actions"><button id="theme-toggle" class="button" type="button" aria-pressed="false">Dark mode</button><span id="lab-health" class="status-chip">Checking connection</span></div>
+  </header>
+  <main class="lab-shell">
+    <div class="lab-intro"><a href="/">← Example library</a><h1>Conversation lab</h1><p>Explore when a bot should respond and how context changes the meaning of a message.</p></div>
+    <div class="lab-grid">
+      <section class="panel lab-inputs" aria-labelledby="setup-heading">
+        <h2 id="setup-heading">Conversation & policy</h2>
+        <form id="lab-form">
+          <fieldset id="lab-fields">
+            <label for="lab-sample">Starter conversation</label>
+            <select id="lab-sample"><option value="followup">Support follow-up</option><option value="chatter">An answered question</option></select>
+            <label for="lab-transcript">Paste a conversation <span class="muted">Discord logs, Name: message, or plain text. Multiline replies stay together.</span></label>
+            <textarea id="lab-transcript" rows="8" required maxlength="40000" placeholder="Paste your chat here, including names and timestamps…"></textarea>
+            <label for="lab-format">Paste format</label>
+            <select id="lab-format"><option value="auto">Auto-detect</option><option value="discord">Discord headers</option><option value="labeled">Name: message</option><option value="plain">Plain text (one message)</option></select>
+            <details id="lab-preview" class="transcript-preview" open><summary id="lab-parse-summary">Parsed conversation</summary><p id="lab-preview-note" class="muted">The last speaker block is the target. Consecutive lines without a new header stay together. Check the preview; change the format or edit the paste if needed.</p><p id="lab-parse-error" class="form-error" role="status"></p><ol id="lab-messages"></ol></details>
+            <label for="lab-policy">Bot policy</label>
+            <textarea id="lab-policy" rows="4" required maxlength="8000">You are a helpful community bot. Respond to substantive questions and requests where your help would be useful. Stay quiet for casual chat, acknowledgments, and informational posts that do not ask for help.</textarea>
+            <div class="lab-fields-row">
+              <div><label for="lab-model">Model</label><input id="lab-model" value="jev-latest" maxlength="100" /></div>
+              <div><label for="lab-expected">Expected frame (optional)</label><select id="lab-expected"><option value="">Unlabeled</option></select></div>
+            </div>
+            <label for="lab-mode">Demo mode</label>
+            <select id="lab-mode"><option value="contest">Who gets the reply?</option><option value="compare">Compare context (A/B)</option><option value="single">Evaluate final message</option></select>
+            <p id="lab-request-note" class="muted"></p>
+            <p class="muted">Run sends this transcript and policy to TypeSafe. No Discord connection or message sending.</p>
+            <button class="button button-primary" id="lab-run" type="submit">Pick a recipient</button>
+          </fieldset>
+        </form>
+        <button id="lab-cancel" type="button" class="button" hidden>Cancel remaining requests</button>
+        <details><summary>Frame definitions</summary><dl id="lab-definitions"></dl></details>
+      </section>
+      <section class="panel lab-output" aria-labelledby="lab-results-heading">
+        <div class="lab-results-heading"><h2 id="lab-results-heading">Who gets the reply?</h2><button id="lab-export" class="button" disabled>Export run</button></div>
+        <label for="lab-threshold">Response threshold <output id="lab-threshold-value">70%</output></label>
+        <input id="lab-threshold" type="range" min="0" max="100" step="1" value="70" />
+        <p class="muted">Respond when the yes probability meets or exceeds this threshold. Adjusting it makes no API calls.</p>
+        <p id="lab-status" role="status">Ready. Choose a starter or paste your own conversation.</p>
+        <p id="lab-error" class="form-error" role="alert"></p>
+        <div id="lab-results" aria-live="polite"></div>
+        <details><summary>Session frame evaluation</summary><p class="muted">Counts labeled, valid predictions from successful runs in this tab. Repeats count again. This small, self-selected sample is not a benchmark; labels apply to both variants. Rows are expected frames, columns are predictions.</p><div id="lab-metrics"></div><button id="lab-clear" class="button">Clear evaluation</button></details>
+      </section>
+    </div>
+  </main>
+</body>
+</html>
