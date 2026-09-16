@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f4f6f8" />
+  <title>TypeSafe AI · Example playground</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <script src="/library.js" defer></script>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="wordmark" href="/" aria-label="TypeSafe AI Playground home"><span class="brand-icon" aria-hidden="true">T</span>TypeSafe AI <span class="muted">/ Playground</span></a>
+      <div class="topbar-actions">
+        <a href="https://evals.typesafe.ai/" target="_blank" rel="noreferrer">Reference evals ↗</a>
+        <span id="connection-status" class="status-chip">Checking connection</span>
+      </div>
+    </header>
+    <main class="workspace" aria-label="Example playground">
+      <aside class="panel library-panel" aria-label="Use-case library">
+        <div class="panel-heading">
+          <h1>Examples <span id="example-total" class="count">0</span></h1>
+          <button id="new-example-button" class="button" type="button">+ New</button>
+        </div>
+        <label class="sr-only" for="example-search">Search examples</label>
+        <input id="example-search" type="search" placeholder="Search use cases…" autocomplete="off" />
+        <div class="library-filters">
+          <label class="sr-only" for="category-filter">Category</label>
+          <select id="category-filter"><option value="all">All categories</option></select>
+          <button id="saved-filter" class="button" type="button" aria-pressed="false">My examples</button>
+        </div>
+        <div id="library-count" class="small muted" role="status">Loading library…</div>
+        <div id="example-list" class="example-list scroll-region" aria-label="Examples"></div>
+        <div class="library-footer">
+          <button id="import-button" class="button" type="button">Import JSON</button>
+          <button id="export-library-button" class="button" type="button">Export library</button>
+        </div>
+      </aside>
+
+      <section class="panel test-panel" aria-labelledby="example-title">
+        <div class="example-heading">
+          <div class="eyebrow"><span id="example-category">Use case</span><span id="draft-indicator" class="draft-indicator" hidden>Edited · saved locally</span></div>
+          <h2 id="example-title">Loading examples…</h2>
+          <p id="example-description"></p>
+        </div>
+        <div class="run-toolbar">
+          <label class="model-field" for="model-input">Model <input id="model-input" value="jev-latest" autocomplete="off" /></label>
+          <span id="run-summary" class="small muted">Choose an example</span>
+          <button id="run-button" class="button button-primary" type="button" disabled>Run example</button>
+        </div>
+        <div class="state-section">
+          <div class="section-toolbar">
+            <h3>Input state</h3>
+            <div class="toolbar-actions">
+              <button id="format-state-button" class="text-button" type="button">Format</button>
+              <button id="copy-payload-button" class="text-button" type="button">Copy request</button>
+            </div>
+          </div>
+          <label class="sr-only" for="state-input">State to evaluate</label>
+          <textarea id="state-input" spellcheck="false" placeholder="Choose an example to load its input."></textarea>
+          <div class="state-note"><span id="state-format-note">Text or JSON</span><span id="input-kind">Synthetic starter data</span></div>
+        </div>
+        <div id="comparison-panel" class="comparison-panel" hidden>
+          <div><strong>A/B comparison</strong><span id="comparison-summary"></span></div>
+          <button id="preview-pair-button" class="button" type="button">View B</button>
+          <button id="bias-run-button" class="button" type="button">Run A/B</button>
+        </div>
+        <section class="questions-section" aria-labelledby="questions-heading">
+          <div class="section-toolbar">
+            <h3 id="questions-heading">Questions <span id="selection-count" class="count">0</span></h3>
+            <div class="toolbar-actions">
+              <button id="select-all-button" class="text-button" type="button">Select all</button>
+              <button id="new-question-button" class="button" type="button">+ Question</button>
+            </div>
+          </div>
+          <div id="catalog-list" class="question-list scroll-region"></div>
+        </section>
+        <div class="example-footer">
+          <p id="example-tip"></p>
+          <div class="footer-actions">
+            <a id="source-link" target="_blank" rel="noreferrer" hidden>Workflow inspiration ↗</a>
+            <span class="spacer"></span>
+            <button id="reset-example-button" class="text-button" type="button">Reset example</button>
+            <button id="save-example-button" class="button" type="button">Save as new example</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel results-panel" aria-labelledby="results-title">
+        <div class="panel-heading"><h2 id="results-title">Results</h2><span id="result-status" class="count">Ready</span></div>
+        <div id="results-meta" class="results-meta"></div>
+        <div id="results-content" class="results-content scroll-region" aria-live="polite">
+          <div class="empty-state"><strong>Choose an example, then run it.</strong><p>Typed answers appear here. The input and questions stay beside the results.</p></div>
+        </div>
+        <div class="results-footer"><span id="results-note">Runs only when you click Run.</span><button id="export-run-button" class="text-button" type="button" disabled>Export run</button></div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="question-dialog">
+    <form id="question-form">
+      <div class="dialog-heading"><h2 id="dialog-title">New question</h2><button type="button" class="close-button" data-close="question-dialog" aria-label="Close question editor">×</button></div>
+      <input id="editing-id" type="hidden" />
+      <div class="form-grid">
+        <label>Name<input id="question-label" required /></label>
+        <label>Question key<input id="question-id" required pattern="[A-Za-z][A-Za-z0-9_-]*" /></label>
+      </div>
+      <label>Type<select id="question-type"><option value="noul">Noul · probability of yes</option><option value="choice">Choice · one option</option><option value="score">Score · ordered levels</option></select></label>
+      <label>Instructions<textarea id="question-instructions" rows="3" required></textarea></label>
+      <label id="criteria-field" hidden>Criteria<textarea id="criteria-input" rows="5" spellcheck="false"></textarea><small id="criteria-help"></small></label>
+      <p id="question-error" class="form-error" role="alert"></p>
+      <div class="dialog-footer"><button type="button" class="button" data-close="question-dialog">Cancel</button><button type="submit" class="button button-primary">Save question</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="example-dialog">
+    <form id="example-form">
+      <div class="dialog-heading"><h2 id="save-dialog-title">Save as new example</h2><button type="button" class="close-button" data-close="example-dialog" aria-label="Close example editor">×</button></div>
+      <p class="muted" id="save-dialog-note">Save the current input and questions as a separate example.</p>
+      <label>Example name<input id="new-example-title" required maxlength="100" /></label>
+      <label>Category<input id="new-example-category" list="category-options" required /><datalist id="category-options"></datalist></label>
+      <label>Description<textarea id="new-example-description" rows="2" required></textarea></label>
+      <label>Something to try <span class="muted">(optional)</span><input id="new-example-tip" /></label>
+      <p id="example-error" class="form-error" role="alert"></p>
+      <div class="dialog-footer"><button type="button" class="button" data-close="example-dialog">Cancel</button><button type="submit" class="button button-primary">Save example</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="import-dialog">
+    <form id="import-form">
+      <div class="dialog-heading"><h2>Import examples</h2><button type="button" class="close-button" data-close="import-dialog" aria-label="Close import">×</button></div>
+      <p class="muted">Paste an exported library. Imported examples are saved as your own copies.</p>
+      <label>Library JSON<textarea id="import-input" rows="12" spellcheck="false" required placeholder='{"schemaVersion":1,"examples":[…]}'></textarea></label>
+      <p id="import-error" class="form-error" role="alert"></p>
+      <div class="dialog-footer"><button type="button" class="button" data-close="import-dialog">Cancel</button><button type="submit" class="button button-primary">Import examples</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="comparison-dialog">
+    <div class="dialog-heading"><h2>Variant B</h2><button type="button" class="close-button" data-close="comparison-dialog" aria-label="Close comparison preview">×</button></div>
+    <p id="comparison-path" class="muted"></p><pre id="comparison-preview"></pre>
+  </dialog>
+  <div id="toast" class="toast" role="status"></div>
+</body>
+</html>

@@ -1,0 +1,16 @@
+.agent/local/
+.agent/private/
+.agent/tmp/
+.agent/**/*.secret.*
+.agent/**/secrets.*
+.agent/**/.env*
+!.agent/templates/.env.example
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+.DS_Store
+.venv/
+node_modules/
+coverage/
