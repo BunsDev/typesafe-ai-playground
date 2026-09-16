@@ -66,6 +66,20 @@ Browser storage is specific to the browser and address, including the port. It d
 
 Results stay available while the page is open; they are not restored after a reload. **Export run** saves the request, answers, model returned by the API, timing, and token usage. Exported data can include whatever you entered in the input, so review it before sharing.
 
+## Conversation lab
+
+Open **Conversation lab** in the header and paste a chat directly. Auto-detection supports Discord speaker/timestamp headers, `Name: message` lines, and plain text. The preview preserves multiline replies and shows each speaker, timestamp, and message. With no reliable speaker headers, plain text stays one message with an unknown speaker. Use **Paste format** to override an ambiguous detection. Parsing happens locally without API calls.
+
+**Who gets the reply?** evaluates each speaker's latest message using the context preceding it. Later messages are excluded. It makes one request per speaker in parallel batches of three, with no eight-speaker cap. Progress reports completed batches. Each request has its own timeout; cancelling stops queued work and aborts browser requests. Successful results survive individual failures, but an incomplete contest cannot declare a winner. Retrying a run sends new requests for every candidate. The highest reply probability that meets your threshold wins. The result highlights the recipient and their message; ties, missing scores, and nobody meeting the threshold are shown explicitly. Scores are independent model judgments, not a normalized ranking or a measure of correctness.
+
+Choose **Compare context (A/B)** to send two requests: A includes the full transcript; B includes only its final message block. Both use the same policy, model, and six frame definitions. **Evaluate final message** sends one full-context request.
+
+Move the response threshold to recalculate decisions and the selected recipient locally without another API call. The gate simulates a decision; it does not connect to Discord or send messages.
+
+For A/B and final-message modes, optionally choose an expected frame before running. The session evaluation counts valid labeled predictions separately for each variant and displays confusion matrices. Editing the transcript or paste format clears its expected label. Labels apply to both variants, and repeated runs count again. These exploratory results do not reproduce an external accuracy claim or establish benchmark performance.
+
+Inputs and results stay in the current page only. **Export run** saves the parsed messages, policy, requests, responses, expected label, and current threshold decisions, including the selected recipient in contest mode. Review the export before sharing it.
+
 ## What's in the catalog?
 
 Each category includes five scenarios with a description, synthetic input, a matching question set, and an idea for a variation. The **Collection** menu separates four ways to play:
@@ -256,9 +270,12 @@ Python runs the local server using only its standard library. HTML, CSS, and Jav
 ```sh
 python3 -m unittest discover -s tests -v
 python3 -m py_compile server.py run.py
-node --test tests/test_catalog.js
+node --test tests/test_catalog.js tests/test_conversation.js
 node --check web/app.js
 node --check web/library.js
+node --check web/theme.js
+node --check web/conversation.js
+node --check web/conversation-ui.js
 ```
 
 The tests use synthetic data and mocked provider responses. No API key or paid calls are needed.

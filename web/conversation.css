@@ -1,0 +1,80 @@
+.conversation-page { height:auto; min-height:100dvh; }
+.lab-shell { max-width:1400px; margin:auto; padding:24px; }
+.lab-intro { margin-bottom:22px; }
+.lab-intro h1 { font-size:28px; margin:12px 0 8px; }
+.lab-intro p { color:var(--muted); line-height:1.6; }
+.lab-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:18px; align-items:start; }
+.lab-grid > .panel { padding:20px; gap:16px; overflow:visible; }
+.lab-grid h2 { font-size:17px; }
+.lab-grid p { line-height:1.55; }
+.lab-grid label { display:block; margin:14px 0 7px; font-weight:550; }
+.lab-grid label span { display:block; font-size:11px; font-weight:400; margin-top:4px; }
+.lab-grid input:not([type=checkbox]),.lab-grid textarea,.lab-grid select { width:100%; }
+.lab-grid textarea { resize:vertical; }
+.lab-grid fieldset { border:0; padding:0; margin:0; min-width:0; }
+.lab-fields-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.lab-grid .lab-check { display:flex; align-items:center; gap:10px; line-height:1.5; }
+#lab-run { width:100%; margin-top:16px; min-height:42px; }
+.lab-results-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.lab-grid summary { cursor:pointer; font-weight:600; margin-bottom:12px; }
+.lab-grid dt { color:var(--accent); margin-top:12px; }
+.lab-grid dd { margin:4px 0; color:var(--muted); line-height:1.5; }
+.lab-grid .result-card { background:var(--soft); }
+.lab-grid .answer-number { margin:8px 0; }
+.lab-grid output { float:right; color:var(--accent); }
+.lab-table-scroll { overflow:auto; margin:12px 0; }
+.lab-grid table { border-collapse:collapse; font:10px var(--mono); width:100%; }
+.lab-grid th,.lab-grid td { padding:7px; border:1px solid var(--line); text-align:center; }
+.lab-grid th { background:var(--soft); }
+.lab-grid .button:focus-visible { outline:2px solid var(--accent); }
+@media (max-width:800px) {
+  .lab-grid { grid-template-columns:1fr; }
+  .lab-shell { padding:16px 10px; }
+  .lab-grid > .panel { padding:16px; }
+  .lab-grid .button { min-height:44px; }
+}
+.transcript-preview { margin:14px 0 20px; border:1px solid var(--line); border-radius:8px; padding:12px; }
+#lab-messages { list-style:none; margin:12px 0 0; padding:0; max-height:340px; overflow:auto; }
+.parsed-message { padding:12px; border-top:1px solid var(--line); }
+.parsed-message.is-target { background:var(--accent-soft); border-radius:6px; }
+.parsed-message-heading { display:flex; flex-wrap:wrap; align-items:center; gap:8px; font-size:11px; }
+.parsed-message p,.decision-target p { white-space:pre-wrap; overflow-wrap:anywhere; margin-top:8px; font-size:12px; }
+.target-badge { color:var(--accent); font-size:10px; font-weight:650; margin-left:auto; }
+.lab-empty { border:1px dashed var(--line); border-radius:10px; padding:36px 22px; text-align:center; color:var(--muted); }
+.lab-empty strong { display:block; color:var(--ink); font-size:17px; margin-bottom:8px; }
+.decision-target { padding:12px 0; margin-bottom:16px; border-block:1px solid var(--line); }
+.lab-grid .decision-target summary { margin:0; font-weight:500; font-size:12px; overflow-wrap:anywhere; }
+.decision-target p { max-height:240px; overflow:auto; }
+.decision-cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.decision-card { --decision-color:var(--green); background:var(--soft); border:1px solid var(--line); border-radius:12px; padding:18px; min-width:0; }
+.decision-card:only-child { grid-column:1/-1; }
+.decision-skip { --decision-color:var(--muted); }
+.decision-unavailable { --decision-color:var(--amber); }
+.decision-variant { color:var(--muted); font-size:11px; font-weight:500; }
+.decision-hero { display:flex; gap:10px; align-items:center; margin:20px 0 8px; color:var(--decision-color); }
+.decision-icon { display:grid; place-items:center; border:1px solid currentColor; border-radius:50%; width:28px; height:28px; font-size:20px; flex:none; }
+.decision-title { font-size:27px; letter-spacing:-.04em; overflow-wrap:anywhere; }
+.decision-description { font-size:12px; color:var(--muted); min-height:38px; }
+.decision-probability { display:flex; justify-content:space-between; gap:6px; margin-top:20px; font-size:11px; color:var(--muted); }
+.decision-probability strong { color:var(--ink); font-variant-numeric:tabular-nums; }
+.decision-track { position:relative; height:6px; background:var(--track); border-radius:3px; margin:10px 0; }
+.decision-track span { display:block; height:100%; background:var(--decision-color); border-radius:3px; }
+.decision-track i { position:absolute; top:-3px; bottom:-3px; width:2px; transform:translateX(-1px); background:var(--ink); }
+.decision-threshold,.decision-expected,.decision-model { font-size:10px; color:var(--muted); }
+.decision-frame { display:flex; flex-wrap:wrap; align-items:center; gap:8px; justify-content:space-between; margin:20px 0 8px; padding-top:14px; border-top:1px solid var(--line); font-size:11px; color:var(--muted); }
+.frame-badge { background:var(--accent-soft); color:var(--accent); padding:5px 7px; border-radius:5px; }
+.decision-model { margin-top:16px; }
+.context-summary { margin-top:14px; padding:14px; background:var(--accent-soft); border-radius:8px; }
+.context-summary strong { font-size:12px; }
+.context-summary p { color:var(--muted); font-size:11px; margin-top:4px; }
+@media (min-width:801px) and (max-width:1100px),(max-width:430px) { .decision-cards { grid-template-columns:1fr; } }
+.winner-banner { padding:22px; border:1px solid var(--line); border-radius:12px; background:var(--soft); margin-bottom:16px; }
+.winner-banner.has-winner { background:var(--green-soft); border-color:var(--green); }
+.winner-eyebrow { display:block; color:var(--green); font-size:10px; font-weight:750; letter-spacing:.14em; margin-bottom:10px; }
+.lab-grid .winner-title { font-size:25px; letter-spacing:-.035em; line-height:1.2; overflow-wrap:anywhere; }
+.winner-description { margin-top:10px; color:var(--muted); font-size:12px; }
+.winner-message { margin:16px 0 0; padding:12px; border-left:3px solid var(--green); background:var(--panel); border-radius:0 6px 6px 0; font-size:13px; white-space:pre-wrap; overflow-wrap:anywhere; max-height:180px; overflow:auto; }
+.decision-variant { overflow-wrap:anywhere; }
+.candidate-message { margin-top:14px; font-size:11px; }
+.lab-grid .candidate-message summary { font-size:11px; font-weight:500; color:var(--muted); }
+.candidate-message p { white-space:pre-wrap; overflow-wrap:anywhere; max-height:180px; overflow:auto; }

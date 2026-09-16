@@ -55,9 +55,12 @@ examples. Additions should not require changing UI code.
 ```sh
 python3 -m unittest discover -s tests -v
 python3 -m py_compile server.py run.py
-node --test tests/test_catalog.js
+node --test tests/test_catalog.js tests/test_conversation.js
 node --check web/app.js
 node --check web/library.js
+node --check web/theme.js
+node --check web/conversation.js
+node --check web/conversation-ui.js
 ```
 
 These checks are offline. Never add an API key to CI or make shared-key calls
