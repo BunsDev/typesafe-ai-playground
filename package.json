@@ -1,7 +1,33 @@
 {
+  "name": "typesafe-ai-playground",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test tests/test_catalog.js tests/test_conversation.js tests/test_workflow.js && tsx --test tests/extraction.test.ts tests/api.test.ts tests/meme-image.test.ts",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "22.20.3",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "prettier": "3.9.7",
+    "tsx": "4.23.13",
+    "typescript": "7.0.2"
+  },
   "dependencies": {
     "ipaddr.js": "2.5.0",
-    "tesseract.js": "7.0.0",
-    "undici": "8.10.2"
+    "lucide-react": "1.46.0",
+    "next": "16.3.5",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "sharp": "0.35.4",
+    "tesseract.js": "7.0.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
   }
 }

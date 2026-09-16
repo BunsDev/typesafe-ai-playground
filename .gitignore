@@ -14,5 +14,13 @@ __pycache__/
 .venv/
 node_modules/
 coverage/
-/.next
-/.playwright-mcp
+
+.next/
+.vercel/
+*.tsbuildinfo
+next-env.d.ts
+.playwright-mcp/
+.vercel
+
+playwright-report/
+test-results/
