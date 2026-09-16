@@ -1,5 +1,17 @@
 import type { Metadata } from "next";
 export const SOCIAL_PAGES = {
+  doom: {
+    path: "/doom",
+    title: "Jev plays Doom",
+    description: "Ten actions. One tiny decision at a time.",
+    category: "REACTIVE GAME CONTROL",
+    steps: [
+      "Capture structured state",
+      "Choose a fixed action",
+      "Play and compare",
+    ],
+    result: "Game state → next action",
+  },
   reranker: {
     path: "/reranker",
     title: "Vector reranker",

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Shell } from "../components/shell";
 import "./globals.css";
+import "./brand.css";
 export const metadata: Metadata = {
   metadataBase: new URL("https://typesafe-ai-playground.vercel.app"),
   title: "TypeSafe · Playground",

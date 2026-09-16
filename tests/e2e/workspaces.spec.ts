@@ -21,6 +21,7 @@ test("all workspaces fit the viewport and navigate without runtime errors", asyn
     "/tool-router",
     "/langchain",
     "/reranker",
+    "/doom",
   ]) {
     await page.goto(path);
     await expect(page.locator("h1")).toBeVisible();
@@ -240,6 +241,7 @@ for (const [width, height] of [
         "/tool-router",
         "/langchain",
         "/reranker",
+        "/doom",
       ]) {
         await page.goto(route);
         await expect(page.locator("h1")).toBeVisible();
@@ -276,7 +278,9 @@ for (const [width, height] of [
                               ? "Invoke LangChain tool"
                               : route === "/reranker"
                                 ? "Compare both"
-                                : "Test meme",
+                                : route === "/doom"
+                                  ? "Start arena"
+                                  : "Test meme",
           exact: true,
         });
         await action.scrollIntoViewIfNeeded();
@@ -821,6 +825,7 @@ test("every workspace has a distinct branded OG and matching Twitter preview", a
     "/tool-router",
     "/langchain",
     "/reranker",
+    "/doom",
   ]) {
     await page.goto(path);
     const og = await page

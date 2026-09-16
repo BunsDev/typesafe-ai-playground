@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   ArrowUpRight,
+  Gamepad2,
   ArrowDownWideNarrow,
   Laugh,
   Blocks,
@@ -80,6 +81,12 @@ const pages = [
     icon: ArrowDownWideNarrow,
     detail: "Compare relevance",
   },
+  {
+    href: "/doom",
+    label: "Jev plays Doom",
+    icon: Gamepad2,
+    detail: "Play with a classifier",
+  },
   { href: "/memes", label: "Meme lab", icon: Laugh, detail: "Read the room" },
 ];
 export function Shell({ children }: { children: React.ReactNode }) {
@@ -110,12 +117,16 @@ export function Shell({ children }: { children: React.ReactNode }) {
         Skip to workspace
       </a>
       <aside className="sidebar">
-        <Link className="brand" href="/">
+        <Link
+          className="brand"
+          href="/"
+          aria-label="TypeSafe AI community playground"
+        >
           <span className="brand-mark">
-            <Blocks size={21} />
+            <img src="/brand/mark.jpg" width={32} height={32} alt="" />
           </span>
           <span>
-            TypeSafe<span className="brand-sub">PLAYGROUND</span>
+            TypeSafe AI<span className="brand-sub">COMMUNITY PLAYGROUND</span>
           </span>
         </Link>
         <div className="nav-label">WORKSPACE</div>

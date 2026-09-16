@@ -58,6 +58,6 @@ and decoded pixels. It resolves each destination, rejects private/reserved IPs,
 and pins the actual TLS connection to the validated address. No TypeSafe key or
 browser cookies are forwarded to image hosts.
 
-Each workspace has a statically generated 1200 × 630 `opengraph-image` route. `lib/social.ts` supplies per-page titles, descriptions, canonical paths and matching Twitter metadata; `lib/social-image.tsx` renders the shared charcoal/lavender design. When adding a page, add its registry entry, call `pageMetadata`, and add a small `opengraph-image.tsx` entry point. `public/og.png` remains the README artwork.
+Each workspace has a statically generated 1200 × 630 `opengraph-image` route. `lib/social.ts` supplies per-page titles, descriptions, canonical paths and matching Twitter metadata; `lib/social-image.tsx` renders the shared pink/sky-blue TypeSafe design with locally stored reference artwork. When adding a page, add its registry entry, call `pageMetadata`, and add a small `opengraph-image.tsx` entry point. `public/og.png` remains the README artwork.
 
 The SMT endpoint uses the Node.js `z3-solver` WASM package. `next.config.ts` externalizes it and traces the WASM/runtime files into `/api/solve`; do not move it to the Edge runtime. Queue, input, timeout and solver-resource limits are also enforced locally.

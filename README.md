@@ -39,11 +39,14 @@ Open the address printed by Next.js, normally http://localhost:3000. To choose a
 | **Tool router** `/tool-router`        | Follow a LangGraph-style mock workflow with closed-set node selection, policy blocks, approval gates and a step log.                |
 | **Vector reranker** /reranker         | Compare vector order, batched Jev relevance, and an explicit lexical mock baseline. Inspect rank disagreements and source snippets. |
 | **LangChain** `/langchain`            | Invoke a real LangChain routing tool with live or mocked Jev predictions; inspect typed policy-gated output.                        |
+| **Jev plays Doom** `/doom` | Play an original browser maze shooter, hand control to Jev, and compare against a seeded random baseline. |
 | **Meme lab** `/memes`                 | Test humor style, audience fit, tone, and likely confusion using captions or reviewed text from an image URL.                       |
+
+The supplied TypeSafe [banner](https://pbs.twimg.com/profile_banners/2014504062797152256/1789084216/1500x500) and [profile mark](https://pbs.twimg.com/profile_images/2100293691227447296/bVoZ2u00_400x400.jpg) are stored locally in public/brand. The social images use IBM Plex Sans, distributed with its [SIL Open Font License](public/brand/OFL.txt). This remains an unofficial community playground.
 
 Every page has its own 1200 × 630 Open Graph image and Twitter preview. A shared branded template keeps route titles, descriptions and images consistent.
 
-The interface uses charcoal surfaces, lavender accents, serif headlines, dark/light themes, and responsive panels. Desktop panels scroll independently; narrow screens stack content. Examples has a collapsible Results rail, which opens when a run begins. Mobile controls have larger touch targets, and reduced-motion preferences are respected.
+The interface follows TypeSafe’s pink/sky-blue dithered artwork, geometric mark, bold sans-serif headlines, monospace labels, and compact window borders. Light and dark themes share the same responsive layout. Desktop panels scroll independently; narrow screens stack content. Examples has a collapsible Results rail, which opens when a run begins. Mobile controls have larger touch targets, and reduced-motion preferences are respected.
 
 ### Examples
 
@@ -174,3 +177,13 @@ The original static playground remains in `web/`. With Python 3.10+, run `python
 Add synthetic scenarios to `web/catalog.json`, include stable IDs and clear questions, and run the checks above. See [CONTRIBUTING.md](CONTRIBUTING.md). Jev's `noul`, `choice`, and `score` outputs are typed decisions; a valid typed answer can still be wrong.
 
 Thanks again to **[@nickthompson480](https://github.com/nickthompson480)** for sharing the [original playground](https://github.com/nickthompson480/typesafe-ai-playground), and to TypeSafe AI for Jev. This fork retains the [MIT license](LICENSE).
+
+### Jev plays Doom
+
+Open `/doom` and start the arena in Human, Jev, or Random mode. All modes use the same seeded maze, 200ms simulation clock, and 90-second limit. Focus the arena for W/S movement, A/D strafing, Q/E turning, Space firing, F doors, and R items; on-screen controls also support touch. Switching modes saves the current run in the session scoreboard and resets the arena.
+
+The browser extracts deterministic visibility, distance, bearing, health, ammo, obstacles, and item features. Jev receives 1, 4, or 8 captured frames and chooses only among the ten displayed actions. Calls use the existing server-side API key setup. The newest answer may control the game only while at most two ticks old; earlier frames are inspectable throughput samples. Invalid answers idle, request failures pause, and resetting or pausing cancels pending work. Calls are bounded to one in flight and at most 50 per minute.
+
+Chaos mode hides enemy distance, allowing direct inspection of confidence changes without assuming confidence must decrease. The decision panel and export retain exact submitted features, probabilities, response timing, and acceptance status. Latency includes network time; decisions per second measures batched classification throughput, not game actions. The 200ms blink challenge is a demonstration target. No performance or game-playing superiority is promised.
+
+This is an original top-down mini-game, not the Doom engine, and uses no Doom assets. Simulation runs locally; only structured features go to Jev. No model-generated code is executed.
