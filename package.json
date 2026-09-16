@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "ipaddr.js": "2.5.0",
+    "tesseract.js": "7.0.0",
+    "undici": "8.10.2"
+  }
+}
