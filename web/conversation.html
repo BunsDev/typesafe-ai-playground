@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#f4f6f8" />
+  <meta name="theme-color" content="#f3f5f9" />
   <title>Conversation lab · TypeSafe AI</title>
   <script src="/theme.js"></script>
   <link rel="stylesheet" href="/styles.css" />
@@ -12,49 +12,54 @@
   <script src="/conversation-ui.js" defer></script>
 </head>
 <body class="conversation-page">
+  <a class="skip-link" href="#workspace-main">Skip to workspace</a>
   <header class="topbar">
-    <a class="wordmark" href="/">TypeSafe AI <span class="muted">/ Playground</span></a>
-    <div class="topbar-actions"><button id="theme-toggle" class="button" type="button" aria-pressed="false">Dark mode</button><span id="lab-health" class="status-chip">Checking connection</span></div>
+    <a class="wordmark" href="/" aria-label="TypeSafe AI Playground home"><span class="brand-icon" aria-hidden="true">T</span><span>TypeSafe AI <span class="muted">/ Playground</span></span></a>
+    <nav class="workspace-nav" aria-label="Workspaces">
+      <a href="/" >Examples</a>
+      <a href="/conversation.html" aria-current="page">Conversation lab</a>
+      <a href="/workflow.html">Workflow chat</a>
+    </nav>
+    <div class="topbar-actions">
+      <span id="lab-health" class="status-chip" role="status">Checking connection</span>
+      <button id="theme-toggle" class="button theme-button" type="button" aria-label="Dark mode" aria-pressed="false" title="Toggle dark mode"><span aria-hidden="true">◐</span><span>Dark mode</span></button>
+    </div>
   </header>
-  <main class="lab-shell">
-    <div class="lab-intro"><a href="/">← Example library</a><h1>Conversation lab</h1><p>Explore when a bot should respond and how context changes the meaning of a message.</p></div>
+  <main id="workspace-main" tabindex="-1" class="lab-shell">
+    <div class="lab-intro">
+      <div><span class="workspace-eyebrow">Conversation lab</span><h1>Give the right message a reply.</h1><p>Paste a conversation. Set the policy. See who gets the bot’s attention.</p></div>
+      <span class="local-badge">Preview only · no messages sent</span>
+    </div>
     <div class="lab-grid">
       <section class="panel lab-inputs" aria-labelledby="setup-heading">
-        <h2 id="setup-heading">Conversation & policy</h2>
+        <div class="lab-section-heading"><div><span class="workspace-eyebrow">Input</span><h2 id="setup-heading">Your conversation</h2></div><span class="surface-caption">Paste → preview → run</span></div>
         <form id="lab-form">
           <fieldset id="lab-fields">
-            <label for="lab-sample">Starter conversation</label>
-            <select id="lab-sample"><option value="followup">Support follow-up</option><option value="chatter">An answered question</option></select>
-            <label for="lab-transcript">Paste a conversation <span class="muted">Discord logs, Name: message, or plain text. Multiline replies stay together.</span></label>
-            <textarea id="lab-transcript" rows="8" required maxlength="40000" placeholder="Paste your chat here, including names and timestamps…"></textarea>
-            <label for="lab-format">Paste format</label>
-            <select id="lab-format"><option value="auto">Auto-detect</option><option value="discord">Discord headers</option><option value="labeled">Name: message</option><option value="plain">Plain text (one message)</option></select>
-            <details id="lab-preview" class="transcript-preview" open><summary id="lab-parse-summary">Parsed conversation</summary><p id="lab-preview-note" class="muted">The last speaker block is the target. Consecutive lines without a new header stay together. Check the preview; change the format or edit the paste if needed.</p><p id="lab-parse-error" class="form-error" role="status"></p><ol id="lab-messages"></ol></details>
-            <label for="lab-policy">Bot policy</label>
-            <textarea id="lab-policy" rows="4" required maxlength="8000">You are a helpful community bot. Respond to substantive questions and requests where your help would be useful. Stay quiet for casual chat, acknowledgments, and informational posts that do not ask for help.</textarea>
             <div class="lab-fields-row">
-              <div><label for="lab-model">Model</label><input id="lab-model" value="jev-latest" maxlength="100" /></div>
-              <div><label for="lab-expected">Expected frame (optional)</label><select id="lab-expected"><option value="">Unlabeled</option></select></div>
+              <div><label for="lab-mode">Experiment</label><select id="lab-mode"><option value="contest">Who gets the reply?</option><option value="compare">Compare context (A/B)</option><option value="single">Evaluate final message</option></select></div>
+              <div><label for="lab-sample">Try an example</label><select id="lab-sample"><option value="followup">Support follow-up</option><option value="chatter">An answered question</option></select></div>
             </div>
-            <label for="lab-mode">Demo mode</label>
-            <select id="lab-mode"><option value="contest">Who gets the reply?</option><option value="compare">Compare context (A/B)</option><option value="single">Evaluate final message</option></select>
-            <p id="lab-request-note" class="muted"></p>
-            <p class="muted">Run sends this transcript and policy to TypeSafe. No Discord connection or message sending.</p>
-            <button class="button button-primary" id="lab-run" type="submit">Pick a recipient</button>
+            <label for="lab-transcript">Conversation <span class="field-hint">Paste directly from Discord, or use Name: message.</span></label>
+            <textarea id="lab-transcript" rows="7" required maxlength="40000" aria-describedby="lab-parse-summary" placeholder="Paste your chat, including names and timestamps…"></textarea>
+            <div class="lab-run-bar"><div><p id="lab-request-note" class="muted"></p><span class="surface-caption">Transcript and policy are sent to TypeSafe when you run.</span></div><button class="button button-primary" id="lab-run" type="submit">Pick a recipient</button></div>
+            <details id="lab-preview" class="lab-disclosure transcript-preview"><summary><span id="lab-parse-summary">Parsed conversation</span><span class="disclosure-hint">Review messages</span></summary><div class="disclosure-body"><p id="lab-preview-note" class="muted"></p><p id="lab-parse-error" class="form-error" role="status"></p><label for="lab-format">Paste format</label><select id="lab-format"><option value="auto">Auto-detect</option><option value="discord">Discord headers</option><option value="labeled">Name: message</option><option value="plain">Plain text (one message)</option></select><ol id="lab-messages"></ol></div></details>
+            <details id="lab-settings" class="lab-disclosure"><summary><span>Policy & model</span><span class="disclosure-hint">Customize behavior</span></summary><div class="disclosure-body">
+              <label for="lab-policy">When should the bot reply?</label><textarea id="lab-policy" rows="4" maxlength="8000">You are a helpful community bot. Respond to substantive questions and requests where your help would be useful. Stay quiet for casual chat, acknowledgments, and informational posts that do not ask for help.</textarea>
+              <div class="lab-fields-row"><div><label for="lab-model">Model</label><input id="lab-model" value="jev-latest" maxlength="100" /></div><div><label for="lab-expected">Expected frame</label><select id="lab-expected"><option value="">Unlabeled</option></select><p class="field-hint">Scored in A/B and final-message modes.</p></div></div>
+              <p class="field-hint">Each speaker’s latest message uses only the context before it. Later messages are excluded.</p>
+            </div></details>
           </fieldset>
         </form>
-        <button id="lab-cancel" type="button" class="button" hidden>Cancel remaining requests</button>
-        <details><summary>Frame definitions</summary><dl id="lab-definitions"></dl></details>
+        <details class="lab-disclosure"><summary><span>Frame guide</span><span class="disclosure-hint">Six conversation types</span></summary><dl id="lab-definitions" class="disclosure-body"></dl></details>
       </section>
       <section class="panel lab-output" aria-labelledby="lab-results-heading">
-        <div class="lab-results-heading"><h2 id="lab-results-heading">Who gets the reply?</h2><button id="lab-export" class="button" disabled>Export run</button></div>
-        <label for="lab-threshold">Response threshold <output id="lab-threshold-value">70%</output></label>
-        <input id="lab-threshold" type="range" min="0" max="100" step="1" value="70" />
-        <p class="muted">Respond when the yes probability meets or exceeds this threshold. Adjusting it makes no API calls.</p>
-        <p id="lab-status" role="status">Ready. Choose a starter or paste your own conversation.</p>
+        <div class="lab-section-heading"><div><span class="workspace-eyebrow">Output</span><h2 id="lab-results-heading" tabindex="-1">The reply decision</h2></div><button id="lab-export" class="button" disabled>Export JSON</button></div>
+        <div class="lab-run-status"><p id="lab-status" role="status">Ready when you are.</p><button id="lab-cancel" type="button" class="text-button" hidden>Cancel run</button></div>
+        <progress id="lab-progress" max="1" value="0" aria-label="Candidate evaluation progress" hidden></progress>
         <p id="lab-error" class="form-error" role="alert"></p>
-        <div id="lab-results" aria-live="polite"></div>
-        <details><summary>Session frame evaluation</summary><p class="muted">Counts labeled, valid predictions from successful runs in this tab. Repeats count again. This small, self-selected sample is not a benchmark; labels apply to both variants. Rows are expected frames, columns are predictions.</p><div id="lab-metrics"></div><button id="lab-clear" class="button">Clear evaluation</button></details>
+        <div id="lab-results" aria-live="polite" aria-busy="false"></div>
+        <details class="lab-disclosure threshold-settings" open><summary><span>Decision threshold</span><span class="disclosure-hint">Adjust without rerunning</span></summary><div class="disclosure-body"><label for="lab-threshold">Minimum reply probability <output id="lab-threshold-value">70%</output></label><input id="lab-threshold" type="range" min="0" max="100" step="1" value="70" /><div class="range-legend" aria-hidden="true"><span>More replies</span><span>More selective</span></div></div></details>
+        <details class="lab-disclosure"><summary><span>Frame evaluation</span><span class="disclosure-hint">This session</span></summary><div class="disclosure-body"><p class="muted">Valid labeled predictions from this tab. Repeats count again. Rows are expected frames; columns are predictions. This is an exploratory sample, not a benchmark.</p><div id="lab-metrics"></div><button id="lab-clear" class="button">Clear evaluation</button></div></details>
       </section>
     </div>
   </main>

@@ -61,7 +61,8 @@
   function buildCandidates(input) {
     const payload = buildRequest(input,true);
     const lastBySpeaker = new Map();
-    payload.state.messages.forEach((message,index) => lastBySpeaker.set(message.speaker,index));
+    const hasNamedSpeakers = payload.state.messages.some(message => message.speaker !== null);
+    payload.state.messages.forEach((message,index) => { if (message.speaker !== null || !hasNamedSpeakers) lastBySpeaker.set(message.speaker,index); });
     return [...lastBySpeaker.values()].sort((a,b) => a-b).map(index => ({
       variant:"candidate", speaker:payload.state.messages[index].speaker || "Unknown speaker",
       payload:{...payload,state:{...payload.state,messages:payload.state.messages.slice(0,index+1)}}

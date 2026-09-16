@@ -9,7 +9,7 @@
   function applyTheme() {
     const dark = preference ? preference === "dark" : system.matches;
     document.documentElement.dataset.theme = dark ? "dark" : "light";
-    document.querySelector('meta[name="theme-color"]').content = dark ? "#10131b" : "#f4f6f8";
+    document.querySelector('meta[name="theme-color"]').content = dark ? "#10131b" : "#f3f5f9";
     const button = document.getElementById("theme-toggle");
     if (button) button.setAttribute("aria-pressed", String(dark));
   }

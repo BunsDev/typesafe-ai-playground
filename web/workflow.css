@@ -1,0 +1,48 @@
+.workflow-page { display:flex; flex-direction:column; height:100dvh; }
+.workflow-shell { display:grid; grid-template-columns:300px minmax(0,1fr); gap:20px; padding:22px; flex:1; min-height:0; max-width:1450px; width:100%; margin:auto; }
+.workflow-sidebar { overflow:auto; padding:22px; }
+.workflow-sidebar-heading { margin-bottom:24px; }
+.workflow-sidebar h1 { font:650 24px/1.2 var(--display); letter-spacing:-.035em; }
+.workflow-sidebar-heading p { font-size:13px; color:var(--muted); margin-top:10px; }
+#workflow-policy > summary { font-size:12px; font-weight:650; cursor:pointer; margin-bottom:14px; }
+.workflow-rule-wrap { padding:12px 0; border-top:1px solid var(--line); }
+.workflow-rule > summary { display:flex; align-items:baseline; gap:9px; font-size:12px; font-weight:600; cursor:pointer; }
+.rule-number { font:10px var(--mono); color:var(--muted); }
+.rule-preview { margin:7px 0 0 23px; font-size:12px; color:var(--muted); line-height:1.5; }
+.rule-fields { margin-top:12px; }
+.rule-fields label { display:block; font-size:11px; font-weight:600; margin:10px 0 5px; }
+.rule-fields input,.rule-fields textarea { width:100%; font-size:12px; }
+.rule-fields textarea { resize:vertical; }
+.workflow-note { margin-top:24px; padding-top:16px; border-top:1px solid var(--line); font-size:11px; color:var(--muted); line-height:1.6; }
+.workflow-chat { min-height:0; }
+.chat-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:22px 26px; border-bottom:1px solid var(--line); }
+.chat-heading h2 { font:650 22px/1.2 var(--display); letter-spacing:-.035em; }
+.chat-tools { display:flex; gap:8px; }
+.chat-log { flex:1; min-height:120px; overflow:auto; overscroll-behavior:contain; padding:28px max(24px,calc((100% - 760px)/2)); }
+.chat-message { margin-bottom:28px; max-width:90%; }
+.chat-author { display:block; font-size:11px; font-weight:650; color:var(--muted); margin-bottom:8px; }
+.chat-message-text { font-size:14px; line-height:1.75; white-space:pre-wrap; overflow-wrap:anywhere; }
+.chat-message-user { margin-left:auto; }
+.chat-message-user .chat-author { text-align:right; }
+.chat-message-user .chat-message-text { padding:14px 18px; background:var(--accent-soft); border-radius:16px 16px 4px 16px; }
+.chat-message-assistant .chat-message-text { padding-left:14px; border-left:2px solid var(--line); }
+.chat-message.is-pending { opacity:.65; }
+.workflow-decision { background:var(--green-soft); border:1px solid var(--green); border-radius:12px; padding:22px; }
+.workflow-decision .workspace-eyebrow { color:var(--green); }
+.workflow-decision h3 { font:650 23px/1.3 var(--display); letter-spacing:-.03em; margin:10px 0 14px; }
+.decision-rule { font-size:12px; margin-bottom:8px; }
+.chat-composer-area { padding:16px 26px 20px; border-top:1px solid var(--line); }
+.chat-suggestions { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+.chat-suggestions .button { background:var(--soft); font-size:11px; }
+#workflow-status { margin-bottom:10px; font-size:11px; }
+#workflow-error:empty { display:none; }
+#workflow-error:not(:empty) { padding:10px; margin-bottom:10px; background:var(--red-soft); border-radius:8px; }
+.chat-composer { display:flex; align-items:flex-end; gap:12px; padding:8px; border:1px solid var(--field-line); border-radius:14px; background:var(--editor); }
+.chat-composer:focus-within { outline:2px solid var(--accent); outline-offset:2px; }
+.chat-composer textarea { flex:1; min-width:0; resize:none; background:transparent; border:0; font-size:14px; padding:8px; max-height:180px; }
+.chat-composer textarea:focus-visible { outline:none; }
+.chat-composer .button { min-height:42px; }
+.composer-note { display:flex; justify-content:space-between; gap:8px; color:var(--muted); font-size:10px; margin:9px 3px 0; }
+@media (max-width:1000px) { .workflow-shell { grid-template-columns:260px minmax(0,1fr); gap:14px; padding:16px; } .workflow-sidebar { padding:18px; } .chat-heading { flex-wrap:wrap; padding:18px; } }
+@media (max-width:800px) { .workflow-page { height:auto; min-height:100dvh; } .workflow-shell { display:flex; flex-direction:column; padding:12px; } .workflow-sidebar { overflow:visible; } .workflow-sidebar-heading { margin-bottom:14px; } .workflow-note { margin-top:10px; padding-top:10px; } .workflow-chat { min-height:650px; height:calc(100dvh - 140px); } .chat-log { padding:22px 18px; } .chat-message { max-width:95%; } .chat-composer-area { padding:14px; } .chat-composer textarea,.rule-fields input,.rule-fields textarea { font-size:16px; } .workflow-shell .button { min-height:44px; } .composer-note { font-size:10px; flex-wrap:wrap; } }
+@media (max-width:430px) { .chat-heading h2 { font-size:20px; } .chat-tools { width:100%; } .chat-tools .button { flex:1; } .chat-composer { gap:4px; } .workflow-decision { padding:16px; } .workflow-decision h3 { font-size:21px; } }

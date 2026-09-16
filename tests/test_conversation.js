@@ -131,3 +131,11 @@ test('cancelling a batch stops queued requests without losing completed results'
   assert.equal(result[3].status,'rejected');
   assert.equal(result[3].reason.name,'AbortError');
 });
+
+test('unassigned Discord preamble is context, not a reply candidate', () => {
+  const requests=C.buildCandidates({transcript:'Channel: support\nCopied conversation\nAda — 11:31\nHelp me',policy:'Help.',model:'jev-latest'});
+  assert.equal(requests.length,1);
+  assert.equal(requests[0].speaker,'Ada');
+  assert.equal(requests[0].payload.state.messages.length,2);
+  assert.equal(C.buildCandidates({transcript:'Unlabeled question?',policy:'Help.',model:'jev-latest'})[0].speaker,'Unknown speaker');
+});

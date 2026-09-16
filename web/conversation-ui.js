@@ -34,10 +34,10 @@
     $("lab-expected").disabled = mode === "contest";
     $("lab-preview-note").textContent = (mode === "contest" ? "Each speaker's latest block is a candidate." : "The last speaker block is the target.") + " Consecutive lines without a new header stay together. Check the preview; change the format or edit the paste if needed.";
     $("lab-run").textContent = mode === "contest" ? "Pick a recipient" : mode === "compare" ? "Run comparison" : "Run conversation";
-    $("lab-request-note").textContent = mode === "contest" ? "One request per speaker, in parallel batches of 3. Each speaker's latest message is evaluated with preceding context; later messages are excluded. Frame scoring is off for this mode." : mode === "compare" ? "Two requests: full context versus the final message only." : "One request: evaluate the final message with preceding context.";
+    $("lab-request-note").textContent = mode === "contest" ? "One request per speaker · 3 at a time." : mode === "compare" ? "2 requests · full context vs. final message." : "1 request · final message with context.";
     if (mode === "contest") {
       try {
-        const count = new Set(C.parseTranscript($("lab-transcript").value,$("lab-format").value).messages.map(message => message.speaker)).size;
+        const count = Math.max(1,new Set(C.parseTranscript($("lab-transcript").value,$("lab-format").value).messages.map(message => message.speaker).filter(Boolean)).size);
         $("lab-run").textContent = "Pick a recipient · " + count + " request" + (count === 1 ? "" : "s");
       } catch { /* The transcript preview shows the parse error. */ }
     }
@@ -51,7 +51,7 @@
       const names = {discord:"Discord",labeled:"Name: message",plain:"Plain text"};
       $("lab-parse-summary").textContent = names[parsed.format] + " · " + parsed.messages.length + " message block(s) · " + speakers.size + " speaker(s)";
       const lastBySpeaker = new Map();
-      parsed.messages.forEach((message,index) => lastBySpeaker.set(message.speaker,index));
+      parsed.messages.forEach((message,index) => { if (message.speaker !== null || speakers.size === 0) lastBySpeaker.set(message.speaker,index); });
       for (const [index,message] of parsed.messages.entries()) {
         const item = node("li",undefined,"parsed-message");
         const heading = node("div",undefined,"parsed-message-heading");
@@ -63,6 +63,7 @@
     } catch (error) {
       $("lab-parse-summary").textContent = "Check the pasted conversation";
       $("lab-parse-error").textContent = error.message;
+      $("lab-preview").open = true;
     }
   }
   function render() {
@@ -178,8 +179,8 @@
       const input = {transcript:$("lab-transcript").value,policy:$("lab-policy").value,model:$("lab-model").value,format:$("lab-format").value};
       requests = mode === "contest" ? C.buildCandidates(input) : [{variant:"context",payload:C.buildRequest(input,true)}];
       if (mode === "compare") requests.push({variant:"latest",payload:C.buildRequest(input,false)});
-    } catch (error) { $("lab-error").textContent = error.message; return; }
-    busy = true; $("lab-fields").disabled = true; $("lab-export").disabled = true;
+    } catch (error) { $("lab-error").textContent = error.message; if (!$("lab-policy").value.trim()) $("lab-settings").open = true; return; }
+    busy = true; $("lab-results").setAttribute("aria-busy","true"); $("lab-progress").hidden = false; $("lab-progress").value = 0; $("lab-progress").max = requests.length; $("lab-fields").disabled = true; $("lab-export").disabled = true;
     latest = null; render();
     $("lab-status").textContent = "Running " + requests.length + " request(s)…";
     const controller = new AbortController();
@@ -188,7 +189,7 @@
     try {
       const outcomes = await C.runBatches(requests,async item => ({...item,response:await request(item.payload,controller.signal)}),{
         signal:controller.signal,
-        onProgress:progress => { $("lab-status").textContent = "Processed " + progress.completed + "/" + progress.total + " · batch " + progress.batch + "/" + progress.batches; }
+        onProgress:progress => { $("lab-progress").value = progress.completed; $("lab-status").textContent = "Processed " + progress.completed + "/" + progress.total + " · batch " + progress.batch + "/" + progress.batches; }
       });
       const failures = outcomes.filter(outcome => outcome.status === "rejected").length;
       latest = {mode,timestamp:new Date().toISOString(),durationMs:Math.round(performance.now()-start),expected,results:outcomes.map((outcome,index) => outcome.status === "fulfilled" ? outcome.value : {...requests[index],error:outcome.reason.message,response:null})};
@@ -199,7 +200,7 @@
     } catch (error) {
       $("lab-error").textContent = error.name === "AbortError" ? "Timed out. Try again." : error.message;
       $("lab-status").textContent = "Run failed. No evaluation rows added. A request may have completed upstream; retrying sends new requests.";
-    } finally { busy = false; runController = null; $("lab-cancel").hidden = true; $("lab-fields").disabled = false; if (!latest) render(); }
+    } finally { busy = false; $("lab-results").setAttribute("aria-busy","false"); $("lab-progress").hidden = true; runController = null; $("lab-cancel").hidden = true; $("lab-fields").disabled = false; if (!latest) render(); }
   }
   for (const [frame,definition] of Object.entries(C.frames)) {
     const option = node("option",frame); option.value = frame; $("lab-expected").append(option);
@@ -224,5 +225,5 @@
   fetch("/api/health").then(response => { if (!response.ok) throw new Error(); return response.json(); }).then(health => {
     $("lab-health").textContent = health.configured ? "API ready" : "API key needed";
     $("lab-health").classList.add(health.configured ? "status-ready" : "status-offline");
-  }).catch(() => { $("lab-health").textContent = "Server offline"; });
+  }).catch(() => { $("lab-health").textContent = "Server offline"; $("lab-health").classList.add("status-offline"); });
 })();

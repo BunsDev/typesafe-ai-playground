@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#f4f6f8" />
+  <meta name="theme-color" content="#f3f5f9" />
   <title>TypeSafe AI · Example playground</title>
   <script src="/theme.js"></script>
   <link rel="stylesheet" href="/styles.css" />
@@ -11,16 +11,20 @@
   <script src="/app.js" defer></script>
 </head>
 <body>
+  <a class="skip-link" href="#workspace-main">Skip to workspace</a>
   <div class="app-shell">
-    <header class="topbar">
-      <a class="wordmark" href="/" aria-label="TypeSafe AI Playground home"><span class="brand-icon" aria-hidden="true">T</span>TypeSafe AI <span class="muted">/ Playground</span></a>
-      <div class="topbar-actions">
-        <button id="theme-toggle" class="button" type="button" aria-label="Dark mode" aria-pressed="false">Dark mode</button>
-        <a class="conversation-link button" href="/conversation.html">Conversation lab</a>
-        <a href="https://evals.typesafe.ai/" target="_blank" rel="noreferrer">Reference evals ↗</a>
-        <span id="connection-status" class="status-chip">Checking connection</span>
-      </div>
-    </header>
+  <header class="topbar">
+    <a class="wordmark" href="/" aria-label="TypeSafe AI Playground home"><span class="brand-icon" aria-hidden="true">T</span><span>TypeSafe AI <span class="muted">/ Playground</span></span></a>
+    <nav class="workspace-nav" aria-label="Workspaces">
+      <a href="/" aria-current="page">Examples</a>
+      <a href="/conversation.html" >Conversation lab</a>
+      <a href="/workflow.html">Workflow chat</a>
+    </nav>
+    <div class="topbar-actions">
+      <span id="connection-status" class="status-chip" role="status">Checking connection</span>
+      <button id="theme-toggle" class="button theme-button" type="button" aria-label="Dark mode" aria-pressed="false" title="Toggle dark mode"><span aria-hidden="true">◐</span><span>Dark mode</span></button>
+    </div>
+  </header>
     <nav id="mobile-nav" class="mobile-nav" aria-label="Playground stages">
       <button type="button" class="mobile-nav-button is-active" data-mobile-view="library" aria-controls="library-panel" aria-pressed="true">
         <span class="mobile-nav-index">01</span><span>Browse</span>
@@ -32,7 +36,7 @@
         <span class="mobile-nav-index">03</span><span>Results</span>
       </button>
     </nav>
-    <main class="workspace" data-mobile-view="library" aria-label="Example playground">
+    <main id="workspace-main" tabindex="-1" class="workspace" data-mobile-view="library" aria-label="Example playground">
       <aside id="library-panel" class="panel library-panel" aria-label="Use-case library">
         <div class="panel-heading">
           <h1>Examples <span id="example-total" class="count">0</span></h1>

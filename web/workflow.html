@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f3f5f9" />
+  <title>Workflow chat · TypeSafe AI</title>
+  <script src="/theme.js"></script>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/workflow.css" />
+  <script src="/workflow.js" defer></script>
+  <script src="/workflow-ui.js" defer></script>
+</head>
+<body class="workflow-page">
+  <a class="skip-link" href="#workspace-main">Skip to workspace</a>
+  <header class="topbar">
+    <a class="wordmark" href="/" aria-label="TypeSafe AI Playground home"><span class="brand-icon" aria-hidden="true">T</span><span>TypeSafe AI <span class="muted">/ Playground</span></span></a>
+    <nav class="workspace-nav" aria-label="Workspaces">
+      <a href="/" >Examples</a>
+      <a href="/conversation.html">Conversation lab</a>
+      <a href="/workflow.html" aria-current="page">Workflow chat</a>
+    </nav>
+    <div class="topbar-actions">
+      <span id="workflow-health" class="status-chip" role="status">Checking connection</span>
+      <button id="theme-toggle" class="button theme-button" type="button" aria-label="Dark mode" aria-pressed="false" title="Toggle dark mode"><span aria-hidden="true">◐</span><span>Dark mode</span></button>
+    </div>
+  </header>
+  <main id="workspace-main" tabindex="-1" class="workflow-shell">
+    <aside class="panel workflow-sidebar" aria-label="Workflow rules">
+      <div class="workflow-sidebar-heading"><span class="workspace-eyebrow">Playbook</span><h1>Damaged delivery</h1><p>Turn a reported incident into a clear next step.</p></div>
+      <details id="workflow-policy" open><summary>Your decision rules <span id="workflow-rule-count" class="count">4</span></summary><div id="workflow-rules"></div><button id="workflow-add" class="text-button" type="button">+ Add rule</button></details>
+      <p class="workflow-note">Recommendations follow these rules. Nothing is refunded, fined, resent, or banned by this demo.</p>
+    </aside>
+    <section class="panel workflow-chat" aria-labelledby="workflow-heading">
+      <div class="chat-heading"><div><span class="workspace-eyebrow">Workflow chat</span><h2 id="workflow-heading">Work through the case.</h2></div><div class="chat-tools"><button id="workflow-export" class="button" disabled>Export case</button><button id="workflow-new" class="button">New case</button></div></div>
+      <div id="workflow-log" class="chat-log" role="log" aria-label="Case conversation" aria-live="polite"></div>
+      <div class="chat-composer-area">
+        <div id="workflow-suggestions" class="chat-suggestions"><button class="button" data-example="A customer reports that their item arrived broken. We have not investigated the cause yet.">Item arrived broken</button><button class="button" data-example="The delivery report confirms the courier dropped the parcel. Photos show the item was intact when the sender handed it over.">Delivery damage confirmed</button></div>
+        <p id="workflow-status" class="surface-caption" role="status">One request per message · Jev</p>
+        <p id="workflow-error" class="form-error" role="alert"></p>
+        <form id="workflow-form"><label class="sr-only" for="workflow-message">Describe the case or add evidence</label><div class="chat-composer"><textarea id="workflow-message" rows="2" maxlength="8000" placeholder="Describe what happened, or add the next detail…" required></textarea><button id="workflow-send" class="button button-primary" type="submit">Send <span aria-hidden="true">↑</span></button><button id="workflow-cancel" class="button" type="button" hidden>Stop</button></div><div class="composer-note"><span>Enter to send · Shift + Enter for a new line</span><span>Recommendations only</span></div></form>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
