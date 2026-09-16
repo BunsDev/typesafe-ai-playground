@@ -95,13 +95,21 @@ export function resolveTriage(
     answer?.probabilities && typeof answer.probabilities === "object"
       ? answer.probabilities
       : {};
-  const proposed = isTriageOutcome(answer?.choice) ? answer.choice : null;
+  const proposed =
+    answer?.type === "choice" && isTriageOutcome(answer.choice)
+      ? answer.choice
+      : null;
   const chosen = proposed ? probabilities[proposed] : undefined;
   const confidence =
-    typeof chosen === "number" && Number.isFinite(chosen)
+    typeof chosen === "number" &&
+    Number.isFinite(chosen) &&
+    chosen >= 0 &&
+    chosen <= 1
       ? chosen
       : typeof answer?.confidence === "number" &&
-          Number.isFinite(answer.confidence)
+          Number.isFinite(answer.confidence) &&
+          answer.confidence >= 0 &&
+          answer.confidence <= 1
         ? answer.confidence
         : null;
   const evidence = findEvidence(
