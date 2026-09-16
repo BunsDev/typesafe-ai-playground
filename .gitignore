@@ -21,3 +21,6 @@ coverage/
 next-env.d.ts
 .playwright-mcp/
 .vercel
+
+playwright-report/
+test-results/

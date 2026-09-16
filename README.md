@@ -8,35 +8,67 @@ The library starts with **110 runnable examples in 22 categories**, including **
 
 The dashboard at 1280×720, with a synthetic social-reply example and a real API response. Long sections scroll inside their panels.
 
-## Start here
+## Run the Next.js app
 
-You need **Python 3.10 or newer**, a modern browser, and a TypeSafe API key to run evaluations. There are no packages to install and no frontend build step.
-
-Community members can find the shared community API key in Discord after spending some time with the community. Ask there for the current key and usage expectations. You can also use your own TypeSafe key. No key is included in this repository.
+Requires **Node.js 22 or newer** and a TypeSafe API key for live evaluations.
 
 ```sh
-git clone https://github.com/nickthompson480/typesafe-ai-playground.git
-cd typesafe-ai-playground
-python3 run.py
+npm ci
+cp .env.example .env.local
+# Edit .env.local and set TYPESAFE_API_KEY.
+npm run dev
 ```
 
-Paste the API key at the terminal prompt. Your typing is hidden. Then open the address printed by the server, normally [http://127.0.0.1:8765](http://127.0.0.1:8765).
+Open the address printed by Next.js, normally http://localhost:3000. The key stays
+on the server. Never put it in a `NEXT_PUBLIC_` variable or commit `.env.local`.
 
-On Windows, use `py -3 run.py` if `python3` is unavailable.
+The App Router application includes five React workspaces:
 
-- Press Enter at the key prompt to browse and edit without making API calls.
-- The key is kept in the running server process, not saved to a file or sent to the browser.
-- If you already set `TYPESAFE_API_KEY` in your environment, the server uses it without prompting.
-- If the port is busy, run `python3 run.py --port 8766`.
-- Stop the server with Ctrl+C.
+- **Examples** (`/`): the full example library, editable questions, A/B comparisons,
+  browser-saved drafts, and JSON import/export.
+- **Conversation lab** (`/conversation`): raw chat parsing, reply recipient ranking,
+  context comparisons, thresholds, and session frame evaluation.
+- **Workflow chat** (`/workflow`): editable decision rules and evidence-based
+  recommendations. The demo does not execute refunds, fines, or bans.
+- **Document extraction** (`/extraction`): regex candidates followed by Jev closed-set
+  ranking, source evidence, null choices, and probabilities. See
+  [the extraction guide](docs/document-extraction.md).
+- **Meme lab** (`/memes`): text-based humor classification, audience fit, tone,
+  and likely confusion. Results are subjective estimates, not audience research.
 
-To start without a prompt:
+All pages support dark mode, keyboard navigation, and responsive layouts. Runs
+send the supplied content to TypeSafe; the app does not expose the API credential.
+The deployed demo's Run buttons use the project's server key.
+
+## Deploy to Vercel
 
 ```sh
-python3 run.py --no-key-prompt
+vercel link
+vercel env add TYPESAFE_API_KEY production --sensitive
+# Paste the key at the hidden prompt. Do not put it in command arguments.
+vercel --prod
 ```
 
-An existing environment key still works with that flag. The app does not automatically load `.env` files.
+Vercel detects Next.js and runs `npm run build`. Configure the same variable in
+Preview if you want live calls on preview deployments. The runtime route uses
+`TYPESAFE_API_KEY` only on the server; no hardcoded credential is shipped in the
+source or client bundle. See [Vercel environment variables](https://vercel.com/docs/environment-variables).
+
+```sh
+npm test
+npm run typecheck
+npm run build
+npm start
+```
+
+## Legacy Python playground
+
+The original static UI and Python server remain available for existing workflows:
+`python3 run.py` (Python 3.10+). It prompts for the key with hidden input and serves
+`web/` on port 8765. It can also read `TYPESAFE_API_KEY` from the process environment,
+but it does not load `.env` files. New extraction and meme workspaces run in Next.js.
+
+The following catalog documentation also applies to the Next.js examples workspace.
 
 ## Using the playground
 

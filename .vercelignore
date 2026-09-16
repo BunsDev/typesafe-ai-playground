@@ -1,0 +1,7 @@
+.env*
+.agent
+.playwright-mcp
+__pycache__
+.venv
+test-results
+playwright-report

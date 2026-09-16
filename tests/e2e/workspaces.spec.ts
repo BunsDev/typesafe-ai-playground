@@ -1,0 +1,188 @@
+import { test, expect } from "@playwright/test";
+test.beforeEach(async ({ page }) => {
+  await page.route("**/api/health", (r) =>
+    r.fulfill({ json: { ok: true, configured: true } }),
+  );
+});
+test("five workspaces fit the viewport and navigate without runtime errors", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  for (const path of [
+    "/",
+    "/conversation",
+    "/workflow",
+    "/extraction",
+    "/memes",
+  ]) {
+    await page.goto(path);
+    await expect(page.locator("h1")).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  }
+  await page.getByRole("button", { name: "Switch to dark mode" }).click();
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  expect(errors).toEqual([]);
+});
+test("extraction sends closed sets and renders exact evidence", async ({
+  page,
+}) => {
+  const fields: string[] = [];
+  await page.route("**/api/run", async (route) => {
+    const p = route.request().postDataJSON();
+    fields.push(p.state.field);
+    expect(p.questions.extraction.criteria.null).toBeTruthy();
+    const choices = p.questions.extraction.criteria;
+    const id = Object.keys(choices).find((k) => k !== "null")!;
+    await route.fulfill({
+      json: {
+        answers: {
+          extraction: {
+            type: "choice",
+            choice: id,
+            probabilities: { [id]: 0.91 },
+            confidence: 0.8,
+          },
+        },
+      },
+    });
+  });
+  await page.goto("/extraction");
+  await page
+    .getByRole("button", { name: "Run extraction", exact: true })
+    .click();
+  await expect(page.locator("tbody tr")).toHaveCount(4);
+  expect(fields.sort()).toEqual([
+    "amount",
+    "counterparty",
+    "date",
+    "document_type",
+  ]);
+  await expect(page.locator("blockquote")).toHaveCount(4);
+  await expect(page.locator("tbody")).toContainText("Northstar Studio LLC");
+  await expect(page.locator("tbody")).toContainText("91.0%");
+  await page
+    .getByLabel("Paste document text")
+    .fill("No structured values are present here.");
+  await page
+    .getByRole("button", { name: "Run extraction", exact: true })
+    .click();
+  await expect(page.locator(".null-value")).toHaveCount(4);
+  expect(fields).toHaveLength(4);
+});
+test("meme test displays classifications and preserves a clear failure state", async ({
+  page,
+}) => {
+  await page.route("**/api/run", async (route) => {
+    const p = route.request().postDataJSON();
+    expect(Object.keys(p.questions)).toHaveLength(4);
+    await route.fulfill({
+      json: {
+        answers: {
+          lands: { type: "noul", noul: 0.84 },
+          style: {
+            type: "choice",
+            choice: "relatable",
+            probabilities: { relatable: 0.9 },
+          },
+          tone: {
+            type: "choice",
+            choice: "playful",
+            probabilities: { playful: 0.8 },
+          },
+          confusion: {
+            type: "choice",
+            choice: "none",
+            probabilities: { none: 0.7 },
+          },
+        },
+      },
+    });
+  });
+  await page.goto("/memes");
+  await page.getByRole("button", { name: "Test meme", exact: true }).click();
+  await expect(page.locator(".meme-verdict")).toContainText("84.0%");
+  await expect(page.locator(".classification").first()).toHaveText("relatable");
+  await page.unroute("**/api/run");
+  await page.route("**/api/run", (r) =>
+    r.fulfill({
+      status: 429,
+      json: { error: "Rate limit reached. Try again." },
+    }),
+  );
+  await page.getByRole("button", { name: "Test meme", exact: true }).click();
+  await expect(page.locator("main").getByRole("alert")).toContainText("Rate limit reached");
+  await expect(page.locator(".meme-verdict")).toHaveCount(0);
+});
+test("workflow renders supported policy action without executing it", async ({
+  page,
+}) => {
+  await page.route("**/api/run", (r) =>
+    r.fulfill({
+      json: {
+        answers: {
+          route: { type: "choice", choice: "delivery" },
+          supported: { type: "noul", noul: 0.96 },
+          missing: { type: "choice", choice: "other" },
+        },
+      },
+    }),
+  );
+  await page.goto("/workflow");
+  await page
+    .getByRole("button", { name: /Delivery damage is confirmed/ })
+    .click();
+  await expect(page.locator(".recommendation")).toContainText(
+    "Fine the delivery service and resend the item.",
+  );
+  await expect(
+    page.getByText(
+      "Recommendations only. No refunds, fines, or bans are executed.",
+    ),
+  ).toBeVisible();
+});
+test("conversation chooses winner and recomputes threshold without API calls", async ({
+  page,
+}) => {
+  let calls = 0;
+  await page.route("**/api/run", (r) => {
+    calls++;
+    const p = r.request().postDataJSON();
+    return r.fulfill({
+      json: {
+        answers: {
+          should_respond: {
+            type: "noul",
+            noul: p.state.messages.at(-1).speaker === "Tyler" ? 0.96 : 0.3,
+          },
+          frame: { type: "choice", choice: "request" },
+        },
+      },
+    });
+  });
+  await page.goto("/conversation");
+  await page.getByRole("button", { name: "Pick a recipient" }).click();
+  await expect(page.locator(".winner-card")).toContainText("Tyler");
+  await page.getByRole("slider").fill("99");
+  await expect(page.locator(".winner-card")).toContainText("No reply needed");
+  expect(calls).toBe(3);
+});
+test("example edits persist across refresh", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator(".connection")).toContainText("Jev connected");
+  await page.locator("#example-state").fill("My saved example");
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        localStorage.getItem("typesafe-playground-workspace-v2"),
+      ),
+    )
+    .toContain("My saved example");
+  await page.reload();
+  await expect(page.locator("#example-state")).toHaveValue("My saved example");
+});

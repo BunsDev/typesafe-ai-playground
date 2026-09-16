@@ -4,6 +4,22 @@ This is a community example library. Useful small contributions include a new
 scenario, a better question, a confusing result with reproducible synthetic
 input, or a usability fix.
 
+## Next.js development
+
+Use Node.js 22+, run `npm ci`, copy `.env.example` to `.env.local`, and set your
+server-only TypeSafe key. Start with `npm run dev`. Before submitting changes:
+
+```sh
+npm test
+npm run build
+npx playwright install chromium
+npm run test:e2e
+```
+
+Browser tests mock Jev responses and do not consume API credits. The original
+Python tests still verify the legacy server. New React workspaces live in
+`components/`, routes in `app/`, and pure request contracts in `lib/`.
+
 ## Add an example
 
 1. Fork the repository and create a branch.
