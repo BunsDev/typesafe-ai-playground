@@ -1,10 +1,18 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import { Search, Upload, Plus, FlaskConical } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Search,
+  Upload,
+  Plus,
+  RotateCcw,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import catalog from "../web/catalog.json";
 import * as library from "../web/library";
 import { runJev, errorMessage, percent, download } from "../lib/client";
-import { Empty, ErrorNote, Export, Heading, RunButton } from "./ui";
+import { Empty, ErrorNote, Export, RunButton } from "./ui";
 type ResponseData = {
   answers?: Record<
     string,
@@ -26,6 +34,18 @@ export function Examples() {
   const [drafts, setDrafts] = useState<Record<string, library.Draft>>({});
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All categories");
+  const [collection, setCollection] = useState("All collections");
+  const [comparisonsOnly, setComparisonsOnly] = useState(false);
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [undoReset, setUndoReset] = useState<{
+    id: string;
+    draft: library.Draft;
+  } | null>(null);
+  const setupTitle = useRef<HTMLHeadingElement>(null);
+  const setupContent = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    setupContent.current?.scrollTo({ top: 0 });
+  }, [selected]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [results, setResults] = useState<
@@ -113,15 +133,59 @@ export function Examples() {
   const example = examples.find((e) => e.id === selected) || examples[0];
   const draft = drafts[example.id] || library.draftFor(example);
   const signature = JSON.stringify([selected, draft, model]);
+  const selectedCount = draft.questions.filter(
+    (q) => q.selected && q.enabled,
+  ).length;
+  const edited =
+    JSON.stringify(draft) !== JSON.stringify(library.draftFor(example));
+  const validation = useMemo(() => {
+    try {
+      const payload = library.buildPayload(
+        draft.stateText,
+        draft.questions,
+        model,
+        draft.stateMode,
+      );
+      let comparisonError = "";
+      let originalValue: unknown;
+      if (example.comparison) {
+        try {
+          library.comparisonState(payload.state, example.comparison);
+          originalValue = example.comparison.path.reduce<unknown>(
+            (value, key) => (value as Record<string, unknown>)[key],
+            payload.state,
+          );
+        } catch (e) {
+          comparisonError = errorMessage(e);
+        }
+      }
+      return { error: "", comparisonError, originalValue };
+    } catch (e) {
+      return {
+        error: errorMessage(e),
+        comparisonError: "",
+        originalValue: undefined,
+      };
+    }
+  }, [draft, model, example]);
+  function clearFilters() {
+    setSearch("");
+    setCategory("All categories");
+    setCollection("All collections");
+    setComparisonsOnly(false);
+  }
   function update(patch: Partial<library.Draft>) {
+    setUndoReset(null);
     setDrafts((d) => ({ ...d, [example.id]: { ...draft, ...patch } }));
   }
   const filtered = examples.filter(
     (e) =>
       (category === "All categories" || category === e.category) &&
-      `${e.title} ${e.description} ${e.category}`
+      (collection === "All collections" || collection === e.collection) &&
+      (!comparisonsOnly || !!e.comparison) &&
+      `${e.title} ${e.description} ${e.category} ${e.collection}`
         .toLowerCase()
-        .includes(search.toLowerCase()),
+        .includes(search.trim().toLowerCase()),
   );
   async function run(compare = false) {
     setResultsOpen(true);
@@ -193,8 +257,8 @@ export function Examples() {
       );
       setExamples([...examples, ...imported]);
       setSelected(imported[0].id);
-      setCategory("All categories");
-      setSearch("");
+      clearFilters();
+      setLibraryOpen(false);
       setError("");
     } catch (e) {
       setError(errorMessage(e));
@@ -217,126 +281,223 @@ export function Examples() {
       <div
         className={`examples-layout ${resultsOpen ? "results-open" : "results-collapsed"}`}
       >
-        <aside className="panel library-panel">
-          <div className="panel-heading">
-            <h2>Examples</h2>
-            <button
-              className="button quiet"
-              disabled={busy}
-              aria-label="Create example"
-              onClick={() => {
-                const custom: library.Example = {
-                  id: `custom-${Date.now()}`,
-                  title: "Untitled experiment",
-                  category: "Custom",
-                  collection: "Use cases",
-                  description: "Your own classification experiment.",
-                  state: "Paste the text to evaluate.",
-                  questions: [
-                    {
-                      id: "relevant",
-                      label: "Relevant",
-                      type: "noul",
-                      instructions:
-                        "Is the text relevant to the intended topic?",
-                      selected: true,
-                      enabled: true,
-                    },
-                  ],
-                  tryThis: "",
-                  custom: true,
-                };
-                setExamples([...examples, custom]);
-                setSelected(custom.id);
-                setCategory("All categories");
-                setSearch("");
-              }}
-            >
-              <Plus size={17} />
-            </button>
-          </div>
-          <div className="library-filters">
-            <div className="search-input">
-              <Search size={15} />
-              <input
-                aria-label="Search examples"
-                placeholder="Search examples…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <select
-              aria-label="Category"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
-              {[
-                "All categories",
-                ...new Set(examples.map((e) => e.category)),
-              ].map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-          <div className="example-list">
-            {filtered.map((e) => (
+        <aside
+          className={`panel library-panel ${libraryOpen ? "library-open" : "library-closed"}`}
+        >
+          <button
+            className="library-mobile-toggle"
+            aria-expanded={libraryOpen}
+            aria-controls="example-library"
+            aria-label={libraryOpen ? "Close examples" : "Browse examples"}
+            onClick={() => setLibraryOpen(!libraryOpen)}
+          >
+            <span>
+              <strong>Browse examples</strong>
+              <small>{example.title}</small>
+            </span>
+            <ChevronDown size={18} />
+          </button>
+          <div className="library-body" id="example-library">
+            <div className="panel-heading">
+              <h2>Examples</h2>
               <button
+                className="button quiet"
                 disabled={busy}
-                className={
-                  e.id === selected ? "example-item selected" : "example-item"
-                }
-                key={e.id}
+                aria-label="Create example"
                 onClick={() => {
-                  setSelected(e.id);
-                  setResults([]);
-                  setError("");
+                  const custom: library.Example = {
+                    id: `custom-${Date.now()}`,
+                    title: "Untitled experiment",
+                    category: "Custom",
+                    collection: "Use cases",
+                    description: "Your own classification experiment.",
+                    state: "Paste the text to evaluate.",
+                    questions: [
+                      {
+                        id: "relevant",
+                        label: "Relevant",
+                        type: "noul",
+                        instructions:
+                          "Is the text relevant to the intended topic?",
+                        selected: true,
+                        enabled: true,
+                      },
+                    ],
+                    tryThis: "",
+                    custom: true,
+                  };
+                  setExamples([...examples, custom]);
+                  setSelected(custom.id);
+                  clearFilters();
+                  setLibraryOpen(false);
                 }}
               >
-                <span>{e.category}</span>
-                <strong>{e.title}</strong>
-                <p>{e.description}</p>
-                {e.comparison && <small>A/B comparison</small>}
+                <Plus size={17} />
               </button>
-            ))}
-            {!filtered.length && <p className="muted">No matching examples.</p>}
-          </div>
-          <div className="library-actions">
-            <label className="button quiet">
-              <Upload size={13} />
-              Import
-              <input
-                type="file"
-                accept="application/json,.json"
-                disabled={busy}
-                onChange={(e) => {
-                  void importFile(e.target.files?.[0]);
-                  e.target.value = "";
-                }}
-                className="file-input"
-              />
-            </label>
-            <button className="button quiet" onClick={exportLibrary}>
-              Export library
-            </button>
+            </div>
+            <div className="library-filters">
+              <select
+                aria-label="Collection"
+                value={collection}
+                onChange={(e) => setCollection(e.target.value)}
+              >
+                {[
+                  "All collections",
+                  ...new Set(examples.map((e) => e.collection)),
+                ].map((c) => (
+                  <option key={c}>{c}</option>
+                ))}
+              </select>
+              <div className="search-input">
+                <Search size={15} />
+                <input
+                  aria-label="Search examples"
+                  placeholder="Search examples…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <select
+                aria-label="Category"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+              >
+                {[
+                  "All categories",
+                  ...new Set(examples.map((e) => e.category)),
+                ].map((c) => (
+                  <option key={c}>{c}</option>
+                ))}
+              </select>
+              <label className="checkbox-row comparison-filter">
+                <input
+                  type="checkbox"
+                  checked={comparisonsOnly}
+                  onChange={(e) => setComparisonsOnly(e.target.checked)}
+                />
+                A/B comparisons only
+              </label>
+              <div className="library-filter-summary">
+                <span role="status">
+                  {filtered.length} of {examples.length} examples
+                </span>
+                {(search ||
+                  category !== "All categories" ||
+                  collection !== "All collections" ||
+                  comparisonsOnly) && (
+                  <button className="filter-clear" onClick={clearFilters}>
+                    Clear filters
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="example-list">
+              {filtered.map((e) => (
+                <button
+                  disabled={busy}
+                  className={
+                    e.id === selected ? "example-item selected" : "example-item"
+                  }
+                  key={e.id}
+                  aria-current={e.id === selected ? "true" : undefined}
+                  onClick={() => {
+                    setSelected(e.id);
+                    setLibraryOpen(false);
+                    if (window.matchMedia("(max-width: 650px)").matches)
+                      setupTitle.current?.focus();
+                    setResults([]);
+                    setError("");
+                  }}
+                >
+                  <span>{e.category}</span>
+                  <strong>{e.title}</strong>
+                  <p>{e.description}</p>
+                  {e.comparison && <small>A/B comparison</small>}
+                </button>
+              ))}
+              {!filtered.length && (
+                <p className="muted">No matching examples.</p>
+              )}
+            </div>
+            <div className="library-actions">
+              <label className="button quiet">
+                <Upload size={13} />
+                Import
+                <input
+                  type="file"
+                  accept="application/json,.json"
+                  disabled={busy}
+                  onChange={(e) => {
+                    void importFile(e.target.files?.[0]);
+                    e.target.value = "";
+                  }}
+                  className="file-input"
+                />
+              </label>
+              <button className="button quiet" onClick={exportLibrary}>
+                Export library
+              </button>
+            </div>
           </div>
         </aside>
         <section className="panel experiment-panel">
           <div className="panel-heading">
             <h2>Test setup</h2>
-            <span className="count">
-              {draft.questions.filter((q) => q.selected && q.enabled).length}{" "}
-              questions
-            </span>
+            <div className="setup-draft-actions">
+              <span className="count">
+                {edited ? "Edited draft" : "Original example"}
+              </span>
+              {undoReset?.id === example.id ? (
+                <button
+                  className="button quiet"
+                  disabled={busy}
+                  onClick={() => {
+                    setDrafts((d) => ({ ...d, [example.id]: undoReset.draft }));
+                    setUndoReset(null);
+                  }}
+                >
+                  Undo reset
+                </button>
+              ) : (
+                <button
+                  className="button quiet"
+                  disabled={busy || !edited}
+                  onClick={() => {
+                    setUndoReset({ id: example.id, draft });
+                    setDrafts((d) => {
+                      const next = { ...d };
+                      delete next[example.id];
+                      return next;
+                    });
+                  }}
+                >
+                  <RotateCcw size={14} />
+                  Reset draft
+                </button>
+              )}
+            </div>
           </div>
-          <div className="panel-content scroll">
-            <h1>{example.title}</h1>
+          <div className="panel-content scroll" ref={setupContent}>
+            <div className="setup-eyebrow">
+              {example.collection} / {example.category}
+            </div>
+            <h1 ref={setupTitle} tabIndex={-1}>
+              {example.title}
+            </h1>
             <p className="muted">{example.description}</p>
             <fieldset disabled={busy}>
+              <div className="setup-step">
+                <span>01</span>
+                <div>
+                  <h3>Provide the context</h3>
+                  <p>Edit the example’s input to test your own scenario.</p>
+                </div>
+              </div>
               <label htmlFor="example-state">Input state</label>
               <textarea
                 id="example-state"
                 className="code-input"
-                rows={10}
+                rows={7}
                 value={draft.stateText}
                 onChange={(e) => update({ stateText: e.target.value })}
               />
@@ -360,53 +521,75 @@ export function Examples() {
                   />
                 </label>
               </div>
-              <label>Questions</label>
+              <div className="setup-step">
+                <span>02</span>
+                <div>
+                  <h3>Choose what Jev evaluates</h3>
+                  <p>
+                    {selectedCount} of {draft.questions.length} questions
+                    included. Expand a question to edit its instructions.
+                  </p>
+                </div>
+              </div>
               {draft.questions.map((q, i) => (
-                <details className="question-edit" key={q.id}>
-                  <summary>
-                    <span>{q.label}</span>
-                    <span className="type-badge">{q.type}</span>
-                  </summary>
-                  <div className="rule-edit">
-                    <label className="checkbox-row">
-                      <input
-                        type="checkbox"
-                        checked={q.selected}
-                        onChange={(e) =>
-                          update({
-                            questions: draft.questions.map((v, j) =>
-                              j === i
-                                ? { ...v, selected: e.target.checked }
-                                : v,
-                            ),
-                          })
+                <div
+                  className={`question-row ${q.selected && q.enabled ? "included" : "excluded"}`}
+                  key={q.id}
+                >
+                  <label className="question-select">
+                    <input
+                      type="checkbox"
+                      aria-label={`Include question: ${q.label}`}
+                      disabled={!q.enabled}
+                      checked={q.selected && q.enabled}
+                      onChange={(e) =>
+                        update({
+                          questions: draft.questions.map((v, j) =>
+                            j === i ? { ...v, selected: e.target.checked } : v,
+                          ),
+                        })
+                      }
+                    />
+                  </label>
+                  <details className="question-edit">
+                    <summary>
+                      <span>{q.label}</span>
+                      <span className="type-badge">
+                        {
+                          {
+                            choice: "Choose one",
+                            noul: "Probability",
+                            score: "Score",
+                          }[q.type]
                         }
-                      />
-                      Include this question
-                    </label>
-                    <label>
-                      Instructions
-                      <textarea
-                        value={q.instructions}
-                        rows={3}
-                        onChange={(e) =>
-                          update({
-                            questions: draft.questions.map((v, j) =>
-                              j === i
-                                ? { ...v, instructions: e.target.value }
-                                : v,
-                            ),
-                          })
-                        }
-                      />
-                    </label>
-                    {q.criteria && (
-                      <pre className="criteria-preview">
-                        {JSON.stringify(q.criteria, null, 2)}
-                      </pre>
-                    )}
-                  </div>
-                </details>
+                      </span>
+                      {!q.enabled && <small>Disabled</small>}
+                    </summary>
+                    <div className="rule-edit">
+                      <label>
+                        Instructions
+                        <textarea
+                          value={q.instructions}
+                          rows={3}
+                          onChange={(e) =>
+                            update({
+                              questions: draft.questions.map((v, j) =>
+                                j === i
+                                  ? { ...v, instructions: e.target.value }
+                                  : v,
+                              ),
+                            })
+                          }
+                        />
+                      </label>
+                      {q.criteria && (
+                        <pre className="criteria-preview">
+                          {JSON.stringify(q.criteria, null, 2)}
+                        </pre>
+                      )}
+                    </div>
+                  </details>
+                </div>
               ))}
               <details className="disclosure">
                 <summary>Edit all questions as JSON</summary>
@@ -421,6 +604,41 @@ export function Examples() {
                 />
               </details>
             </fieldset>
+            {example.comparison && (
+              <div className="comparison-preview">
+                <div className="setup-step">
+                  <span>03</span>
+                  <div>
+                    <h3>Compare one change</h3>
+                    <p>
+                      Two requests, identical questions. Only this field
+                      changes:
+                    </p>
+                  </div>
+                </div>
+                <code>{example.comparison.path.join(".")}</code>
+                {validation.error || validation.comparisonError ? (
+                  <p className="notice">
+                    {validation.error || validation.comparisonError}
+                  </p>
+                ) : (
+                  <div className="comparison-values">
+                    <div>
+                      <span>A · {example.comparison.labelA}</span>
+                      <pre>
+                        {JSON.stringify(validation.originalValue, null, 2)}
+                      </pre>
+                    </div>
+                    <div>
+                      <span>B · {example.comparison.labelB}</span>
+                      <pre>
+                        {JSON.stringify(example.comparison.value, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             {example.tryThis && (
               <div className="tip">
                 <strong>Try this</strong>
@@ -441,8 +659,16 @@ export function Examples() {
               </details>
             )}
           </div>
-          <div className="panel-bottom">
+          <div className="panel-bottom example-run-bar">
+            <div
+              className={`run-readiness ${validation.error ? "invalid" : ""}`}
+              role="status"
+            >
+              {validation.error ||
+                `${selectedCount} question${selectedCount === 1 ? "" : "s"} · Run: 1 request${example.comparison ? " · A/B: 2 requests" : ""} · ${model.trim() || "jev-latest"}`}
+            </div>
             <RunButton
+              disabled={!!validation.error || !restored}
               busy={busy}
               onClick={() => run()}
               onCancel={() => controller.current?.abort()}
@@ -452,7 +678,12 @@ export function Examples() {
             {example.comparison && (
               <button
                 className="button"
-                disabled={busy}
+                disabled={
+                  busy ||
+                  !!validation.error ||
+                  !!validation.comparisonError ||
+                  !restored
+                }
                 onClick={() => run(true)}
               >
                 Compare A/B
@@ -466,9 +697,14 @@ export function Examples() {
             type="button"
             aria-label={resultsOpen ? "Collapse results" : "Expand results"}
             aria-expanded={resultsOpen}
+            aria-controls="example-results-content"
             onClick={() => setResultsOpen(!resultsOpen)}
           >
-            <span aria-hidden="true">{resultsOpen ? "›" : "‹"}</span>
+            {resultsOpen ? (
+              <ChevronRight size={18} aria-hidden="true" />
+            ) : (
+              <ChevronLeft size={18} aria-hidden="true" />
+            )}
             <span>Results</span>
             <span className="count">
               {busy ? "RUNNING" : results.length ? "DONE" : "READY"}
@@ -478,7 +714,11 @@ export function Examples() {
             <h2>Results</h2>
             <Export data={results.length ? results : null} />
           </div>
-          <div className="panel-content scroll" aria-live="polite">
+          <div
+            id="example-results-content"
+            className="panel-content scroll"
+            aria-live="polite"
+          >
             {runSignature &&
               runSignature !== signature &&
               results.length > 0 && (
