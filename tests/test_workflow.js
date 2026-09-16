@@ -37,3 +37,9 @@ test('empty rules, duplicate IDs and excessive history are rejected before sendi
   assert.throws(()=>W.buildRequest([{role:'user',content:'hi'}],rules),/unique/i);
   assert.throws(()=>W.buildRequest([{role:'user',content:'a'.repeat(41000)}],W.defaults()),/new case/i);
 });
+
+test('conversation bound allows 20 exchanges and rejects a 21st user message',()=>{
+  const history=Array.from({length:40},(_,index)=>({role:index%2===0?'user':'assistant',content:'Synthetic detail'}));
+  assert.doesNotThrow(()=>W.buildRequest(history.slice(0,39),W.defaults()));
+  assert.throws(()=>W.buildRequest([...history,{role:'user',content:'Next message'}],W.defaults()),/new case/i);
+});

@@ -5,7 +5,7 @@
     {id:"sender",name:"Sender caused the damage",condition:"Reported evidence establishes that the sender caused the damage before delivery.",action:"Ban the sender and refund the customer."},
     {id:"delivery",name:"Delivery caused the damage",condition:"Reported evidence establishes that the delivery service caused the damage in transit.",action:"Fine the delivery service and resend the item."},
     {id:"buyer_first",name:"Buyer caused it · first time",condition:"Reported evidence establishes that the buyer caused the damage AND this is their first incident.",action:"Ignore the buyer's claim."},
-    {id:"buyer_repeat",name:"Buyer caused it · repeat incident",condition:"Reported evidence establishes that the buyer caused the damage AND there are at least one previous incident.",action:"Ban the buyer for fraud."}
+    {id:"buyer_repeat",name:"Buyer caused it · repeat incident",condition:"Reported evidence establishes that the buyer caused the damage AND there is at least one previous incident.",action:"Ban the buyer for fraud."}
   ];
   const questions = {
     cause:"What evidence shows who caused the damage: the sender, delivery service, or buyer? For example, inspection notes, packaging photos, or a delivery report.",

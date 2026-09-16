@@ -72,7 +72,7 @@ Open **Workflow chat** to discuss a case against an editable decision tree. The 
 
 Describe the incident in the composer. The assistant asks for missing cause, evidence, or incident history before recommending an action. Each message makes one TypeSafe request using the conversation and current rules. Recommendations require a recognized rule and a model-reported support probability of at least 80%; that threshold is a demo guard, not proof that the facts are true. Refunds, fines, resends, and bans are displayed only and never executed.
 
-Use **Stop** to abort a pending browser request, **Export case** to save the conversation and decision snapshots, or **New case** to reset the chat. Rule edits affect subsequent messages. Cases and rule edits stay in memory for this page; export before leaving or refreshing. Conversations are bounded at 40 turns and 40,000 serialized characters, and each message at 8,000 characters. Starting a new case preserves the edited rules.
+Use **Stop** to abort a pending browser request, **Export case** to save the conversation and decision snapshots, or **New case** to reset the chat. Rule edits affect subsequent messages. Cases and rule edits stay in memory for this page; export before leaving or refreshing. Conversations are bounded at 40 messages (20 user/assistant exchanges) and 40,000 serialized characters, and each message at 8,000 characters. Starting a new case preserves the edited rules.
 
 ## Conversation lab
 
