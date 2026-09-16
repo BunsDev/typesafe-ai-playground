@@ -665,7 +665,7 @@ export function Examples() {
               role="status"
             >
               {validation.error ||
-                `${selectedCount} question${selectedCount === 1 ? "" : "s"} · 1 request · ${model.trim() || "jev-latest"}`}
+                `${selectedCount} question${selectedCount === 1 ? "" : "s"} · Run: 1 request${example.comparison ? " · A/B: 2 requests" : ""} · ${model.trim() || "jev-latest"}`}
             </div>
             <RunButton
               disabled={!!validation.error || !restored}

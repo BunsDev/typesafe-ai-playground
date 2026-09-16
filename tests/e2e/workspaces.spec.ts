@@ -327,7 +327,7 @@ test("question JSON stays synchronized and protects concurrent edits", async ({
     .getByRole("button", { name: "Apply questions", exact: true })
     .click();
   await expect(page.locator(".run-readiness")).toContainText(
-    "1 question · 1 request",
+    "1 question · Run: 1 request",
   );
   await page.locator(".question-edit").first().locator("summary").click();
   await expect(
@@ -416,6 +416,9 @@ test("example filters recover from empty results and preview the A/B change", as
   await page.locator(".example-item").first().click();
   await expect(page.locator(".comparison-preview")).toContainText(
     "Only this field changes",
+  );
+  await expect(page.locator(".run-readiness")).toContainText(
+    "Run: 1 request · A/B: 2 requests",
   );
   await expect(
     page.getByRole("button", { name: "Compare A/B", exact: true }),
