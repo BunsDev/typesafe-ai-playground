@@ -10,6 +10,8 @@ import {
   Blocks,
   FileScan,
   GitBranch,
+  Bird,
+  Inbox,
   GitPullRequest,
   Network,
   Scale,
@@ -32,6 +34,12 @@ const pages = [
     label: "Conversation lab",
     icon: MessageSquare,
     detail: "Find the right reply",
+  },
+  {
+    href: "/gate",
+    label: "Ask gate",
+    icon: Inbox,
+    detail: "Ask Jev, or ask a human?",
   },
   {
     href: "/workflow",
@@ -88,6 +96,12 @@ const pages = [
     detail: "Play with a classifier",
   },
   { href: "/memes", label: "Meme lab", icon: Laugh, detail: "Read the room" },
+  {
+    href: "/microduck",
+    label: "MicroDuck arena",
+    icon: Bird,
+    detail: "Drive a robot with one choice",
+  },
 ];
 export function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();

@@ -112,6 +112,22 @@ export const SOCIAL_PAGES = {
     steps: ["Map affected symbols", "Apply fixed rules", "Review the evidence"],
     result: "Change → informed review",
   },
+  gate: {
+    path: "/gate",
+    title: "Ask gate",
+    description: "Ask Jev, or ask a human?",
+    category: "QUESTION TRIAGE",
+    steps: ["Read the channel", "Gate the question", "Cite the answer"],
+    result: "Question → routed or answered",
+  },
+  microduck: {
+    path: "/microduck",
+    title: "MicroDuck arena",
+    description: "Nine sensors in. One action out.",
+    category: "EMBODIED DECISIONS",
+    steps: ["Sense the grid", "Choose one action", "Compare to a baseline"],
+    result: "Sensors → next move",
+  },
   "smt-solver": {
     path: "/smt-solver",
     title: "SMT solver lab",

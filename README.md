@@ -1,6 +1,6 @@
 # TypeSafe AI Playground
 
-A community playground for **Jev**: run small classification experiments, route conversations, apply decision rules, extract document fields, review code changes, verify logic, and test memes.
+A community playground for **Jev**: run small classification experiments, route conversations, apply decision rules, extract document fields, review code changes, verify logic, test memes, and drive a robot duck.
 
 **Shout-out to [@nickthompson480](https://github.com/nickthompson480) for the [original TypeSafe AI playground](https://github.com/nickthompson480/typesafe-ai-playground).** This fork builds on that project's example library and Python foundation with a Next.js interface and new interactive prototypes. This is an independent community project, not an official TypeSafe AI product.
 
@@ -25,22 +25,24 @@ Open the address printed by Next.js, normally http://localhost:3000. To choose a
 
 `TYPESAFE_API_KEY` is read only by the server. Do not prefix it with `NEXT_PUBLIC_`, hardcode it in a component, or commit `.env.local`. You can browse and edit examples without a key; Live Jev actions require one. Mock governance/PR demos and exact Z3 checks do not.
 
-## Eleven workspaces
+## Fourteen workspaces
 
-| Workspace                             | What it does                                                                                                                        |
-| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Workspace                             | What it does                                                                                                                       |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | **Examples** `/`                      | 110 examples across 22 categories, including 41 A/B comparisons. Edit input and questions, run Jev, and inspect typed answers.      |
 | **Conversation lab** `/conversation`  | Paste raw Discord or labeled chat, rank potential reply recipients, compare context, and evaluate conversation frames.              |
+| **Ask gate** `/gate`                  | Decide whether an incoming question needs a human, or whether the channel or the docs already answered it, with the exact line cited. |
 | **Workflow chat** `/workflow`         | Describe a case and apply editable decision rules. Missing evidence produces a follow-up question.                                  |
 | **Document extraction** `/extraction` | Find likely values locally, then ask Jev to select candidates or `null`, with probabilities and source evidence.                    |
 | **PR review** `/pr-review`            | Paste a public PR link or diff; classify hunks and queue uncertain changes for review.                                              |
 | **AST governance** `/ast-governance`  | Trace changed symbols and callers, apply deterministic policy, and classify ambiguous findings. Includes a simulated test cache.    |
 | **SMT solver** `/smt-solver`          | Compare closed-set Jev predictions with real Z3 checks, independent-group decomposition, and measured benchmarks.                   |
 | **Tool router** `/tool-router`        | Follow a LangGraph-style mock workflow with closed-set node selection, policy blocks, approval gates and a step log.                |
-| **Vector reranker** /reranker         | Compare vector order, batched Jev relevance, and an explicit lexical mock baseline. Inspect rank disagreements and source snippets. |
 | **LangChain** `/langchain`            | Invoke a real LangChain routing tool with live or mocked Jev predictions; inspect typed policy-gated output.                        |
-| **Jev plays Doom** `/doom` | Play an original browser maze shooter, hand control to Jev, and compare against a seeded random baseline. |
+| **Vector reranker** /reranker         | Compare vector order, batched Jev relevance, and an explicit lexical mock baseline. Inspect rank disagreements and source snippets. |
+| **Jev plays Doom** `/doom`            | Play an original browser maze shooter, hand control to Jev, and compare against a seeded random baseline.                           |
 | **Meme lab** `/memes`                 | Test humor style, audience fit, tone, and likely confusion using captions or reviewed text from an image URL.                       |
+| **MicroDuck arena** `/microduck`      | Drive a grid robot one tick at a time: nine sensor fields in, one of seven actions out, against a random baseline.                  |
 
 The supplied TypeSafe [banner](https://pbs.twimg.com/profile_banners/2014504062797152256/1789084216/1500x500) and [profile mark](https://pbs.twimg.com/profile_images/2100293691227447296/bVoZ2u00_400x400.jpg) are stored locally in public/brand. The social images use IBM Plex Sans, distributed with its [SIL Open Font License](public/brand/OFL.txt). This remains an unofficial community playground.
 
@@ -67,6 +69,19 @@ Paste Discord messages with names and timestamps, `Name: message` text, or plain
 - **Evaluate final message** sends one full-context request.
 
 The winning message gets a full source preview with its speaker and timestamp; other messages appear in ranked cards with expandable previews. Ties and unscored candidates remain explicit. Changing the reply threshold recomputes decisions locally. Optional expected-frame labels build session confusion matrices; changing the transcript or format clears the label. Exports include the run input, rows, threshold, and selected recipient. No messages are sent to Discord.
+
+### Ask gate
+
+A busy channel answers the same question repeatedly. The gate triages one incoming question, or a whole dump, against the recent conversation and any docs or FAQ text you paste.
+
+Jev picks one of four outcomes — `already_answered`, `answerable_by_docs`, `needs_human`, `needs_more_context` — plus the single prior message or documentation line that justifies it. It never writes the answer: suggested replies are fixed templates that quote the cited evidence.
+
+- **One question** gates a single message against the last 20 messages of context.
+- **Batch** gates every question in a dump against only the messages above it, three requests at a time, and tallies how many could have been avoided by reading up.
+
+`needs_human` is the fallback for everything the gate cannot stand behind: an unrecognized outcome, a missing confidence score, a match below the confidence slider, or a claim with nothing cited. When Jev picks `already_answered` but cites a documentation line — or the reverse — the gate reports the outcome its citation actually supports and shows both. Moving the confidence slider re-decides locally without new requests.
+
+The seeded sample is a support channel where three questions repeat earlier answers, one is covered by the FAQ, one is genuinely new, and one is too vague to act on.
 
 ### Workflow chat
 
@@ -126,6 +141,21 @@ English OCR runs in your browser using a lazily loaded Tesseract worker. It comp
 
 **Jev evaluates the reviewed text and visual description, not image pixels.** URLs are not a substitute for visual context. The output is a closed-set humor/tone classification, possible confusion, and an estimated probability the joke lands. This is subjective feedback, not measured audience engagement or a promise of virality.
 
+### MicroDuck arena
+
+A deterministic top-down grid, inspired by [pollen-robotics/microduck](https://github.com/pollen-robotics/microduck). It is a stand-in for that simulator, not the simulator itself, and it runs entirely in your browser.
+
+Each tick, every duck reports nine sensor fields — distance and direction to its goal, obstacles ahead and to each side, battery, whether cargo is aboard, whether it is standing on its goal, and its previous action. Jev answers with one of seven actions: forward, backward, turn left, turn right, stop, pick up, drop. The mission is to reach the cargo, carry it to the nest, and drop it there, which also recharges the duck.
+
+**Jev never sees the arena.** It sees the fields listed above and nothing else: no map, no pixels, no history beyond `last_action`. Illegal moves are carried out and charged rather than corrected, because a duck driving into a wall is the result, not an error to hide.
+
+- **Who drives** switches between Jev, a random baseline over the same seven actions, and manual control. Manual moves also ask Jev what it would have done, so the scoreboard reports how often its advice matched yours.
+- **Ticks** runs that many rounds. Each tick costs one request per duck, three in parallel. **Step** runs a single round.
+- **Withheld-sensor test** re-asks the same tick with chosen fields dropped from the state entirely, then reports whether the decision changed. It doubles the requests.
+- The arena is rebuilt from **seed**, **ducks**, **width**, and **height**. The same seed always produces the same walls, spawns, cargo, and nests, so two runs are comparable. Walls that would seal off a cargo or nest are opened, so every mission stays solvable.
+
+An action outside the seven falls back to Jev's highest-scoring action; a response with nothing usable, or a failed request, stops the duck rather than inventing a move for it. Failed calls are counted separately from decisions, and a run of a few dozen ticks is a demonstration, not a robotics benchmark.
+
 ## Deploy to Vercel
 
 ```sh
@@ -154,19 +184,20 @@ python3 -m unittest discover -s tests -v
 
 CI tests the production build. To reproduce locally without stopping the dev preview, run E2E_PRODUCTION=1 E2E_PORT=3002 npm run test:e2e after building.
 
-Browser coverage includes desktop/mobile flows, theme persistence, saved drafts, extraction, meme failures, workflow decisions, and responsive boundaries from 320px to 2560px, including short landscape screens. `npm start` runs the built production app.
+Browser coverage includes desktop/mobile flows, theme persistence, saved drafts, extraction, meme failures, workflow decisions, question triage and its human fallback, arena ticks and their withheld-sensor re-ask, and responsive boundaries from 320px to 2560px, including short landscape screens. `npm start` runs the built production app.
 
-| Path                                                       | Responsibility                                                           |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `app/`                                                     | Next.js routes, server API handlers, global styling, and social metadata |
-| `components/`                                              | Shared shell and React workspace interfaces                              |
-| `lib/`                                                     | Request contracts, image fetching, OCR, and client utilities             |
-| `src/extraction/`                                          | Candidate extraction and Jev ranking                                     |
-| `web/catalog.json`                                         | Shared example catalog                                                   |
-| `web/library.js`, `web/conversation.js`, `web/workflow.js` | Tested logic shared with the legacy UI                                   |
-| `tests/`                                                   | Unit/API checks and Playwright browser tests                             |
-| `public/og.png`                                            | Open Graph and Twitter sharing image                                     |
-| `public/memes/`                                            | Meta meme asset and editable SVG source                                  |
+| Path                                                       | Responsibility                                                                                                  |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `app/`                                                     | Next.js routes, server API handlers, global styling, and social metadata                                        |
+| `components/`                                              | Shared shell and React workspace interfaces                                                                     |
+| `lib/`                                                     | Request contracts, question triage, the arena simulation and its driver, image fetching, OCR, and client utilities |
+| `types/`                                                   | Shared closed-set contracts, including the triage outcomes and the arena's sensor and action types              |
+| `src/extraction/`                                          | Candidate extraction and Jev ranking                                                                            |
+| `web/catalog.json`                                         | Shared example catalog                                                                                          |
+| `web/library.js`, `web/conversation.js`, `web/workflow.js` | Tested logic shared with the legacy UI                                                                          |
+| `tests/`                                                   | Unit/API checks and Playwright browser tests                                                                    |
+| `public/og.png`                                            | Open Graph and Twitter sharing image                                                                            |
+| `public/memes/`                                            | Meta meme asset and editable SVG source                                                                         |
 
 ## Legacy Python UI
 
