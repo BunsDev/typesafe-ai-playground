@@ -20,7 +20,9 @@ jobs:
           node-version: "22"
       - run: python -m unittest discover -s tests -v
       - run: python -m py_compile server.py run.py
-      - run: node --test tests/test_catalog.js tests/test_conversation.js tests/test_workflow.js
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
       - run: node --check web/app.js
       - run: node --check web/library.js
       - run: node --check web/theme.js
