@@ -212,82 +212,82 @@ test("example edits persist across refresh", async ({ page }) => {
   await expect(page.locator("#example-state")).toHaveValue("My saved example");
 });
 
-test("responsive boundaries and short landscape keep actions reachable", async ({
-  page,
-}, info) => {
-  test.setTimeout(60000);
-  test.skip(info.project.name !== "desktop", "Viewport matrix runs once.");
-  for (const [width, height] of [
-    [320, 568],
-    [650, 700],
-    [651, 700],
-    [844, 390],
-    [900, 700],
-    [1024, 768],
-    [1200, 800],
-    [1440, 900],
-    [2560, 1440],
-  ]) {
-    await page.setViewportSize({ width, height });
-    for (const route of [
-      "/",
-      "/conversation",
-      "/workflow",
-      "/extraction",
-      "/memes",
-      "/pr-review",
-      "/ast-governance",
-      "/smt-solver",
-      "/tool-router",
-      "/langchain",
-      "/reranker",
-    ]) {
-      await page.goto(route);
-      await expect(page.locator("h1")).toBeVisible();
-      expect(
-        await page.evaluate(
-          () => document.documentElement.scrollWidth <= innerWidth,
-        ),
-        `${route} at ${width}x${height}`,
-      ).toBe(true);
-      if (route === "/" && width > 650 && height < 600) {
+for (const [width, height] of [
+  [320, 568],
+  [650, 700],
+  [651, 700],
+  [844, 390],
+  [900, 700],
+  [1024, 768],
+  [1200, 800],
+  [1440, 900],
+  [2560, 1440],
+]) {
+  test(
+    "responsive boundaries at " + width + "x" + height,
+    async ({ page }, info) => {
+      test.skip(info.project.name !== "desktop", "Viewport matrix runs once.");
+      await page.setViewportSize({ width, height });
+      for (const route of [
+        "/",
+        "/conversation",
+        "/workflow",
+        "/extraction",
+        "/memes",
+        "/pr-review",
+        "/ast-governance",
+        "/smt-solver",
+        "/tool-router",
+        "/langchain",
+        "/reranker",
+      ]) {
+        await page.goto(route);
+        await expect(page.locator("h1")).toBeVisible();
         expect(
-          (await page.locator(".example-list").boundingBox())!.height,
-        ).toBeGreaterThan(60);
+          await page.evaluate(
+            () => document.documentElement.scrollWidth <= innerWidth,
+          ),
+          `${route} at ${width}x${height}`,
+        ).toBe(true);
+        if (route === "/" && width > 650 && height < 600) {
+          expect(
+            (await page.locator(".example-list").boundingBox())!.height,
+          ).toBeGreaterThan(60);
+        }
+        const action = page.getByRole("button", {
+          name:
+            route === "/"
+              ? "Run example"
+              : route === "/conversation"
+                ? "Pick a recipient"
+                : route === "/workflow"
+                  ? "Send message"
+                  : route === "/extraction"
+                    ? "Run extraction"
+                    : route === "/pr-review"
+                      ? "Review PR"
+                      : route === "/ast-governance"
+                        ? "Analyze changes"
+                        : route === "/smt-solver"
+                          ? "Run Check"
+                          : route === "/tool-router"
+                            ? "Run Routing Step"
+                            : route === "/langchain"
+                              ? "Invoke LangChain tool"
+                              : route === "/reranker"
+                                ? "Compare both"
+                                : "Test meme",
+          exact: true,
+        });
+        await action.scrollIntoViewIfNeeded();
+        const bounds = await action.boundingBox();
+        expect(bounds, `${route} action bounds`).not.toBeNull();
+        expect(bounds!.y).toBeGreaterThanOrEqual(0);
+        expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(height);
       }
-      const action = page.getByRole("button", {
-        name:
-          route === "/"
-            ? "Run example"
-            : route === "/conversation"
-              ? "Pick a recipient"
-              : route === "/workflow"
-                ? "Send message"
-                : route === "/extraction"
-                  ? "Run extraction"
-                  : route === "/pr-review"
-                    ? "Review PR"
-                    : route === "/ast-governance"
-                      ? "Analyze changes"
-                      : route === "/smt-solver"
-                        ? "Run Check"
-                        : route === "/tool-router"
-                          ? "Run Routing Step"
-                          : route === "/langchain"
-                            ? "Invoke LangChain tool"
-                            : route === "/reranker"
-                              ? "Compare both"
-                              : "Test meme",
-        exact: true,
-      });
-      await action.scrollIntoViewIfNeeded();
-      const bounds = await action.boundingBox();
-      expect(bounds, `${route} action bounds`).not.toBeNull();
-      expect(bounds!.y).toBeGreaterThanOrEqual(0);
-      expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(height);
-    }
-  }
-});
+    },
+  );
+}
 
 test("meta meme, image URL OCR review, and GitHub link are usable", async ({
   page,

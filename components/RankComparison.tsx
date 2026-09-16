@@ -2,12 +2,14 @@ import { CandidateTable } from "./CandidateTable";
 import type { RankingRun } from "../types/rerank";
 export function RankComparison({
   vector,
+  showVectorTiming,
   jev,
   baseline,
   flagged,
   onInspect,
 }: {
   vector: RankingRun;
+  showVectorTiming: boolean;
   jev: RankingRun | null;
   baseline: RankingRun | null;
   flagged: Set<string>;
@@ -36,7 +38,13 @@ export function RankComparison({
           <div className="rank-column-heading">
             <h2>{title}</h2>
             <p className="muted">{detail}</p>
-            <span>{run ? run.latencyMs.toFixed(1) + " ms" : "Not run"}</span>
+            <span>
+              {run?.method === "vector" && !showVectorTiming
+                ? "Measuring sort…"
+                : run
+                  ? run.latencyMs.toFixed(1) + " ms"
+                  : "Not run"}
+            </span>
           </div>
           <CandidateTable run={run} flagged={flagged} onInspect={onInspect} />
         </section>

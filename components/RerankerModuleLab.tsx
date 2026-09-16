@@ -16,6 +16,8 @@ import { MetricsPanel } from "./MetricsPanel";
 import type { RankingRun } from "../types/rerank";
 const sampleText = () => JSON.stringify(sampleCandidates(), null, 2);
 export function RerankerModuleLab() {
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
   const [query, setQuery] = useState("where is authentication handled?");
   const [raw, setRaw] = useState(sampleText);
   const [k, setK] = useState(100);
@@ -303,6 +305,7 @@ export function RerankerModuleLab() {
         </section>
       )}
       <RankComparison
+        showVectorTiming={hydrated}
         vector={vector}
         jev={jev}
         baseline={baseline}

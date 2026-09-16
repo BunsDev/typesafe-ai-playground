@@ -149,6 +149,8 @@ npm run test:e2e             # Mocked API calls; no TypeSafe credits used
 python3 -m unittest discover -s tests -v
 ```
 
+CI tests the production build. To reproduce locally without stopping the dev preview, run E2E_PRODUCTION=1 E2E_PORT=3002 npm run test:e2e after building.
+
 Browser coverage includes desktop/mobile flows, theme persistence, saved drafts, extraction, meme failures, workflow decisions, and responsive boundaries from 320px to 2560px, including short landscape screens. `npm start` runs the built production app.
 
 | Path                                                       | Responsibility                                                           |
