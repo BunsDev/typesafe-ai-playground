@@ -8,6 +8,7 @@ import {
   Blocks,
   FileScan,
   GitBranch,
+  Inbox,
   MessageSquare,
   Moon,
   Sun,
@@ -25,6 +26,12 @@ const pages = [
     label: "Conversation lab",
     icon: MessageSquare,
     detail: "Find the right reply",
+  },
+  {
+    href: "/gate",
+    label: "Ask gate",
+    icon: Inbox,
+    detail: "Ask Jev, or ask a human?",
   },
   {
     href: "/workflow",

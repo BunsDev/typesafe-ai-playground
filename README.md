@@ -25,12 +25,13 @@ Open the address printed by Next.js, normally http://localhost:3000. To choose a
 
 `TYPESAFE_API_KEY` is read only by the server. Do not prefix it with `NEXT_PUBLIC_`, hardcode it in a component, or commit `.env.local`. You can browse and edit examples without a key; Run buttons require one.
 
-## Five workspaces
+## Six workspaces
 
 | Workspace | What it does |
 | --- | --- |
 | **Examples** `/` | 110 examples across 22 categories, including 41 A/B comparisons. Edit input and questions, run Jev, and inspect typed answers. |
 | **Conversation lab** `/conversation` | Paste raw Discord or labeled chat, rank potential reply recipients, compare context, and evaluate conversation frames. |
+| **Ask gate** `/gate` | Decide whether an incoming question needs a human, or whether the channel or the docs already answered it, with the exact line cited. |
 | **Workflow chat** `/workflow` | Describe a case and apply editable decision rules. Missing evidence produces a follow-up question. |
 | **Document extraction** `/extraction` | Find likely values locally, then ask Jev to select candidates or `null`, with probabilities and source evidence. |
 | **Meme lab** `/memes` | Test humor style, audience fit, tone, and likely confusion using captions or reviewed text from an image URL. |
@@ -56,6 +57,19 @@ Paste Discord messages with names and timestamps, `Name: message` text, or plain
 - **Evaluate final message** sends one full-context request.
 
 Changing the reply threshold recomputes decisions locally. Optional expected-frame labels build session confusion matrices; changing the transcript or format clears the label. Exports include the run input, rows, threshold, and selected recipient. No messages are sent to Discord.
+
+### Ask gate
+
+A busy channel answers the same question repeatedly. The gate triages one incoming question, or a whole dump, against the recent conversation and any docs or FAQ text you paste.
+
+Jev picks one of four outcomes — `already_answered`, `answerable_by_docs`, `needs_human`, `needs_more_context` — plus the single prior message or documentation line that justifies it. It never writes the answer: suggested replies are fixed templates that quote the cited evidence.
+
+- **One question** gates a single message against the last 20 messages of context.
+- **Batch** gates every question in a dump against only the messages above it, three requests at a time, and tallies how many could have been avoided by reading up.
+
+`needs_human` is the fallback for everything the gate cannot stand behind: an unrecognized outcome, a missing confidence score, a match below the confidence slider, or a claim with nothing cited. When Jev picks `already_answered` but cites a documentation line — or the reverse — the gate reports the outcome its citation actually supports and shows both. Moving the confidence slider re-decides locally without new requests.
+
+The seeded sample is a support channel where three questions repeat earlier answers, one is covered by the FAQ, one is genuinely new, and one is too vague to act on.
 
 ### Workflow chat
 
@@ -115,13 +129,14 @@ npm run test:e2e             # Mocked API calls; no TypeSafe credits used
 python3 -m unittest discover -s tests -v
 ```
 
-Browser coverage includes desktop/mobile flows, theme persistence, saved drafts, extraction, meme failures, workflow decisions, and responsive boundaries from 320px to 2560px, including short landscape screens. `npm start` runs the built production app.
+Browser coverage includes desktop/mobile flows, theme persistence, saved drafts, extraction, meme failures, workflow decisions, question triage and its human fallback, and responsive boundaries from 320px to 2560px, including short landscape screens. `npm start` runs the built production app.
 
 | Path | Responsibility |
 | --- | --- |
 | `app/` | Next.js routes, server API handlers, global styling, and social metadata |
 | `components/` | Shared shell and React workspace interfaces |
-| `lib/` | Request contracts, image fetching, OCR, and client utilities |
+| `lib/` | Request contracts, question triage, image fetching, OCR, and client utilities |
+| `types/` | Shared closed-set contracts, including the triage outcomes |
 | `src/extraction/` | Candidate extraction and Jev ranking |
 | `web/catalog.json` | Shared example catalog |
 | `web/library.js`, `web/conversation.js`, `web/workflow.js` | Tested logic shared with the legacy UI |

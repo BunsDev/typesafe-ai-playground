@@ -2490,3 +2490,113 @@ select {
     height: 220px;
   }
 }
+.gate-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.gate-verdict {
+  padding: 20px;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--muted);
+  border-radius: 11px;
+  margin-bottom: 20px;
+}
+.gate-verdict[data-outcome="needs_human"] {
+  border-left-color: var(--accent);
+  background: var(--accent-soft);
+}
+.gate-verdict[data-outcome="already_answered"],
+.gate-verdict[data-outcome="answerable_by_docs"] {
+  border-left-color: var(--success);
+}
+.gate-verdict h2 {
+  font-size: 22px;
+  letter-spacing: -0.5px;
+  margin: 0 0 14px;
+  overflow-wrap: anywhere;
+}
+.gate-verdict > p {
+  margin: 12px 0 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.outcome-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 6px;
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.outcome-badge[data-outcome="needs_human"] {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+}
+.outcome-badge[data-outcome="already_answered"],
+.outcome-badge[data-outcome="answerable_by_docs"] {
+  color: var(--success);
+  border-color: color-mix(in srgb, var(--success) 35%, var(--line));
+}
+.suggested-reply {
+  background: var(--soft);
+  border-radius: 8px;
+  padding: 13px;
+  margin: 0 0 13px;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.annoyance-meter {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 8px 14px;
+  padding: 18px;
+  background: var(--accent-soft);
+  border-radius: 11px;
+  margin-bottom: 14px;
+}
+.annoyance-meter > svg {
+  color: var(--accent);
+  margin-top: 2px;
+}
+.annoyance-meter strong {
+  display: block;
+  font-size: 26px;
+  letter-spacing: -0.5px;
+}
+.annoyance-meter strong > span {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.annoyance-meter p {
+  margin: 7px 0 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+.annoyance-meter .probability-track {
+  grid-column: 1 / -1;
+}
+td > blockquote {
+  margin-bottom: 7px;
+}
+td > p {
+  margin: 6px 0 0;
+  white-space: pre-wrap;
+}
+td time {
+  color: var(--muted);
+}
+.batch-table caption {
+  text-align: left;
+  color: var(--muted);
+  font-size: 10px;
+  padding-bottom: 12px;
+}

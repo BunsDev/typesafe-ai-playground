@@ -4,7 +4,7 @@ test.beforeEach(async ({ page }) => {
     r.fulfill({ json: { ok: true, configured: true } }),
   );
 });
-test("five workspaces fit the viewport and navigate without runtime errors", async ({
+test("six workspaces fit the viewport and navigate without runtime errors", async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -12,6 +12,7 @@ test("five workspaces fit the viewport and navigate without runtime errors", asy
   for (const path of [
     "/",
     "/conversation",
+    "/gate",
     "/workflow",
     "/extraction",
     "/memes",
@@ -208,6 +209,7 @@ test("responsive boundaries and short landscape keep actions reachable", async (
     for (const route of [
       "/",
       "/conversation",
+      "/gate",
       "/workflow",
       "/extraction",
       "/memes",
@@ -231,11 +233,13 @@ test("responsive boundaries and short landscape keep actions reachable", async (
             ? "Run example"
             : route === "/conversation"
               ? "Pick a recipient"
-              : route === "/workflow"
-                ? "Send message"
-                : route === "/extraction"
-                  ? "Run extraction"
-                  : "Test meme",
+              : route === "/gate"
+                ? "Run triage"
+                : route === "/workflow"
+                  ? "Send message"
+                  : route === "/extraction"
+                    ? "Run extraction"
+                    : "Test meme",
         exact: true,
       });
       await action.scrollIntoViewIfNeeded();
@@ -462,4 +466,104 @@ test("results rail toggles from its bottom edge and with the keyboard", async ({
   await collapse.focus();
   await page.keyboard.press("Enter");
   await expect(rail).toHaveAttribute("aria-expanded", "false");
+});
+
+test("ask gate cites its evidence and hands weak matches to a human", async ({
+  page,
+}) => {
+  let calls = 0;
+  await page.route("**/api/run", async (route) => {
+    calls++;
+    const payload = route.request().postDataJSON();
+    expect(Object.keys(payload.questions.decision.criteria).sort()).toEqual([
+      "already_answered",
+      "answerable_by_docs",
+      "needs_human",
+      "needs_more_context",
+    ]);
+    const ids = Object.keys(payload.questions.evidence.criteria);
+    expect(ids[0]).toBe("none");
+    await route.fulfill({
+      json: {
+        answers: {
+          decision: {
+            type: "choice",
+            choice: "already_answered",
+            probabilities: {
+              already_answered: 0.82,
+              answerable_by_docs: 0.1,
+              needs_human: 0.05,
+              needs_more_context: 0.03,
+            },
+          },
+          evidence: {
+            type: "choice",
+            choice: ids.find((id: string) => id.startsWith("M")),
+          },
+        },
+      },
+    });
+  });
+  await page.goto("/gate");
+  await page.getByRole("button", { name: "Run triage", exact: true }).click();
+  await expect(page.locator(".gate-verdict")).toHaveAttribute(
+    "data-outcome",
+    "already_answered",
+  );
+  await expect(page.locator(".gate-verdict")).toContainText("82.0%");
+  await expect(page.locator("blockquote").first()).toContainText("429");
+  await expect(page.locator(".suggested-reply")).toContainText(
+    "This came up earlier",
+  );
+  await page.getByRole("slider").fill("90");
+  await expect(page.locator(".gate-verdict")).toHaveAttribute(
+    "data-outcome",
+    "needs_human",
+  );
+  await expect(page.getByText("Jev proposed")).toBeVisible();
+  await expect(page.locator(".suggested-reply")).toHaveCount(0);
+  expect(calls).toBe(1);
+});
+
+test("batch mode gates each question and counts the avoidable ones", async ({
+  page,
+}) => {
+  const asked: string[] = [];
+  await page.route("**/api/run", async (route) => {
+    const payload = route.request().postDataJSON();
+    asked.push(payload.state.question);
+    const duplicate = /too many requests|api key|default model/i.test(
+      payload.state.question,
+    );
+    const choice = duplicate ? "already_answered" : "needs_human";
+    const evidence = Object.keys(payload.questions.evidence.criteria).find(
+      (id: string) => id.startsWith("M"),
+    );
+    await route.fulfill({
+      json: {
+        answers: {
+          decision: {
+            type: "choice",
+            choice,
+            probabilities: { [choice]: 0.95 },
+          },
+          ...(duplicate && evidence
+            ? { evidence: { type: "choice", choice: evidence } }
+            : {}),
+        },
+      },
+    });
+  });
+  await page.goto("/gate");
+  await page.getByLabel("Mode", { exact: true }).selectOption("batch");
+  await page.getByRole("button", { name: "Run triage", exact: true }).click();
+  await expect(page.locator("tbody tr")).toHaveCount(6);
+  expect(asked).toHaveLength(6);
+  await expect(page.locator(".annoyance-meter")).toContainText("3 of 6");
+  await expect(page.locator(".annoyance-meter")).toContainText(
+    "The answer was right there.",
+  );
+  await expect(page.locator(".outcome-badge").first()).toContainText(
+    "Already answered",
+  );
 });
