@@ -11,8 +11,11 @@ import {
 import * as workflow from "../web/workflow";
 import { runJev, errorMessage, percent } from "../lib/client";
 import { ErrorNote, Export, Heading } from "./ui";
+import { WORKFLOW_EXAMPLES } from "../lib/workflow-examples";
 type Turn = workflow.Turn & { decision?: workflow.Decision };
 export function Workflow() {
+  const [exampleId, setExampleId] = useState("delivery");
+  const example = WORKFLOW_EXAMPLES.find((e) => e.id === exampleId)!;
   const [rules, setRules] = useState(workflow.defaults);
   const [turns, setTurns] = useState<Turn[]>([]);
   const [message, setMessage] = useState("");
@@ -34,12 +37,13 @@ export function Workflow() {
     setBusy(true);
     controller.current = new AbortController();
     try {
-      const payload = workflow.buildRequest(next, rules);
+      const payload = workflow.buildRequest(next, rules, example.question);
       setTurns(next);
       setMessage("");
       const result = workflow.resolve(
         await runJev(payload, controller.current.signal),
         rules,
+        example.question,
       );
       setTurns([
         ...next,
@@ -77,7 +81,30 @@ export function Workflow() {
             <span className="count">{rules.length}</span>
           </div>
           <div className="panel-content scroll">
-            <h3>Damaged delivery</h3>
+            <label>
+              Example playbook
+              <select
+                value={exampleId}
+                disabled={busy || turns.length > 0}
+                onChange={(e) => {
+                  const selected = WORKFLOW_EXAMPLES.find(
+                    (x) => x.id === e.target.value,
+                  )!;
+                  setExampleId(selected.id);
+                  setRules(selected.rules.map((r) => ({ ...r })));
+                  setMessage("");
+                  setError("");
+                }}
+              >
+                {WORKFLOW_EXAMPLES.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <h3>{example.name}</h3>
+            <p className="muted">{example.description}</p>
             <p className="muted">
               Jev checks the facts against your rules before recommending an
               action.
@@ -191,26 +218,15 @@ export function Workflow() {
                   details together.
                 </p>
                 <div className="suggestions">
-                  <button
-                    onClick={() =>
-                      send(
-                        "A customer reports that their item arrived broken. We have not investigated the cause yet.",
-                      )
-                    }
-                    disabled={busy}
-                  >
-                    Customer received a broken item <span>↗</span>
-                  </button>
-                  <button
-                    onClick={() =>
-                      send(
-                        "The delivery report confirms the courier dropped the parcel. Photos show it was intact when the sender handed it over.",
-                      )
-                    }
-                    disabled={busy}
-                  >
-                    Delivery damage is confirmed <span>↗</span>
-                  </button>
+                  {example.starters.map((starter) => (
+                    <button
+                      key={starter.label}
+                      onClick={() => send(starter.text)}
+                      disabled={busy}
+                    >
+                      {starter.label} <span>↗</span>
+                    </button>
+                  ))}
                 </div>
               </div>
             ) : (

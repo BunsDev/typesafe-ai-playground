@@ -18,6 +18,9 @@ test("all workspaces fit the viewport and navigate without runtime errors", asyn
     "/pr-review",
     "/ast-governance",
     "/smt-solver",
+    "/tool-router",
+    "/langchain",
+    "/reranker",
   ]) {
     await page.goto(path);
     await expect(page.locator("h1")).toBeVisible();
@@ -183,6 +186,13 @@ test("conversation chooses winner and recomputes threshold without API calls", a
   await page.goto("/conversation");
   await page.getByRole("button", { name: "Pick a recipient" }).click();
   await expect(page.locator(".winner-card")).toContainText("Tyler");
+  await expect(page.locator(".winner-card .message-preview")).toHaveText(
+    "Can you prototype the codebase search flow? I need exact context, line-by-line search, and AST support.",
+  );
+  await expect(page.locator(".ranked-message")).toHaveCount(2);
+  await expect(
+    page.locator(".ranked-message .message-preview").first(),
+  ).toHaveText("Do they have a desktop app?");
   await page.getByRole("slider").fill("99");
   await expect(page.locator(".winner-card")).toContainText("No reply needed");
   expect(calls).toBe(3);
@@ -205,6 +215,7 @@ test("example edits persist across refresh", async ({ page }) => {
 test("responsive boundaries and short landscape keep actions reachable", async ({
   page,
 }, info) => {
+  test.setTimeout(60000);
   test.skip(info.project.name !== "desktop", "Viewport matrix runs once.");
   for (const [width, height] of [
     [320, 568],
@@ -227,6 +238,9 @@ test("responsive boundaries and short landscape keep actions reachable", async (
       "/pr-review",
       "/ast-governance",
       "/smt-solver",
+      "/tool-router",
+      "/langchain",
+      "/reranker",
     ]) {
       await page.goto(route);
       await expect(page.locator("h1")).toBeVisible();
@@ -257,7 +271,13 @@ test("responsive boundaries and short landscape keep actions reachable", async (
                       ? "Analyze changes"
                       : route === "/smt-solver"
                         ? "Run Check"
-                        : "Test meme",
+                        : route === "/tool-router"
+                          ? "Run Routing Step"
+                          : route === "/langchain"
+                            ? "Invoke LangChain tool"
+                            : route === "/reranker"
+                              ? "Compare both"
+                              : "Test meme",
         exact: true,
       });
       await action.scrollIntoViewIfNeeded();
@@ -764,7 +784,9 @@ test("SMT decomposes independent groups and records measured benchmark rows", as
     });
   });
   await page.goto("/smt-solver");
-  await page.getByLabel("Seeded example").selectOption("1");
+  await page
+    .getByRole("button", { name: "Team availability", exact: true })
+    .click();
   await page.getByRole("button", { name: "Run Check", exact: true }).click();
   await expect(page.locator(".compact-verdict h2")).toHaveText("satisfiable");
   await expect(
@@ -796,6 +818,9 @@ test("every workspace has a distinct branded OG and matching Twitter preview", a
     "/pr-review",
     "/ast-governance",
     "/smt-solver",
+    "/tool-router",
+    "/langchain",
+    "/reranker",
   ]) {
     await page.goto(path);
     const og = await page
@@ -819,4 +844,145 @@ test("every workspace has a distinct branded OG and matching Twitter preview", a
     expect(bytes.readUInt32BE(16)).toBe(1200);
     expect(bytes.readUInt32BE(20)).toBe(630);
   }
+});
+
+test("tool router shows approval and blocks sensitive requests without a Jev call", async ({
+  page,
+}) => {
+  let requests = 0;
+  await page.route("**/api/run", async (r) => {
+    requests++;
+    await r.abort();
+  });
+  await page.goto("/tool-router");
+  await page.getByLabel("Demo scenario").selectOption("1");
+  await page.getByRole("button", { name: "Run mock scenario" }).click();
+  await expect(page.locator(".compact-verdict h2")).toHaveText(
+    "Approval checkpoint",
+  );
+  await expect(
+    page.getByRole("button", { name: "Run Routing Step", exact: true }),
+  ).toBeDisabled();
+  await page.getByRole("button", { name: "Approve mock step" }).click();
+  await expect(page.locator(".compact-verdict h2")).toHaveText(
+    "Modify configuration",
+  );
+  await page
+    .getByRole("button", { name: "Run Routing Step", exact: true })
+    .click();
+  await expect(page.locator(".compact-verdict h2")).toHaveText("Complete");
+  await page.getByLabel("Demo scenario").selectOption("2");
+  await page
+    .getByRole("button", { name: "Run Routing Step", exact: true })
+    .click();
+  await expect(page.locator(".compact-verdict h2")).toHaveText(
+    "Blocked by policy",
+  );
+  expect(requests).toBe(0);
+  const bounds = await page.locator(".compact-verdict").boundingBox();
+  expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(
+    page.viewportSize()!.width,
+  );
+});
+test("tool router limits live choices to outgoing allowed nodes and falls back on low confidence", async ({
+  page,
+}) => {
+  const seen: string[][] = [];
+  await page.route("**/api/run", async (r) => {
+    const p = r.request().postDataJSON();
+    const keys = Object.keys(p.questions.next_node.criteria);
+    seen.push(keys);
+    expect(keys).toContain("needs_clarification");
+    expect(keys).not.toContain("export_secrets_tool");
+    const choice = seen.length === 1 ? "ops_agent" : "modify_config_tool";
+    await r.fulfill({
+      json: {
+        answers: {
+          next_node: {
+            type: "choice",
+            choice,
+            confidence: seen.length === 1 ? 0.99 : 0.2,
+            probabilities: { [choice]: 0.99 },
+          },
+        },
+      },
+    });
+  });
+  await page.goto("/tool-router");
+  await page
+    .getByRole("button", { name: "Run Routing Step", exact: true })
+    .click();
+  await expect(page.locator(".compact-verdict h2")).toHaveText(
+    "Operations agent",
+  );
+  await page
+    .getByRole("button", { name: "Run Routing Step", exact: true })
+    .click();
+  await expect(page.locator(".compact-verdict h2")).toHaveText(
+    "Needs clarification",
+  );
+  expect(seen[1]).toEqual([
+    "read_config_tool",
+    "modify_config_tool",
+    "needs_clarification",
+  ]);
+  await expect(
+    page.getByRole("button", { name: "Approve mock step" }),
+  ).toHaveCount(0);
+});
+
+test("LangChain demo invokes the real structured tool and surfaces approval without execution", async ({
+  page,
+}) => {
+  await page.goto("/langchain");
+  await page.getByRole("button", { name: "Try mock invocation" }).click();
+  await expect(page.locator(".compact-verdict h2")).toHaveText(
+    "Read configuration",
+  );
+  await expect(
+    page.getByText("None · routing only", { exact: true }),
+  ).toBeVisible();
+  await expect(page.locator("#langchain-result pre")).toContainText(
+    '"executed": false',
+  );
+  await page.getByLabel("Example request").selectOption("1");
+  await page.getByRole("button", { name: "Try mock invocation" }).click();
+  await expect(page.locator(".compact-verdict h2")).toHaveText(
+    "Approval checkpoint",
+  );
+  await expect(
+    page.getByRole("heading", { name: "Your host must ask for approval" }),
+  ).toBeVisible();
+  await page.getByLabel("Example request").selectOption("2");
+  await page
+    .getByRole("button", { name: "Invoke LangChain tool", exact: true })
+    .click();
+  await expect(page.locator(".compact-verdict h2")).toHaveText(
+    "Blocked by policy",
+  );
+  await expect(page.locator("#langchain-result pre")).toContainText(
+    '"source": "deterministic"',
+  );
+});
+
+test("PR decision trace links model signals and policy gates back to exact evidence", async ({
+  page,
+}) => {
+  await page.goto("/pr-review");
+  await page.getByRole("button", { name: "Run mock demo" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Why this decision" }),
+  ).toBeVisible();
+  await expect(page.locator(".trace-thresholds")).toContainText("95.0%");
+  await page
+    .getByRole("button", { name: /Inspect evidence for/ })
+    .first()
+    .click();
+  await expect(page.locator(".hunk-card[open] .hunk-gate-trace")).toBeVisible();
+  await expect(page.locator(".hunk-card[open] .hunk-gate-trace")).toContainText(
+    "Final route: human review",
+  );
+  await expect(page.locator(".hunk-card[open] .diff-evidence")).toContainText(
+    "@@",
+  );
 });

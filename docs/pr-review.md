@@ -23,8 +23,18 @@ The queue export contains only escalated hunks, their exact paths/diffs, the PR 
 
 ```json
 [
-  {"id":"auth_owner","kind":"protected_path","path":"src/auth*","text":"An auth owner must review these changes."},
-  {"id":"behavior_tests","kind":"test_requirement","path":"src/service.ts","text":"Behavior changes need corresponding tests."}
+  {
+    "id": "auth_owner",
+    "kind": "protected_path",
+    "path": "src/auth*",
+    "text": "An auth owner must review these changes."
+  },
+  {
+    "id": "behavior_tests",
+    "kind": "test_requirement",
+    "path": "src/service.ts",
+    "text": "Behavior changes need corresponding tests."
+  }
 ]
 ```
 
@@ -39,3 +49,7 @@ Use `[]` for none. Supported kinds are `protected_path`, `test_requirement`, `se
 - GitHub and Jev rate limits produce explicit errors; they never become approvals. Cancelling preserves coverage gaps.
 
 API references: [GitHub pull requests](https://docs.github.com/en/rest/pulls/pulls) and [TypeSafe Choice responses](https://docs.typesafe.ai/introduction/quickstart).
+
+## Decision trace
+
+The results panel shows priority hunk routes under **Why this decision**, with selected labels, conservative scores, thresholds and the exact routing reason. **Trace to line** clears filters, opens the original hunk and scrolls to its evidence. The expanded hunk explains completeness, the lowest label/rule score, protected-path and test policies, and the final route. This trace uses stored classification data and deterministic routing reasons; it generates no review commentary.

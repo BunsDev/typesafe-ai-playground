@@ -18,5 +18,13 @@ export interface Decision {
 }
 export function defaults(): Rule[];
 export function validateRules(rules: Rule[]): Rule[];
-export function buildRequest(turns: Turn[], rules: Rule[]): unknown;
-export function resolve(response: unknown, rules: Rule[]): Decision;
+export function buildRequest(
+  turns: Turn[],
+  rules: Rule[],
+  followupQuestion?: string,
+): unknown;
+export function resolve(
+  response: unknown,
+  rules: Rule[],
+  followupQuestion?: string,
+): Decision;

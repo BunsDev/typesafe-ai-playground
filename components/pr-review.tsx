@@ -1,4 +1,5 @@
 "use client";
+import { PrDecisionTrace, HunkDecisionTrace } from "./PrDecisionTrace";
 import { useEffect, useRef, useState } from "react";
 import {
   Download,
@@ -414,6 +415,29 @@ export function PullRequestReview() {
                 <span>Human queue</span>
               </div>
             </div>
+            {mode && !thresholdError && (
+              <PrDecisionTrace
+                results={routed}
+                pending={summary.pending}
+                thresholds={thresholds}
+                onInspect={(id) => {
+                  setRiskFilter("all");
+                  setLabelFilter("all");
+                  setFileFilter("all");
+                  requestAnimationFrame(() => {
+                    const target = document.getElementById("pr-hunk-" + id);
+                    target?.setAttribute("open", "");
+                    target?.scrollIntoView({
+                      block: "start",
+                      behavior: matchMedia("(prefers-reduced-motion: reduce)")
+                        .matches
+                        ? "instant"
+                        : "smooth",
+                    });
+                  });
+                }}
+              />
+            )}
             {pr && (
               <div className="review-source-meta">
                 <h3>{pr.title}</h3>
@@ -481,6 +505,7 @@ export function PullRequestReview() {
                     hunk.issue || "Not classified yet.",
                   )
                 }
+                thresholds={thresholds}
                 routed={routed.find(
                   (result) => result.result.hunk.id === hunk.id,
                 )}
@@ -517,9 +542,11 @@ export function PullRequestReview() {
 function HunkCard({
   result,
   routed,
+  thresholds,
 }: {
   result: Classification;
   routed?: RoutedReview;
+  thresholds: Thresholds;
 }) {
   const positive = result.decisions.filter(
     (d) => d.selected !== "not_applicable",
@@ -540,7 +567,10 @@ function HunkCard({
   const removed = lines.filter((line) => line.startsWith("-"));
   const preview = [removed[0], added[0]].filter(Boolean);
   return (
-    <details className={`hunk-card risk-${routed?.risk || "unknown"}`}>
+    <details
+      id={"pr-hunk-" + result.hunk.id}
+      className={`hunk-card risk-${routed?.risk || "unknown"}`}
+    >
       <summary>
         <div className="hunk-title">
           <strong>{result.hunk.path}</strong>
@@ -591,6 +621,9 @@ function HunkCard({
         </div>
       </summary>
       <div className="hunk-detail">
+        {routed && (
+          <HunkDecisionTrace routed={routed} thresholds={thresholds} />
+        )}
         <p className="muted">
           {result.source === "mock"
             ? "Mock fixture"

@@ -25,6 +25,7 @@ export interface Response {
   answers: Record<string, Answer>;
 }
 export interface Row {
+  message?: Message;
   speaker?: string;
   variant: string;
   response?: Response;

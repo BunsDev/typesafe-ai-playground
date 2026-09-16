@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Trophy, MessageSquare, ArrowUpRight } from "lucide-react";
+import { MessageSquare, ArrowUpRight } from "lucide-react";
+import { ConversationRanking } from "./ConversationRanking";
+import { candidateMessage } from "../lib/conversation-ranking";
 import * as lab from "../web/conversation";
 import { runJev, percent, errorMessage } from "../lib/client";
 import { Empty, ErrorNote, Export, Heading, RunButton } from "./ui";
@@ -79,11 +81,13 @@ export function Conversation() {
         r.status === "fulfilled"
           ? {
               ...r.value,
+              message: candidateMessage(candidates[i]),
               expected: mode === "contest" ? "" : expected,
               predicted: r.value.response.answers?.frame?.choice,
             }
           : {
               variant: candidates[i].variant,
+              message: candidateMessage(candidates[i]),
               speaker: candidates[i].speaker,
               error: errorMessage(r.reason),
             },
@@ -100,7 +104,7 @@ export function Conversation() {
     }
   }
   return (
-    <div className="workspace">
+    <div className="workspace conversation-workspace">
       <Heading
         eyebrow="Conversation lab"
         title="Give the right message a reply."
@@ -264,83 +268,12 @@ export function Conversation() {
                 a recipient.
               </Empty>
             ) : (
-              <>
-                {mode === "contest" && (
-                  <div
-                    className={`winner-card ${winners.status === "winner" ? "has-winner" : ""}`}
-                  >
-                    <Trophy size={27} />
-                    <span className="eyebrow">
-                      {winners.status === "winner"
-                        ? "The reply goes to"
-                        : winners.status === "tie"
-                          ? "A shared spotlight"
-                          : winners.status === "none"
-                            ? "No reply needed"
-                            : "Decision incomplete"}
-                    </span>
-                    <h2>
-                      {winners.winners.map((w) => w.speaker).join(" & ") ||
-                        (winners.status === "none"
-                          ? "Let the conversation flow."
-                          : "Some evaluations failed.")}
-                    </h2>
-                    {winners.winners.length > 0 && (
-                      <p>
-                        {percent(
-                          winners.winners[0].response?.answers.should_respond
-                            ?.noul,
-                        )}{" "}
-                        reply probability
-                      </p>
-                    )}
-                  </div>
-                )}
-                {rows.map((row, i) => (
-                  <article key={i} className="decision-row">
-                    <div className="decision-top">
-                      <strong>
-                        {row.speaker ||
-                          (row.variant === "context"
-                            ? "With context"
-                            : "Latest message only")}
-                      </strong>
-                      <span className="pill">
-                        {lab.gate(
-                          row.response?.answers.should_respond,
-                          threshold / 100,
-                        )}
-                      </span>
-                    </div>
-                    {row.error ? (
-                      <ErrorNote message={row.error} />
-                    ) : (
-                      <>
-                        <div className="probability-track">
-                          <span
-                            style={{
-                              width: percent(
-                                row.response?.answers.should_respond?.noul,
-                              ),
-                            }}
-                          />
-                        </div>
-                        <div className="input-meta">
-                          <span>
-                            {row.response?.answers.frame?.choice ||
-                              "Frame unavailable"}
-                          </span>
-                          <strong>
-                            {percent(
-                              row.response?.answers.should_respond?.noul,
-                            )}
-                          </strong>
-                        </div>
-                      </>
-                    )}
-                  </article>
-                ))}
-              </>
+              <ConversationRanking
+                rows={rows}
+                threshold={threshold}
+                contest={mode === "contest"}
+                stale={stale}
+              />
             )}
             <div className="threshold">
               <label htmlFor="threshold">

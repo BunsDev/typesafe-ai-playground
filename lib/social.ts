@@ -1,5 +1,37 @@
 import type { Metadata } from "next";
 export const SOCIAL_PAGES = {
+  reranker: {
+    path: "/reranker",
+    title: "Vector reranker",
+    description: "Good matches. Better order.",
+    category: "RETRIEVAL & RELEVANCE",
+    steps: [
+      "Load vector candidates",
+      "Score relevance with Jev",
+      "Compare the rankings",
+    ],
+    result: "Shortlist → better order",
+  },
+  "tool-router": {
+    path: "/tool-router",
+    title: "Jev tool router",
+    description: "Choose the next step. Keep policy in control.",
+    category: "GRAPH-BASED ROUTING",
+    steps: ["Gather allowed nodes", "Route with Jev", "Apply policy gates"],
+    result: "Request → safe next step",
+  },
+  langchain: {
+    path: "/langchain",
+    title: "Jev × LangChain",
+    description: "A small classifier. A useful tool.",
+    category: "TYPESCRIPT INTEGRATION",
+    steps: [
+      "Invoke a LangChain tool",
+      "Classify with Jev",
+      "Return a governed route",
+    ],
+    result: "Tool call → typed decision",
+  },
   examples: {
     path: "/",
     title: "The playground",

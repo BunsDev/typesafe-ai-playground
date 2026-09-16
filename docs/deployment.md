@@ -16,6 +16,8 @@ The production Vercel Firewall uses these project-level, per-IP limits:
 | `/api/pull-request` | 6 requests per 60 seconds  |
 | `/api/solve`        | 20 requests per 60 seconds |
 
+The LangChain endpoint /api/langchain-route is limited to 30 requests per 60 seconds per IP.
+
 To reproduce on a new linked project:
 
 ```sh
@@ -36,6 +38,10 @@ vercel firewall rules add 'Limit public PR lookups' \
 vercel firewall rules add 'Limit exact solver checks' \
   --condition '{"type":"path","op":"eq","value":"/api/solve"}' \
   --action rate_limit --rate-limit-requests 20 --rate-limit-window 60 \
+  --rate-limit-keys ip --yes
+vercel firewall rules add 'Limit LangChain routing invocations' \
+  --condition '{"type":"path","op":"eq","value":"/api/langchain-route"}' \
+  --action rate_limit --rate-limit-requests 30 --rate-limit-window 60 \
   --rate-limit-keys ip --yes
 vercel firewall diff
 vercel firewall publish --yes

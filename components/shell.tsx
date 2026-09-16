@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   ArrowUpRight,
+  ArrowDownWideNarrow,
   Laugh,
   Blocks,
   FileScan,
@@ -11,6 +12,8 @@ import {
   GitPullRequest,
   Network,
   Scale,
+  Route,
+  Plug,
   MessageSquare,
   Moon,
   Sun,
@@ -58,6 +61,24 @@ const pages = [
     label: "SMT solver",
     icon: Scale,
     detail: "Verify structured logic",
+  },
+  {
+    href: "/tool-router",
+    label: "Tool router",
+    icon: Route,
+    detail: "Route with policy",
+  },
+  {
+    href: "/langchain",
+    label: "LangChain",
+    icon: Plug,
+    detail: "Integrate Jev",
+  },
+  {
+    href: "/reranker",
+    label: "Vector reranker",
+    icon: ArrowDownWideNarrow,
+    detail: "Compare relevance",
   },
   { href: "/memes", label: "Meme lab", icon: Laugh, detail: "Read the room" },
 ];

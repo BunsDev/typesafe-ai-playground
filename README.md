@@ -25,18 +25,21 @@ Open the address printed by Next.js, normally http://localhost:3000. To choose a
 
 `TYPESAFE_API_KEY` is read only by the server. Do not prefix it with `NEXT_PUBLIC_`, hardcode it in a component, or commit `.env.local`. You can browse and edit examples without a key; Live Jev actions require one. Mock governance/PR demos and exact Z3 checks do not.
 
-## Eight workspaces
+## Eleven workspaces
 
-| Workspace                             | What it does                                                                                                                     |
-| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| **Examples** `/`                      | 110 examples across 22 categories, including 41 A/B comparisons. Edit input and questions, run Jev, and inspect typed answers.   |
-| **Conversation lab** `/conversation`  | Paste raw Discord or labeled chat, rank potential reply recipients, compare context, and evaluate conversation frames.           |
-| **Workflow chat** `/workflow`         | Describe a case and apply editable decision rules. Missing evidence produces a follow-up question.                               |
-| **Document extraction** `/extraction` | Find likely values locally, then ask Jev to select candidates or `null`, with probabilities and source evidence.                 |
-| **PR review** `/pr-review`            | Paste a public PR link or diff; classify hunks and queue uncertain changes for review.                                           |
-| **AST governance** `/ast-governance`  | Trace changed symbols and callers, apply deterministic policy, and classify ambiguous findings. Includes a simulated test cache. |
-| **SMT solver** `/smt-solver`          | Compare closed-set Jev predictions with real Z3 checks, independent-group decomposition, and measured benchmarks.                |
-| **Meme lab** `/memes`                 | Test humor style, audience fit, tone, and likely confusion using captions or reviewed text from an image URL.                    |
+| Workspace                             | What it does                                                                                                                        |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **Examples** `/`                      | 110 examples across 22 categories, including 41 A/B comparisons. Edit input and questions, run Jev, and inspect typed answers.      |
+| **Conversation lab** `/conversation`  | Paste raw Discord or labeled chat, rank potential reply recipients, compare context, and evaluate conversation frames.              |
+| **Workflow chat** `/workflow`         | Describe a case and apply editable decision rules. Missing evidence produces a follow-up question.                                  |
+| **Document extraction** `/extraction` | Find likely values locally, then ask Jev to select candidates or `null`, with probabilities and source evidence.                    |
+| **PR review** `/pr-review`            | Paste a public PR link or diff; classify hunks and queue uncertain changes for review.                                              |
+| **AST governance** `/ast-governance`  | Trace changed symbols and callers, apply deterministic policy, and classify ambiguous findings. Includes a simulated test cache.    |
+| **SMT solver** `/smt-solver`          | Compare closed-set Jev predictions with real Z3 checks, independent-group decomposition, and measured benchmarks.                   |
+| **Tool router** `/tool-router`        | Follow a LangGraph-style mock workflow with closed-set node selection, policy blocks, approval gates and a step log.                |
+| **Vector reranker** /reranker         | Compare vector order, batched Jev relevance, and an explicit lexical mock baseline. Inspect rank disagreements and source snippets. |
+| **LangChain** `/langchain`            | Invoke a real LangChain routing tool with live or mocked Jev predictions; inspect typed policy-gated output.                        |
+| **Meme lab** `/memes`                 | Test humor style, audience fit, tone, and likely confusion using captions or reviewed text from an image URL.                       |
 
 Every page has its own 1200 × 630 Open Graph image and Twitter preview. A shared branded template keeps route titles, descriptions and images consistent.
 
@@ -60,11 +63,11 @@ Paste Discord messages with names and timestamps, `Name: message` text, or plain
 - **Compare context (A/B)** compares full context with the final message alone.
 - **Evaluate final message** sends one full-context request.
 
-Changing the reply threshold recomputes decisions locally. Optional expected-frame labels build session confusion matrices; changing the transcript or format clears the label. Exports include the run input, rows, threshold, and selected recipient. No messages are sent to Discord.
+The winning message gets a full source preview with its speaker and timestamp; other messages appear in ranked cards with expandable previews. Ties and unscored candidates remain explicit. Changing the reply threshold recomputes decisions locally. Optional expected-frame labels build session confusion matrices; changing the transcript or format clears the label. Exports include the run input, rows, threshold, and selected recipient. No messages are sent to Discord.
 
 ### Workflow chat
 
-The starter playbook handles damaged deliveries: sender-caused damage, delivery damage, first buyer-caused incidents, and repeat buyer-caused incidents. Edit rules before starting a case. Jev must identify a supported rule before the UI recommends its configured action; otherwise it asks for more facts.
+Choose one of five playbooks: **damaged delivery**, **account recovery**, **duplicate payment**, **service incident**, or **expense approval**. Each has a seeded incomplete case and a fixed follow-up question. The delivery playbook handles sender-caused damage, delivery damage, first buyer-caused incidents, and repeat buyer-caused incidents. Edit rules before starting a case. Jev must identify a supported rule before the UI recommends its configured action; otherwise it asks for more facts.
 
 **Recommendations only:** this prototype does not refund customers, fine delivery services, resend items, or ban accounts. Start a new case to change the rules. Export a case to save its conversation.
 
@@ -80,7 +83,7 @@ Results show the selected value, its Jev probability, confidence when returned, 
 
 ### PR Review
 
-Paste a PR URL or diff and click **Review PR**. The lab loads public PR metadata automatically, preserves every hunk as evidence, and uses fixed labels and rule candidates. Thresholds control safe skips, review queues, and candidate blocks. Try the clearly labeled mock auth-change demo without an API call. No GitHub actions or second-stage LLM calls are performed. See [PR Review setup and limits](docs/pr-review.md).
+Paste a PR URL or diff and click **Review PR**. The lab loads public PR metadata automatically, preserves every hunk as evidence, and uses fixed labels and rule candidates. Thresholds control safe skips, review queues, and candidate blocks. **Why this decision** traces priority hunks from model labels through gates to a route, with direct links to the original diff. Try the clearly labeled mock auth-change demo without an API call. No GitHub actions or second-stage LLM calls are performed. See [PR Review setup and limits](docs/pr-review.md).
 
 ### AST-aware governance
 
@@ -88,7 +91,21 @@ Start with **Run mock demo** for an auth-signature change with a missed caller a
 
 ### SMT solver lab
 
-Paste Boolean, integer, equality, ordering or scheduling constraints and choose **Run Check**. Jev predicts one of four outcomes; Z3 verifies the full problem on the server and wins any definitive disagreement. Independent groups run through Jev in parallel. Confidence below 85% requires decomposition. Five seeded cases populate a measured benchmark table on demand. See [syntax, decomposition, routing and benchmark limits](docs/smt-solver.md).
+Choose a scenario card or write Boolean, integer, equality, ordering or scheduling rules, then choose **Run Check**. Plain-language prompts, live rule/variable counts, and a keyboard shortcut guide the input; advanced options stay collapsed. Jev predicts one of four outcomes; Z3 verifies the full problem on the server and wins any definitive disagreement. Independent groups run through Jev in parallel. Confidence below 85% requires decomposition. Five seeded cases populate a measured benchmark table on demand. See [syntax, decomposition, routing and benchmark limits](docs/smt-solver.md).
+
+### Jev tool router
+
+**Run Routing Step** chooses among the current node’s allowed outgoing edges. Fixed policy removes blocked tools, stops sensitive requests before Jev, and pauses configuration changes for explicit mock approval. Low confidence asks for clarification. Try read settings, change production, and request a secret; the step log shows each transition. All agents and tools are simulated. See [the Tool Router guide](docs/tool-router.md).
+
+### Vector reranker
+
+Load the synthetic Blink-style code-search sample or paste a JSON candidate list. Choose K (20–200, capped by the supplied list), then **Compare both** for the default three-column comparison. Jev processes ten candidates per request with three requests in parallel. Unknown or failed classifications stay unscored and suppress aggregate metrics.
+
+Top-10 overlap, rank correlation, measured latency, configurable cost estimates, and large rank differences help inspect results. The local baseline is a lexical mock, not a neural reranker or a quality ground truth. See [the reranker module](docs/reranker.md) for scoring and adapter details.
+
+### Jev × LangChain
+
+A real `@langchain/core` tool validates input with Zod, routes through the shared Jev/policy logic, and returns structured data without executing downstream actions. Use **Invoke LangChain tool** for live Jev or **Try mock invocation** for seeded predictions. `npm run example:langchain` runs the tool in a RunnableLambda chain; add `-- --live` to use your configured key. This is a local integration example, not a published plugin. See [setup and adapter usage](docs/langchain.md).
 
 ### Meme lab: text, images, and a meta meme
 

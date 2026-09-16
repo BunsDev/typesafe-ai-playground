@@ -1,9 +1,20 @@
 "use client";
 import { revealResults } from "../lib/scroll";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Heading, RunButton, ErrorNote, Export } from "./ui";
 import { SOLVER_EXAMPLES } from "../lib/smt/examples";
-import { CONSTRAINT_TYPES, type ConstraintType } from "../lib/smt/parser";
+import {
+  Braces,
+  ToggleLeft,
+  Equal,
+  ArrowDownUp,
+  CalendarDays,
+} from "lucide-react";
+import {
+  CONSTRAINT_TYPES,
+  parseConstraints,
+  type ConstraintType,
+} from "../lib/smt/parser";
 import { runSolverCheck, type SolverRun } from "../lib/smt/runner";
 import { errorMessage, percent } from "../lib/client";
 const typeNames = {
@@ -13,6 +24,14 @@ const typeNames = {
   ordering: "Ordering constraints",
   scheduling: "Simple scheduling conflicts",
 };
+const scenarioDescriptions = [
+  "Can one number fit two impossible bounds?",
+  "Are everyone’s availability flags consistent?",
+  "Can equal values disagree at the same time?",
+  "Can three tasks follow this sequence?",
+  "Can these meetings share the same room?",
+];
+const scenarioIcons = [Braces, ToggleLeft, Equal, ArrowDownUp, CalendarDays];
 const ms = (n: number) => `${Math.round(n)} ms`;
 export function SmtSolverLab() {
   const [text, setText] = useState(SOLVER_EXAMPLES[0].text),
@@ -77,6 +96,22 @@ export function SmtSolverLab() {
       setBusy(false);
     }
   }
+  const parsed = useMemo(() => {
+    try {
+      return parseConstraints(text, type);
+    } catch {
+      return null;
+    }
+  }, [text, type]);
+  const activeScenario = SOLVER_EXAMPLES.findIndex(
+    (ex) => ex.text === text && ex.type === type,
+  );
+  function chooseScenario(index: number) {
+    const ex = SOLVER_EXAMPLES[index];
+    setText(ex.text);
+    setType(ex.type);
+    invalidate();
+  }
   const eligible = bench.filter((b) => b.run.routing.agreement !== null),
     agreements = eligible.filter((b) => b.run.routing.agreement).length;
   return (
@@ -86,32 +121,48 @@ export function SmtSolverLab() {
         title="SMT solver lab"
         description="Can every constraint be true at once? Compare Jev’s prediction with Z3’s exact check."
       />
+      <div className="solver-scenarios" aria-label="Choose a logic scenario">
+        {SOLVER_EXAMPLES.map((ex, i) => {
+          const Icon = scenarioIcons[i];
+          return (
+            <button
+              key={ex.name}
+              className={
+                "solver-scenario " + (activeScenario === i ? "selected" : "")
+              }
+              aria-label={ex.name}
+              aria-pressed={activeScenario === i}
+              disabled={busy}
+              onClick={() => chooseScenario(i)}
+            >
+              <span className="scenario-icon">
+                <Icon size={18} />
+              </span>
+              <strong>{ex.name}</strong>
+              <span>{scenarioDescriptions[i]}</span>
+            </button>
+          );
+        })}
+      </div>
       <div className="lab-columns">
         <section className="panel lab-panel">
           <div className="panel-heading">
-            <h2>Constraint problem</h2>
+            <h2>Build your logic puzzle</h2>
             <span className="tag">Z3 + Jev</span>
           </div>
           <fieldset className="lab-fields" disabled={busy}>
-            <label>
-              Seeded example
-              <select
-                aria-label="Seeded example"
-                defaultValue="0"
-                onChange={(e) => {
-                  const ex = SOLVER_EXAMPLES[Number(e.target.value)];
-                  setText(ex.text);
-                  setType(ex.type);
-                  invalidate();
-                }}
-              >
-                {SOLVER_EXAMPLES.map((ex, i) => (
-                  <option key={ex.name} value={i}>
-                    {ex.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="solver-question">
+              <span className="eyebrow">THE QUESTION</span>
+              <h3>
+                {activeScenario >= 0
+                  ? scenarioDescriptions[activeScenario]
+                  : "Can all of these rules be true at once?"}
+              </h3>
+              <p>
+                A constraint is a rule that must hold. Add one per line, then
+                compare a fast prediction with an exact check.
+              </p>
+            </div>
             <label>
               Constraint type
               <select
@@ -130,10 +181,33 @@ export function SmtSolverLab() {
               </select>
             </label>
             <label>
-              Constraints
+              <span className="rules-editor-label">
+                <span>Your rules</span>
+                <span>
+                  {parsed
+                    ? parsed.constraints.length +
+                      " rules · " +
+                      parsed.variables.length +
+                      " variables"
+                    : "One rule per line"}
+                </span>
+              </span>
               <textarea
                 aria-label="Constraints"
-                rows={12}
+                rows={9}
+                maxLength={12000}
+                spellCheck={false}
+                onKeyDown={(e) => {
+                  if (
+                    (e.metaKey || e.ctrlKey) &&
+                    e.key === "Enter" &&
+                    !busy &&
+                    text.trim()
+                  ) {
+                    e.preventDefault();
+                    void run();
+                  }
+                }}
                 className="code-input"
                 value={text}
                 onChange={(e) => {
@@ -143,33 +217,41 @@ export function SmtSolverLab() {
               />
             </label>
             <p className="field-hint">
-              One constraint per line. Boolean values and integers only; up to
-              60 constraints and 40 variables.
+              Use true / false or whole numbers. Up to 60 rules and 40
+              variables. ⌘ / Ctrl + Enter runs the check.
             </p>
-            <label className="lab-checkbox">
-              <input
-                type="checkbox"
-                checked={decompose}
-                onChange={(e) => {
-                  setDecompose(e.target.checked);
-                  invalidate();
-                }}
-              />{" "}
-              Classify independent groups in parallel
-            </label>
-            <label className="lab-checkbox">
-              <input
-                type="checkbox"
-                checked={proof}
-                onChange={(e) => {
-                  setProof(e.target.checked);
-                  invalidate();
-                }}
-              />{" "}
-              Full exact check required
-            </label>
+            <details className="solver-options">
+              <summary>
+                Check options{" "}
+                <span className="tag">Exact verification always on</span>
+              </summary>
+              <div className="solver-option-fields">
+                <label className="lab-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={decompose}
+                    onChange={(e) => {
+                      setDecompose(e.target.checked);
+                      invalidate();
+                    }}
+                  />{" "}
+                  Classify independent groups in parallel
+                </label>
+                <label className="lab-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={proof}
+                    onChange={(e) => {
+                      setProof(e.target.checked);
+                      invalidate();
+                    }}
+                  />{" "}
+                  Full exact check required
+                </label>
+              </div>
+            </details>
             <details>
-              <summary>Syntax & scheduling examples</summary>
+              <summary>Need help writing a rule?</summary>
               <p>
                 Use =, ==, !=, &lt;, &lt;=, &gt;, &gt;=, +, -, multiplication by
                 an integer, parentheses, !, &amp;&amp;, || and =&gt;.
@@ -198,8 +280,8 @@ export function SmtSolverLab() {
             {progress}
           </p>
           <p className="field-hint">
-            Jev has four fixed choices. Confidence below 85% requires
-            decomposition. Every run is verified against the full set by Z3.
+            Jev predicts; Z3 verifies every rule. Uncertain predictions stay
+            uncertain until the exact check completes.
           </p>
         </section>
         <section
@@ -212,9 +294,21 @@ export function SmtSolverLab() {
           </div>
           {result ? (
             <div className="lab-result-stack">
-              <div className="compact-verdict">
+              <div
+                className={
+                  "compact-verdict solver-verdict outcome-" +
+                  result.exact.result
+                }
+              >
                 <span className="eyebrow">EXACT SOLVER RESULT</span>
                 <h2>{result.exact.result}</h2>
+                <p className="solver-outcome-meaning">
+                  {result.exact.result === "satisfiable"
+                    ? "There is at least one way for every rule to hold."
+                    : result.exact.result === "unsatisfiable"
+                      ? "These rules cannot all be true at the same time."
+                      : "The exact solver could not settle this problem."}
+                </p>
                 <strong>{result.routing.route}</strong>
                 <p>{result.routing.detail}</p>
                 {result.exact.reason && <p>{result.exact.reason}</p>}
@@ -276,12 +370,40 @@ export function SmtSolverLab() {
               </section>
             </div>
           ) : (
-            <div className="empty">
-              <h3>Prediction meets verification</h3>
+            <div className="solver-empty">
+              <div className="solver-empty-flow">
+                <span>
+                  <Braces size={25} />
+                  <small>Your rules</small>
+                </span>
+                <b>→</b>
+                <span>
+                  <ToggleLeft size={25} />
+                  <small>Jev predicts</small>
+                </span>
+                <b>→</b>
+                <span>
+                  <Equal size={25} />
+                  <small>Z3 verifies</small>
+                </span>
+              </div>
+              <h3>One puzzle. Two approaches.</h3>
               <p>
-                Run a seeded example or paste a small logic problem. Z3 remains
-                authoritative when the methods disagree.
+                Choose a scenario or write your own rules. You’ll see whether
+                they can coexist, how confident Jev was, and which method took
+                longer.
               </p>
+              <div className="solver-outcome-key">
+                <span>
+                  <i className="sat-dot" /> Satisfiable: a solution exists
+                </span>
+                <span>
+                  <i className="unsat-dot" /> Unsatisfiable: the rules conflict
+                </span>
+                <span>
+                  <i /> Unknown: more checking needed
+                </span>
+              </div>
             </div>
           )}
         </section>

@@ -88,3 +88,5 @@ export function evaluateHardRules(
   }
   return { blocked: findings.some((f) => f.severity === "block"), findings };
 }
+
+export { evaluateWorkflowRules } from "./toolRouterRules";
