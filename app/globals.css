@@ -2490,3 +2490,446 @@ select {
     height: 220px;
   }
 }
+
+/* PR review keeps setup and grounded evidence in separate, scrollable panels. */
+.pr-review-layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.8fr) minmax(0, 1.4fr);
+  flex: 1;
+  min-height: 0;
+  gap: 18px;
+}
+.pr-review-workspace .page-heading {
+  flex-shrink: 0;
+}
+.pr-input-panel label {
+  margin-top: 14px;
+}
+.pr-input-panel fieldset > label:first-child {
+  margin-top: 0;
+}
+.pr-input-panel .pr-diff-input {
+  font-size: 12px;
+  line-height: 1.5;
+  min-height: 190px;
+}
+.pr-input-panel .code-input {
+  font-family: monospace;
+}
+.pr-input-panel .muted,
+.pr-results-panel .muted {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.review-thresholds {
+  border-top: 1px solid var(--line);
+  margin-top: 24px;
+  padding-top: 20px;
+}
+.review-thresholds h3 {
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+.threshold-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.threshold-fields label {
+  font-size: 11px;
+}
+.threshold-fields input {
+  padding: 10px;
+}
+.review-run-bar {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.review-run-bar > p {
+  width: 100%;
+  font-size: 11px;
+}
+.pr-results-panel .panel-heading {
+  gap: 12px;
+  flex-wrap: wrap;
+  height: auto;
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+.pr-verdict {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--soft);
+}
+.pr-verdict strong {
+  display: block;
+  font-size: clamp(22px, 2vw, 30px);
+  margin: 10px 0;
+  overflow-wrap: anywhere;
+}
+.pr-verdict p {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.pr-verdict.block_candidate {
+  border-color: #ad626d;
+}
+.pr-verdict.approve_candidate {
+  border-color: #609c88;
+}
+.review-progress {
+  margin: 16px 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.review-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.review-metrics > div {
+  border: 1px solid var(--line);
+  padding: 13px;
+  border-radius: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.review-metrics svg {
+  color: var(--accent);
+}
+.review-metrics strong {
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+}
+.review-metrics span {
+  width: 100%;
+  color: var(--muted);
+  font-size: 11px;
+}
+.review-source-meta {
+  margin: 24px 0;
+  overflow-wrap: anywhere;
+}
+.review-source-meta h3 {
+  font-size: 15px;
+}
+.review-source-meta p,
+.review-source-meta > span {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-top: 8px;
+  white-space: pre-wrap;
+}
+.review-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.review-filters label {
+  font-size: 11px;
+  margin-bottom: 12px;
+}
+.review-filters select {
+  font-size: 12px;
+}
+.hunk-card {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  margin-top: 14px;
+  overflow: hidden;
+}
+.hunk-card.risk-high {
+  border-left: 3px solid #ad626d;
+}
+.hunk-card.risk-low {
+  border-left: 3px solid #609c88;
+}
+.hunk-card summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  min-height: 56px;
+  cursor: pointer;
+  background: var(--soft);
+}
+.hunk-card summary > div {
+  min-width: 0;
+}
+.hunk-card summary .hunk-title strong {
+  display: block;
+  font: 12px monospace;
+  overflow-wrap: anywhere;
+}
+.hunk-card summary .hunk-title span {
+  display: block;
+  font: 11px monospace;
+  color: var(--muted);
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}
+.hunk-overview {
+  padding: 14px 16px;
+}
+/* Labels and routing remain visible while original evidence is collapsed. */
+.hunk-card:not([open]) > .hunk-overview {
+  display: block;
+}
+.hunk-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.hunk-labels > span {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 5px;
+  padding: 5px 7px;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.hunk-overview p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 10px;
+}
+.hunk-detail {
+  padding: 0 16px 16px;
+}
+.rule-evidence {
+  border-left: 2px solid var(--accent);
+  padding: 10px 14px;
+  margin: 16px 0;
+  background: var(--soft);
+  overflow-wrap: anywhere;
+}
+.rule-evidence strong,
+.rule-evidence p,
+.rule-evidence span {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.rule-evidence span {
+  color: var(--muted);
+}
+.decision-table-wrap {
+  overflow: auto;
+  margin-bottom: 16px;
+}
+.decision-table-wrap table {
+  font-size: 11px;
+  white-space: nowrap;
+}
+.diff-evidence {
+  font: 12px/1.6 monospace;
+  overflow: auto;
+  max-height: 480px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px;
+  background: var(--bg);
+  white-space: pre;
+  tab-size: 2;
+}
+.diff-evidence > span {
+  display: block;
+  min-width: max-content;
+}
+.diff-added {
+  background: color-mix(in srgb, #36a578 13%, transparent);
+}
+.diff-removed {
+  background: color-mix(in srgb, #d75d70 13%, transparent);
+}
+.diff-header {
+  color: var(--accent);
+}
+@media (max-width: 1050px) {
+  .pr-review-layout {
+    grid-template-columns: minmax(0, 1fr);
+    overflow: auto;
+  }
+  .pr-review-layout > .panel {
+    min-height: 550px;
+  }
+}
+@media (max-width: 650px) {
+  .sidebar nav {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .pr-review-layout {
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+    flex: none;
+  }
+  .pr-review-layout > .panel {
+    min-height: 0;
+  }
+  .pr-review-layout .panel-content {
+    overflow: visible;
+  }
+  .pr-review-workspace .page-heading {
+    align-items: flex-start;
+  }
+  .threshold-fields,
+  .review-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .review-metrics {
+    gap: 6px;
+  }
+  .review-metrics > div {
+    padding: 10px;
+  }
+  .hunk-card summary {
+    padding: 12px;
+  }
+  .hunk-overview,
+  .hunk-detail {
+    padding: 12px;
+  }
+}
+
+.hunk-card summary {
+  flex-wrap: wrap;
+}
+.hunk-card summary .hunk-overview {
+  width: 100%;
+  padding: 0;
+}
+
+/* One compact header shared by every workspace. */
+.sidebar {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 16px;
+  height: 54px;
+  min-height: 54px;
+  padding: 5px 16px;
+}
+.sidebar .brand {
+  display: flex;
+  font-size: 17px;
+  gap: 8px;
+}
+.sidebar .brand-mark {
+  width: 28px;
+  height: 30px;
+  border-radius: 8px;
+}
+.sidebar .brand-sub {
+  display: none;
+}
+.sidebar nav {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  justify-content: flex-start;
+  gap: 3px;
+  padding: 0;
+}
+.sidebar nav a {
+  flex: 0 0 auto;
+  flex-direction: row;
+  white-space: nowrap;
+  min-height: 38px;
+  gap: 6px;
+  padding: 7px 9px;
+  font-size: 11px;
+}
+.sidebar nav a span {
+  display: inline;
+}
+.sidebar nav a svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+.sidebar .sidebar-bottom {
+  margin: 0;
+  flex-shrink: 0;
+}
+.sidebar .header-actions {
+  gap: 7px;
+  flex-shrink: 0;
+}
+.sidebar .connection {
+  font-size: 0;
+  gap: 0;
+}
+.sidebar .connection i {
+  margin: 0;
+}
+.sidebar .icon-button {
+  min-height: 32px;
+  height: 32px;
+  width: 32px;
+}
+.workspace {
+  padding-top: 16px;
+}
+.page-heading {
+  gap: 14px;
+}
+.page-heading h1 {
+  font-size: clamp(26px, 2.5vw, 34px);
+  line-height: 1.12;
+}
+.page-heading .eyebrow {
+  display: none;
+}
+.page-heading p {
+  margin-top: 7px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.pr-input-panel .pr-diff-input {
+  min-height: 130px;
+}
+@media (max-width: 1050px) {
+  .sidebar .sidebar-bottom {
+    display: none;
+  }
+}
+@media (max-width: 650px) {
+  .sidebar {
+    height: 52px;
+    min-height: 52px;
+    gap: 8px;
+    padding: 4px 8px;
+  }
+  .sidebar .brand > span:not(.brand-mark) {
+    display: none;
+  }
+  .sidebar nav a {
+    min-height: 44px;
+    padding: 7px 9px;
+  }
+  .sidebar .header-actions {
+    gap: 3px;
+  }
+  .sidebar .connection {
+    display: none;
+  }
+  .sidebar .icon-button {
+    min-height: 40px;
+    height: 40px;
+  }
+  .page-heading {
+    align-items: flex-start;
+  }
+}

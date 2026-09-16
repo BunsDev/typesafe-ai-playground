@@ -33,6 +33,7 @@ Open the address printed by Next.js, normally http://localhost:3000. To choose a
 | **Conversation lab** `/conversation` | Paste raw Discord or labeled chat, rank potential reply recipients, compare context, and evaluate conversation frames. |
 | **Workflow chat** `/workflow` | Describe a case and apply editable decision rules. Missing evidence produces a follow-up question. |
 | **Document extraction** `/extraction` | Find likely values locally, then ask Jev to select candidates or `null`, with probabilities and source evidence. |
+| **PR review** `/pr-review` | Paste a public PR link or diff; classify hunks and queue uncertain changes for review. |
 | **Meme lab** `/memes` | Test humor style, audience fit, tone, and likely confusion using captions or reviewed text from an image URL. |
 
 The interface uses charcoal surfaces, lavender accents, serif headlines, dark/light themes, and responsive panels. Desktop panels scroll independently; narrow screens stack content. Examples has a collapsible Results rail, which opens when a run begins. Mobile controls have larger touch targets, and reduced-motion preferences are respected.
@@ -72,6 +73,10 @@ Paste raw document text and select `date`, `counterparty`, `amount`, or `documen
 3. `runExtraction(text)` coordinates the selected fields, with up to three requests in parallel.
 
 Results show the selected value, its Jev probability, confidence when returned, every candidate, and a source snippet. Evidence is copied from the document, not generated. Empty candidate sets return local `null` without an API call; failures are distinct from null selections. See [the extraction guide](docs/document-extraction.md) for limits and module details.
+
+### PR Review
+
+Paste a PR URL or diff and click **Review with Jev**. The lab loads public PR metadata automatically, preserves every hunk as evidence, and uses fixed labels and rule candidates. Thresholds control safe skips, review queues, and candidate blocks. Try the clearly labeled mock auth-change demo without an API call. No GitHub actions or second-stage LLM calls are performed. See [PR Review setup and limits](docs/pr-review.md).
 
 ### Meme lab: text, images, and a meta meme
 

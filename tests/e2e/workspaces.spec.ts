@@ -4,7 +4,7 @@ test.beforeEach(async ({ page }) => {
     r.fulfill({ json: { ok: true, configured: true } }),
   );
 });
-test("five workspaces fit the viewport and navigate without runtime errors", async ({
+test("all workspaces fit the viewport and navigate without runtime errors", async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -15,6 +15,7 @@ test("five workspaces fit the viewport and navigate without runtime errors", asy
     "/workflow",
     "/extraction",
     "/memes",
+    "/pr-review",
   ]) {
     await page.goto(path);
     await expect(page.locator("h1")).toBeVisible();
@@ -211,6 +212,7 @@ test("responsive boundaries and short landscape keep actions reachable", async (
       "/workflow",
       "/extraction",
       "/memes",
+      "/pr-review",
     ]) {
       await page.goto(route);
       await expect(page.locator("h1")).toBeVisible();
@@ -235,7 +237,9 @@ test("responsive boundaries and short landscape keep actions reachable", async (
                 ? "Send message"
                 : route === "/extraction"
                   ? "Run extraction"
-                  : "Test meme",
+                  : route === "/pr-review"
+                    ? "Review with Jev"
+                    : "Test meme",
         exact: true,
       });
       await action.scrollIntoViewIfNeeded();
@@ -462,4 +466,156 @@ test("results rail toggles from its bottom edge and with the keyboard", async ({
   await collapse.focus();
   await page.keyboard.press("Enter");
   await expect(rail).toHaveAttribute("aria-expanded", "false");
+});
+
+test("PR review demo preserves evidence, filters risks, and recalculates thresholds", async ({
+  page,
+}) => {
+  let calls = 0;
+  await page.route("**/api/run", (r) => {
+    calls++;
+    return r.abort();
+  });
+  await page.goto("/pr-review");
+  await page
+    .getByRole("button", { name: "Run mock demo", exact: true })
+    .click();
+  await expect(page.locator(".pr-verdict")).toContainText("block_candidate");
+  await expect(
+    page.getByText("Mock results — no Jev request was made.", { exact: true }),
+  ).toBeVisible();
+  await page.getByLabel("Risk filter").selectOption("high");
+  await expect(page.locator(".hunk-card")).toHaveCount(1);
+  await expect(page.locator(".hunk-card")).toContainText("src/auth.ts");
+  await page.locator(".hunk-card summary").click();
+  await expect(page.locator(".diff-evidence")).toContainText(
+    "+export function authenticate(token: string, bypass: boolean)",
+  );
+  await page.getByText("Advanced thresholds", { exact: true }).click();
+  await page.getByLabel("High-risk threshold").fill("1");
+  await expect(page.locator(".pr-verdict")).toContainText("needs_review");
+  expect(calls).toBe(0);
+});
+
+test("PR review sends only closed decisions and rejects invented model labels", async ({
+  page,
+}) => {
+  let calls = 0;
+  await page.route("**/api/run", async (route) => {
+    calls++;
+    const p = route.request().postDataJSON();
+    expect(p.state.hunk.diff).toContain("@@");
+    expect(p.state.changedFiles.length).toBe(3);
+    const answers = Object.fromEntries(
+      Object.entries(p.questions).map(([id, q]: [string, any]) => {
+        expect(q.type).toBe("choice");
+        expect(q.criteria.unknown).toBeTruthy();
+        expect(q.criteria.needs_human_review).toBeTruthy();
+        const choice =
+          id === "rule"
+            ? "hunk_evidence"
+            : id === "safe_change"
+              ? "invented_label"
+              : "not_applicable";
+        return [
+          id,
+          {
+            type: "choice",
+            choice,
+            confidence: 0.99,
+            probabilities: { [choice]: 0.99 },
+          },
+        ];
+      }),
+    );
+    await route.fulfill({ json: { answers } });
+  });
+  await page.goto("/pr-review");
+  await page
+    .getByRole("button", { name: "Run mock demo", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Review with Jev", exact: true })
+    .click();
+  await expect(page.locator(".review-progress")).toContainText("3 of 3");
+  await expect(page.locator(".pr-verdict")).toContainText("needs_review");
+  await expect(page.locator(".hunk-card").first()).toContainText(
+    "invalid closed-set answer",
+  );
+  expect(calls).toBe(3);
+});
+
+test("pasting a PR link needs just one review action", async ({ page }) => {
+  let loads = 0;
+  let reviews = 0;
+  await page.route("**/api/pull-request", async (route) => {
+    loads++;
+    expect(route.request().postDataJSON().url).toBe(
+      "https://github.com/example/repo/pull/42",
+    );
+    await route.fulfill({
+      json: {
+        title: "Fix typo",
+        description: "Docs only",
+        url: "https://github.com/example/repo/pull/42",
+        headSha: "abc",
+        baseSha: "def",
+        diff: "",
+        files: [
+          {
+            path: "README.md",
+            hunks: [
+              {
+                id: "f0-h0",
+                path: "README.md",
+                header: "@@ -1 +1 @@",
+                diff: "@@ -1 +1 @@\n-tyop\n+typo",
+                oldStart: 1,
+                newStart: 1,
+                complete: true,
+              },
+            ],
+          },
+        ],
+      },
+    });
+  });
+  await page.route("**/api/run", async (route) => {
+    reviews++;
+    const p = route.request().postDataJSON();
+    expect(p.state.pr.title).toBe("Fix typo");
+    const answers = Object.fromEntries(
+      Object.keys(p.questions).map((id) => {
+        const choice =
+          id === "rule"
+            ? "hunk_evidence"
+            : id === "safe_change"
+              ? "safe_change"
+              : "not_applicable";
+        return [
+          id,
+          {
+            type: "choice",
+            choice,
+            confidence: 0.99,
+            probabilities: { [choice]: 0.99 },
+          },
+        ];
+      }),
+    );
+    await route.fulfill({ json: { answers } });
+  });
+  await page.goto("/pr-review");
+  await page
+    .getByLabel("PR URL or diff")
+    .fill("https://github.com/example/repo/pull/42");
+  await page
+    .getByRole("button", { name: "Review with Jev", exact: true })
+    .click();
+  await expect(page.locator(".pr-verdict")).toContainText("approve_candidate");
+  expect(loads).toBe(1);
+  expect(reviews).toBe(1);
+  expect(
+    (await page.locator(".sidebar").boundingBox())!.height,
+  ).toBeLessThanOrEqual(54);
 });
