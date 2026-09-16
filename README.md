@@ -39,7 +39,9 @@ The interface uses charcoal surfaces, lavender accents, serif headlines, dark/li
 
 ### Examples
 
-Search by name or choose a category. Edit the state as text or JSON, select questions, and change instructions. **Edit all questions as JSON** also lets you change types and candidate definitions. Apply those edits before running.
+Search by name, filter by collection or category, or show only A/B comparisons. The library shows the matching count and a **Clear filters** action. On mobile, **Browse examples** expands the library without crowding the setup. Numbered setup sections guide you through the input and questions. Include questions directly from each row, then expand them to edit instructions. Edit the state as text or JSON. **Edit all questions as JSON** also lets you change types and candidate definitions. Apply those edits before running.
+
+**Reset draft** restores the selected example and offers **Undo reset**. Setup validation explains missing questions or invalid input before a request is sent. The A/B preview shows the exact field and both values; a missing comparison field disables only the comparison. Click anywhere along the collapsed Results rail to open it, or use the keyboard.
 
 **Run example** sends one request. **Compare A/B**, available on paired examples, sends two requests with a declared change to the input. The plus button creates a blank custom example. Drafts and custom examples are saved in browser storage for that origin. **Export library** and **Import** move them between browsers; imported ID collisions become copies. Results are not restored after refresh.
 

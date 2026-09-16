@@ -220,6 +220,11 @@ test("responsive boundaries and short landscape keep actions reachable", async (
         ),
         `${route} at ${width}x${height}`,
       ).toBe(true);
+      if (route === "/" && width > 650 && height < 600) {
+        expect(
+          (await page.locator(".example-list").boundingBox())!.height,
+        ).toBeGreaterThan(60);
+      }
       const action = page.getByRole("button", {
         name:
           route === "/"
@@ -321,11 +326,13 @@ test("question JSON stays synchronized and protects concurrent edits", async ({
   await page
     .getByRole("button", { name: "Apply questions", exact: true })
     .click();
-  await expect(page.locator(".experiment-panel .count").first()).toHaveText(
-    "1 questions",
+  await expect(page.locator(".run-readiness")).toContainText(
+    "1 question · 1 request",
   );
   await page.locator(".question-edit").first().locator("summary").click();
-  await expect(page.getByLabel("Include this question")).toBeChecked();
+  await expect(
+    page.getByRole("checkbox", { name: "Include question: Test", exact: true }),
+  ).toBeChecked();
 });
 
 test("unreadable meme text does not report a successful extraction", async ({
@@ -354,4 +361,102 @@ test("unreadable meme text does not report a successful extraction", async ({
   await expect(page.getByLabel("Recognized image text")).toHaveValue("");
   await expect(page.getByLabel("Setup / top text")).toHaveValue("");
   await expect(page.getByLabel("Punchline / bottom text")).toHaveValue("");
+});
+
+test("examples expose question selection, validation, and reversible reset", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const original = await page.locator("#example-state").inputValue();
+  await page.locator("#example-state").fill("A changed draft");
+  await expect(page.getByText("Edited draft", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Reset draft", exact: true }).click();
+  await expect(page.locator("#example-state")).toHaveValue(original);
+  await page.getByRole("button", { name: "Undo reset" }).click();
+  await expect(page.locator("#example-state")).toHaveValue("A changed draft");
+  for (const box of await page
+    .getByRole("checkbox", { name: /^Include question:/ })
+    .all())
+    await box.uncheck();
+  await expect(
+    page.getByRole("button", { name: "Run example", exact: true }),
+  ).toBeDisabled();
+  await expect(page.locator(".run-readiness")).toContainText(
+    "Select at least one question",
+  );
+  await page
+    .getByRole("checkbox", { name: /^Include question:/ })
+    .first()
+    .check();
+  await expect(
+    page.getByRole("button", { name: "Run example", exact: true }),
+  ).toBeEnabled();
+});
+
+test("example filters recover from empty results and preview the A/B change", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const browse = page.getByRole("button", {
+    name: "Browse examples",
+    exact: true,
+  });
+  if (await browse.isVisible()) await browse.click();
+  await page.getByLabel("Search examples").fill("no-such-example-123456");
+  await expect(
+    page.getByText("No matching examples.", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Clear filters", exact: true })
+    .click();
+  await page.getByLabel("A/B comparisons only").check();
+  await expect(page.locator(".example-item").first()).toContainText(
+    "A/B comparison",
+  );
+  await page.locator(".example-item").first().click();
+  await expect(page.locator(".comparison-preview")).toContainText(
+    "Only this field changes",
+  );
+  await expect(
+    page.getByRole("button", { name: "Compare A/B", exact: true }),
+  ).toBeEnabled();
+  await page.locator("#example-state").fill("{}");
+  await expect(
+    page.getByRole("button", { name: "Compare A/B", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Run example", exact: true }),
+  ).toBeEnabled();
+});
+
+test("results rail toggles from its bottom edge and with the keyboard", async ({
+  page,
+}, info) => {
+  test.skip(
+    info.project.name !== "desktop",
+    "Full-height rail is a desktop layout.",
+  );
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  const rail = page.getByRole("button", {
+    name: "Expand results",
+    exact: true,
+  });
+  const bounds = (await rail.boundingBox())!;
+  const panel = (await page.locator(".example-results").boundingBox())!;
+  expect(Math.abs(bounds.height - panel.height)).toBeLessThanOrEqual(2);
+  await rail.click({
+    position: { x: bounds.width / 2, y: bounds.height - 20 },
+  });
+  const collapse = page.getByRole("button", {
+    name: "Collapse results",
+    exact: true,
+  });
+  await expect(collapse).toHaveAttribute("aria-expanded", "true");
+  const open = (await page.locator(".example-results").boundingBox())!;
+  const setup = (await page.locator(".experiment-panel").boundingBox())!;
+  expect(Math.abs(open.height - setup.height)).toBeLessThanOrEqual(2);
+  await collapse.focus();
+  await page.keyboard.press("Enter");
+  await expect(rail).toHaveAttribute("aria-expanded", "false");
 });
