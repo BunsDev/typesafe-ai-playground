@@ -4,7 +4,7 @@ test.beforeEach(async ({ page }) => {
     r.fulfill({ json: { ok: true, configured: true } }),
   );
 });
-test("six workspaces fit the viewport and navigate without runtime errors", async ({
+test("seven workspaces fit the viewport and navigate without runtime errors", async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -16,6 +16,7 @@ test("six workspaces fit the viewport and navigate without runtime errors", asyn
     "/workflow",
     "/extraction",
     "/memes",
+    "/microduck",
   ]) {
     await page.goto(path);
     await expect(page.locator("h1")).toBeVisible();
@@ -213,6 +214,7 @@ test("responsive boundaries and short landscape keep actions reachable", async (
       "/workflow",
       "/extraction",
       "/memes",
+      "/microduck",
     ]) {
       await page.goto(route);
       await expect(page.locator("h1")).toBeVisible();
@@ -239,7 +241,9 @@ test("responsive boundaries and short landscape keep actions reachable", async (
                   ? "Send message"
                   : route === "/extraction"
                     ? "Run extraction"
-                    : "Test meme",
+                    : route === "/memes"
+                      ? "Test meme"
+                      : "Step",
         exact: true,
       });
       await action.scrollIntoViewIfNeeded();
@@ -566,4 +570,84 @@ test("batch mode gates each question and counts the avoidable ones", async ({
   await expect(page.locator(".outcome-badge").first()).toContainText(
     "Already answered",
   );
+});
+
+test("microduck drives from the closed action set and stops when it cannot", async ({
+  page,
+}) => {
+  let reply: "choice" | "unknown" | "fail" = "choice";
+  const asks: Record<string, unknown>[] = [];
+  await page.route("**/api/run", async (route) => {
+    const payload = route.request().postDataJSON();
+    asks.push(payload.state);
+    expect(Object.keys(payload.questions)).toEqual(["action"]);
+    expect(Object.keys(payload.questions.action.criteria).sort()).toEqual([
+      "drop",
+      "move_backward",
+      "move_forward",
+      "pick_up",
+      "stop",
+      "turn_left",
+      "turn_right",
+    ]);
+    if (reply === "fail")
+      return route.fulfill({
+        status: 429,
+        json: { error: "Rate limit reached. Try again." },
+      });
+    await route.fulfill({
+      json: {
+        answers: {
+          action:
+            reply === "choice"
+              ? {
+                  type: "choice",
+                  choice: "turn_left",
+                  probabilities: { turn_left: 0.74, stop: 0.12 },
+                }
+              : { type: "choice", choice: "fly_away" },
+        },
+      },
+    });
+  });
+  await page.goto("/microduck");
+  await page.getByRole("button", { name: "Step", exact: true }).click();
+  await expect(page.locator(".telemetry")).toContainText("Turn left");
+  await expect(page.locator(".telemetry")).toContainText("74.0%");
+  await expect(page.locator(".duck-roster caption")).toContainText("Tick 1");
+  expect(asks).toHaveLength(2);
+  expect(Object.keys(asks[0]).sort()).toEqual([
+    "battery_pct",
+    "carrying",
+    "distance_to_goal",
+    "goal_direction",
+    "last_action",
+    "obstacle_ahead",
+    "obstacle_left",
+    "obstacle_right",
+    "on_goal",
+  ]);
+
+  // The withheld-sensor test re-asks the same tick with fields dropped.
+  await page.getByText("Withheld-sensor test and model").click();
+  await page.getByLabel("Re-ask each tick with fields withheld").check();
+  await page.getByRole("button", { name: "Step", exact: true }).click();
+  await expect(page.locator(".degraded")).toContainText("2 fields withheld");
+  expect(asks).toHaveLength(6);
+  expect(asks.at(-1)).not.toHaveProperty("obstacle_left");
+  expect(asks.at(-1)).toHaveProperty("obstacle_ahead");
+
+  // An action outside the seven, then a failed call: both hold the duck still.
+  reply = "unknown";
+  await page.getByLabel("Re-ask each tick with fields withheld").uncheck();
+  await page.getByRole("button", { name: "Step", exact: true }).click();
+  await expect(page.locator(".telemetry")).toContainText(
+    "Nothing usable came back",
+  );
+  reply = "fail";
+  await page.getByRole("button", { name: "Step", exact: true }).click();
+  await expect(page.locator(".telemetry .error-text")).toContainText(
+    "Rate limit reached",
+  );
+  await expect(page.locator(".scoreboard")).toContainText("Failed calls");
 });

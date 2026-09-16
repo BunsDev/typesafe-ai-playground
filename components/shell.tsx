@@ -8,6 +8,7 @@ import {
   Blocks,
   FileScan,
   GitBranch,
+  Gamepad2,
   Inbox,
   MessageSquare,
   Moon,
@@ -46,6 +47,12 @@ const pages = [
     detail: "From source to structured data",
   },
   { href: "/memes", label: "Meme lab", icon: Laugh, detail: "Read the room" },
+  {
+    href: "/microduck",
+    label: "MicroDuck arena",
+    icon: Gamepad2,
+    detail: "Drive a robot with one choice",
+  },
 ];
 export function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();

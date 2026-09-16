@@ -1,6 +1,6 @@
 # TypeSafe AI Playground
 
-A community playground for **Jev**: run small classification experiments, route conversations, apply decision rules, extract document fields, and test memes.
+A community playground for **Jev**: run small classification experiments, route conversations, apply decision rules, extract document fields, test memes, and drive a robot duck.
 
 **Shout-out to [@nickthompson480](https://github.com/nickthompson480) for the [original TypeSafe AI playground](https://github.com/nickthompson480/typesafe-ai-playground).** This fork builds on that project's example library and Python foundation with a Next.js interface and new interactive prototypes. This is an independent community project, not an official TypeSafe AI product.
 
@@ -25,7 +25,7 @@ Open the address printed by Next.js, normally http://localhost:3000. To choose a
 
 `TYPESAFE_API_KEY` is read only by the server. Do not prefix it with `NEXT_PUBLIC_`, hardcode it in a component, or commit `.env.local`. You can browse and edit examples without a key; Run buttons require one.
 
-## Six workspaces
+## Seven workspaces
 
 | Workspace | What it does |
 | --- | --- |
@@ -35,6 +35,7 @@ Open the address printed by Next.js, normally http://localhost:3000. To choose a
 | **Workflow chat** `/workflow` | Describe a case and apply editable decision rules. Missing evidence produces a follow-up question. |
 | **Document extraction** `/extraction` | Find likely values locally, then ask Jev to select candidates or `null`, with probabilities and source evidence. |
 | **Meme lab** `/memes` | Test humor style, audience fit, tone, and likely confusion using captions or reviewed text from an image URL. |
+| **MicroDuck arena** `/microduck` | Drive a grid robot one tick at a time: nine sensor fields in, one of seven actions out, against a random baseline. |
 
 The interface uses charcoal surfaces, lavender accents, serif headlines, dark/light themes, and responsive panels. Desktop panels scroll independently; narrow screens stack content. Examples has a collapsible Results rail, which opens when a run begins. Mobile controls have larger touch targets, and reduced-motion preferences are respected.
 
@@ -103,6 +104,21 @@ English OCR runs in your browser using a lazily loaded Tesseract worker. It comp
 
 **Jev evaluates the reviewed text and visual description, not image pixels.** URLs are not a substitute for visual context. The output is a closed-set humor/tone classification, possible confusion, and an estimated probability the joke lands. This is subjective feedback, not measured audience engagement or a promise of virality.
 
+### MicroDuck arena
+
+A deterministic top-down grid, inspired by [pollen-robotics/microduck](https://github.com/pollen-robotics/microduck). It is a stand-in for that simulator, not the simulator itself, and it runs entirely in your browser.
+
+Each tick, every duck reports nine sensor fields — distance and direction to its goal, obstacles ahead and to each side, battery, whether cargo is aboard, whether it is standing on its goal, and its previous action. Jev answers with one of seven actions: forward, backward, turn left, turn right, stop, pick up, drop. The mission is to reach the cargo, carry it to the nest, and drop it there, which also recharges the duck.
+
+**Jev never sees the arena.** It sees the fields listed above and nothing else: no map, no pixels, no history beyond `last_action`. Illegal moves are carried out and charged rather than corrected, because a duck driving into a wall is the result, not an error to hide.
+
+- **Who drives** switches between Jev, a random baseline over the same seven actions, and manual control. Manual moves also ask Jev what it would have done, so the scoreboard reports how often its advice matched yours.
+- **Ticks** runs that many rounds. Each tick costs one request per duck, three in parallel. **Step** runs a single round.
+- **Withheld-sensor test** re-asks the same tick with chosen fields dropped from the state entirely, then reports whether the decision changed. It doubles the requests.
+- The arena is rebuilt from **seed**, **ducks**, **width**, and **height**. The same seed always produces the same walls, spawns, cargo, and nests, so two runs are comparable. Walls that would seal off a cargo or nest are opened, so every mission stays solvable.
+
+An action outside the seven falls back to Jev's highest-scoring action; a response with nothing usable, or a failed request, stops the duck rather than inventing a move for it. Failed calls are counted separately from decisions, and a run of a few dozen ticks is a demonstration, not a robotics benchmark.
+
 ## Deploy to Vercel
 
 ```sh
@@ -129,14 +145,14 @@ npm run test:e2e             # Mocked API calls; no TypeSafe credits used
 python3 -m unittest discover -s tests -v
 ```
 
-Browser coverage includes desktop/mobile flows, theme persistence, saved drafts, extraction, meme failures, workflow decisions, question triage and its human fallback, and responsive boundaries from 320px to 2560px, including short landscape screens. `npm start` runs the built production app.
+Browser coverage includes desktop/mobile flows, theme persistence, saved drafts, extraction, meme failures, workflow decisions, question triage and its human fallback, arena ticks and their withheld-sensor re-ask, and responsive boundaries from 320px to 2560px, including short landscape screens. `npm start` runs the built production app.
 
 | Path | Responsibility |
 | --- | --- |
 | `app/` | Next.js routes, server API handlers, global styling, and social metadata |
 | `components/` | Shared shell and React workspace interfaces |
-| `lib/` | Request contracts, question triage, image fetching, OCR, and client utilities |
-| `types/` | Shared closed-set contracts, including the triage outcomes |
+| `lib/` | Request contracts, question triage, the arena simulation and its driver, image fetching, OCR, and client utilities |
+| `types/` | Shared closed-set contracts, including the triage outcomes and the arena's sensor and action types |
 | `src/extraction/` | Candidate extraction and Jev ranking |
 | `web/catalog.json` | Shared example catalog |
 | `web/library.js`, `web/conversation.js`, `web/workflow.js` | Tested logic shared with the legacy UI |
