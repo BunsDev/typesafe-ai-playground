@@ -14,3 +14,10 @@ __pycache__/
 .venv/
 node_modules/
 coverage/
+
+.next/
+.vercel/
+*.tsbuildinfo
+next-env.d.ts
+.playwright-mcp/
+.vercel

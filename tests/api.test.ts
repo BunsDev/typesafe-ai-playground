@@ -1,0 +1,11 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { validatePayload, readBoundedBody } from '../lib/api';
+import { buildMemeRequest, memeSamples } from '../lib/memes';
+import { POST } from '../app/api/run/route';
+const payload={state:'hello',questions:{reply:{type:'noul',instructions:'Should we reply?'}}};
+test('API validates supported types and rejects invalid closed sets',()=>{assert.equal(validatePayload(payload).model,'jev-latest');for(const value of [{}, {...payload,questions:{x:{type:'choice',instructions:'choose',criteria:{a:'only'}}}},{...payload,questions:{x:{type:'score',instructions:'score',criteria:['only']}}}])assert.throws(()=>validatePayload(value));});
+test('bounded body stops oversized streams',async()=>{await assert.rejects(readBoundedBody(new Blob(['abcdef']).stream(),3));assert.equal(await readBoundedBody(new Blob(['abc']).stream(),3),'abc');});
+test('API rejects cross origin before provider access',async()=>{const r=await POST(new Request('https://demo.test/api/run',{method:'POST',headers:{origin:'https://evil.test','content-type':'application/json'},body:JSON.stringify(payload)}));assert.equal(r.status,403);});
+test('API strips unknown properties and handles prototype names safely',()=>{const p=validatePayload(JSON.parse('{"state":"test","questions":{"__proto__":{"type":"noul","instructions":"test","secret":"no"}}}'));assert.equal(Object.keys(p.questions)[0],'__proto__');assert.equal(Object.hasOwn(p.questions.__proto__,'secret'),false);});
+test('all meme examples use validated closed sets, never free text',()=>{for(const sample of memeSamples){const p=validatePayload(buildMemeRequest(sample));assert.equal(Object.keys(p.questions).length,4);assert.ok(Object.values(p.questions).every(q=>q.type==='choice'||q.type==='noul'));}assert.throws(()=>buildMemeRequest({setup:'',punchline:'',context:'',audience:'everyone'}));});
