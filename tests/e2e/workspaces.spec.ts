@@ -265,7 +265,7 @@ test("meta meme, image URL OCR review, and GitHub link are usable", async ({
     (route) =>
       route.fulfill({
         contentType: "application/javascript",
-        body: `self.onmessage=({data:m})=>self.postMessage({workerId:m.workerId,jobId:m.jobId,action:m.action,status:'resolve',data:m.action==='recognize'?{text:'OCR meme caption\\nOCR punchline',blocks:[{paragraphs:[{lines:[{text:'OCR meme caption',confidence:95,bbox:{x0:20,y0:20,x1:400,y1:60}},{text:'OCR punchline',confidence:95,bbox:{x0:20,y0:800,x1:400,y1:840}}]}]}]}:{}});`,
+        body: `let passes=0; self.onmessage=({data:m})=>self.postMessage({workerId:m.workerId,jobId:m.jobId,action:m.action,status:'resolve',data:m.action==='recognize'?(++passes===2?{text:'x'.repeat(8001),blocks:[]}:{text:'OCR meme caption\\nOCR punchline',blocks:[{paragraphs:[{lines:[{text:'OCR meme caption',confidence:95,bbox:{x0:20,y0:20,x1:400,y1:60}},{text:'OCR punchline',confidence:95,bbox:{x0:20,y0:800,x1:400,y1:840}}]}]}]}):{}});`,
       }),
   );
   let calls = 0;

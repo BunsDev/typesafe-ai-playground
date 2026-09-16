@@ -58,6 +58,7 @@ export async function readMemeText(
     context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
     bitmap.close();
     let best: CaptionLine[] = [];
+    let oversized = false;
     for (let pass = 0; pass < 2; pass++) {
       signal.throwIfAborted();
       onProgress(pass ? "Reading outlined captions…" : "Reading captions…");
@@ -81,15 +82,19 @@ export async function readMemeText(
         aborted,
       ]);
       signal.throwIfAborted();
-      if (result.data.text.length > 8000)
-        throw Error(
-          "This image contains too much text. Crop to the meme and try again.",
-        );
+      if (result.data.text.length > 8000) {
+        oversized = true;
+        continue;
+      }
       const lines = (result.data.blocks || []).flatMap((block) =>
         block.paragraphs.flatMap((paragraph) => paragraph.lines),
       );
       if (captionScore(lines) > captionScore(best)) best = lines;
     }
+    if (!best.length && oversized)
+      throw Error(
+        "This image contains too much text. Crop to the meme and try again.",
+      );
     return splitCaptions(best, canvas.height);
   } finally {
     signal.removeEventListener("abort", abort);
