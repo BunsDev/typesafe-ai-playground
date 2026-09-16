@@ -102,8 +102,12 @@ export function UsageDetailPanel({
           selected key.
         </p>
         <p>
-          Only counts, timestamps, example names and status are stored in
-          sessionStorage. No prompts, documents, responses or API keys are
+          The session ledger stores timestamps, example and endpoint names,
+          request counts, input/output token counts and their reported or
+          estimated source, key source (community or personal), per-call cost
+          estimates, status, running totals, and quota/reset state. An opaque
+          key-revision identifier keeps restored limits associated with the
+          selected key. No prompts, documents, response content, or API keys are
           included. The latest 200 calls are listed; running totals retain all
           calls for this session.
         </p>

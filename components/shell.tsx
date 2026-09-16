@@ -322,10 +322,10 @@ export function Shell({ children }: { children: React.ReactNode }) {
                   : health
               }
               aria-label={personalKey ? "Personal API key saved" : health}
-              className={`connection ${health === "Jev connected" ? "connected" : ""}`}
+              className={`connection ${!personalKey && health === "Jev connected" ? "connected" : ""}`}
             >
               <i />
-              {health}
+              {personalKey ? "Personal key saved · unverified" : health}
             </span>
             <button
               className="icon-button"

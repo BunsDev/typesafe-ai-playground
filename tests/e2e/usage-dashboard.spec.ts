@@ -140,3 +140,41 @@ test("navigation collapse persists and mobile drawer closes on navigation and Es
   expect(box!.x).toBeGreaterThanOrEqual(0);
   expect(box!.x + box!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
 });
+
+test("mock invocations never transmit saved keys or count toward usage", async ({
+  page,
+}) => {
+  await page.route("**/api/health", (route) =>
+    route.fulfill({ json: { configured: false } }),
+  );
+  let seen = false;
+  await page.route("**/api/langchain-route", async (route) => {
+    expect(route.request().headers()["x-typesafe-api-key"]).toBeUndefined();
+    expect(route.request().postData()).not.toContain("mock-private-key");
+    seen = true;
+    await route.fulfill({
+      status: 502,
+      json: { error: "Synthetic mock response" },
+    });
+  });
+  await page.goto("/langchain");
+  await page
+    .getByRole("button", { name: "API key settings", exact: true })
+    .click();
+  await page.getByLabel("API key", { exact: true }).fill("mock-private-key");
+  await page.getByRole("button", { name: "Save key", exact: true }).click();
+  await expect(page.locator(".connection")).toHaveText(
+    "Personal key saved · unverified",
+  );
+  await expect(page.locator(".connection")).toHaveAttribute(
+    "title",
+    "Personal API key saved (not yet verified)",
+  );
+  await page
+    .getByRole("button", { name: "Try mock invocation", exact: true })
+    .click();
+  await expect.poll(() => seen).toBe(true);
+  await expect(
+    page.getByRole("button", { name: "Open API usage dashboard" }),
+  ).toContainText("0 calls");
+});

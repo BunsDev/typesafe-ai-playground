@@ -23,7 +23,9 @@ export async function usageRequest(
   try {
     response = await fetch(endpoint, {
       method: "POST",
-      headers: jevHeaders(),
+      headers: options.mock
+        ? { "Content-Type": "application/json" }
+        : jevHeaders(),
       body: JSON.stringify(payload),
       signal,
     });
