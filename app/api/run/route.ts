@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  const key = process.env.TYPESAFE_API_KEY;
+  const key = process.env.TYPESAFE_API_KEY?.trim();
   if (!key)
     return Response.json(
       { error: "Set TYPESAFE_API_KEY on the server to run Jev." },
@@ -61,6 +61,15 @@ export async function POST(request: Request) {
     const data = JSON.parse(
       await readBoundedBody(upstream.body, 2 * 1024 * 1024),
     );
+    if (
+      !data ||
+      typeof data !== "object" ||
+      Array.isArray(data) ||
+      !data.answers ||
+      typeof data.answers !== "object" ||
+      Array.isArray(data.answers)
+    )
+      throw Error("Invalid upstream response.");
     return Response.json(data, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return Response.json(

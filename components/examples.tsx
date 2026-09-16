@@ -20,6 +20,7 @@ type ResponseData = {
 };
 const initial = library.catalogExamples(catalog);
 export function Examples() {
+  const [resultsOpen, setResultsOpen] = useState(false);
   const [examples, setExamples] = useState(initial);
   const [selected, setSelected] = useState(initial[0].id);
   const [drafts, setDrafts] = useState<Record<string, library.Draft>>({});
@@ -123,6 +124,7 @@ export function Examples() {
         .includes(search.toLowerCase()),
   );
   async function run(compare = false) {
+    setResultsOpen(true);
     setError("");
     setResults([]);
     setBusy(true);
@@ -211,21 +213,13 @@ export function Examples() {
   }
   return (
     <div className="workspace">
-      <Heading
-        eyebrow="The example library"
-        title="Small experiments. Useful answers."
-        description="Explore classification, compare context, and make each experiment your own."
-      >
-        <span className="pill">
-          <FlaskConical size={14} />
-          {initial.length} examples
-        </span>
-      </Heading>
       <ErrorNote message={error} />
-      <div className="examples-layout">
+      <div
+        className={`examples-layout ${resultsOpen ? "results-open" : "results-collapsed"}`}
+      >
         <aside className="panel library-panel">
           <div className="panel-heading">
-            <h2>Explore</h2>
+            <h2>Examples</h2>
             <button
               className="button quiet"
               disabled={busy}
@@ -335,7 +329,7 @@ export function Examples() {
             </span>
           </div>
           <div className="panel-content scroll">
-            <h2>{example.title}</h2>
+            <h1>{example.title}</h1>
             <p className="muted">{example.description}</p>
             <fieldset disabled={busy}>
               <label htmlFor="example-state">Input state</label>
@@ -467,6 +461,19 @@ export function Examples() {
           </div>
         </section>
         <section className="panel example-results">
+          <button
+            className="results-toggle"
+            type="button"
+            aria-label={resultsOpen ? "Collapse results" : "Expand results"}
+            aria-expanded={resultsOpen}
+            onClick={() => setResultsOpen(!resultsOpen)}
+          >
+            <span aria-hidden="true">{resultsOpen ? "›" : "‹"}</span>
+            <span>Results</span>
+            <span className="count">
+              {busy ? "RUNNING" : results.length ? "DONE" : "READY"}
+            </span>
+          </button>
           <div className="panel-heading">
             <h2>Results</h2>
             <Export data={results.length ? results : null} />
@@ -557,8 +564,11 @@ function QuestionEditor({
   questions: library.Question[];
   onApply: (q: library.Question[]) => void;
 }) {
-  const [raw, setRaw] = useState(JSON.stringify(questions, null, 2));
+  const serialized = JSON.stringify(questions, null, 2);
+  const [edit, setEdit] = useState<{ base: string; raw: string } | null>(null);
   const [error, setError] = useState("");
+  const conflict = !!edit && edit.base !== serialized;
+  const raw = edit?.raw ?? serialized;
   return (
     <>
       <textarea
@@ -566,24 +576,46 @@ function QuestionEditor({
         className="code-input"
         rows={8}
         value={raw}
-        onChange={(e) => setRaw(e.target.value)}
+        onChange={(e) =>
+          setEdit({ base: edit?.base ?? serialized, raw: e.target.value })
+        }
       />
+      {conflict && (
+        <p className="notice">
+          Questions changed above while you were editing JSON. Reload the
+          current questions before applying.
+        </p>
+      )}
       <ErrorNote message={error} />
-      <button
-        className="button"
-        onClick={() => {
-          try {
-            const q = JSON.parse(raw);
-            library.buildPayload("Validation", q);
-            onApply(q);
-            setError("");
-          } catch (e) {
-            setError(errorMessage(e));
-          }
-        }}
-      >
-        Apply questions
-      </button>
+      <div className="inline-actions">
+        <button
+          className="button"
+          disabled={conflict}
+          onClick={() => {
+            try {
+              const questions = library.normalizeQuestions(JSON.parse(raw));
+              onApply(questions);
+              setEdit(null);
+              setError("");
+            } catch (e) {
+              setError(errorMessage(e));
+            }
+          }}
+        >
+          Apply questions
+        </button>
+        {edit && (
+          <button
+            className="button quiet"
+            onClick={() => {
+              setEdit(null);
+              setError("");
+            }}
+          >
+            Reload current questions
+          </button>
+        )}
+      </div>
     </>
   );
 }

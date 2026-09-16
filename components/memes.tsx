@@ -4,9 +4,18 @@ import { Laugh, Sparkles } from "lucide-react";
 import { buildMemeRequest, memeSamples } from "../lib/memes";
 import { runJev, percent, errorMessage } from "../lib/client";
 import type { Response as JevResponse } from "../web/conversation";
+import { MemeImageInput } from "./meme-image-input";
 import { Empty, ErrorNote, Export, Heading, RunButton } from "./ui";
 export function Memes() {
   const [input, setInput] = useState(memeSamples[0]);
+  const [readingImage, setReadingImage] = useState(false);
+  const [preview, setPreview] = useState("");
+  useEffect(
+    () => () => {
+      if (preview.startsWith("blob:")) URL.revokeObjectURL(preview);
+    },
+    [preview],
+  );
   const [result, setResult] = useState<JevResponse | null>(null);
   const [snapshot, setSnapshot] = useState("");
   const [busy, setBusy] = useState(false);
@@ -57,19 +66,81 @@ export function Memes() {
             <select
               aria-label="Meme sample"
               className="compact-select"
-              disabled={busy}
+              disabled={busy || readingImage}
               value={input.name}
-              onChange={(e) =>
-                setInput(memeSamples.find((s) => s.name === e.target.value)!)
-              }
+              onChange={(e) => {
+                setPreview("");
+                setInput(memeSamples.find((s) => s.name === e.target.value)!);
+              }}
             >
+              {input.name === "Custom image" && <option>Custom image</option>}
               {memeSamples.map((s) => (
                 <option key={s.name}>{s.name}</option>
               ))}
             </select>
           </div>
           <div className="panel-content scroll">
-            <fieldset disabled={busy}>
+            <MemeImageInput
+              disabled={busy}
+              onBusy={setReadingImage}
+              onReady={(url, text, image) => {
+                setPreview(image);
+                setInput({
+                  name: "Custom image",
+                  setup: "",
+                  punchline: "",
+                  context: "",
+                  audience: input.audience,
+                  imageText: text,
+                  imageUrl: url,
+                });
+                setResult(null);
+              }}
+            />
+            <fieldset disabled={busy || readingImage}>
+              {(preview || input.imageUrl) && (
+                <figure className="image-meme-preview">
+                  <img
+                    src={preview || input.imageUrl}
+                    alt={
+                      input.name === "Meme lab meets itself"
+                        ? "Meta meme: I built a meme lab to validate my humor. The meme lab: insufficient evidence."
+                        : "Loaded meme for review"
+                    }
+                  />
+                  <figcaption>
+                    {input.name === "Meme lab meets itself"
+                      ? "A meme about this very lab. The pictured score is part of the joke."
+                      : "Check the recognized text below. Jev does not see the image pixels."}
+                  </figcaption>
+                  {input.name === "Meme lab meets itself" && (
+                    <a
+                      className="button quiet"
+                      href="/memes/meta-meme.png"
+                      download
+                    >
+                      Download meta meme
+                    </a>
+                  )}
+                </figure>
+              )}
+              {input.imageText !== undefined && (
+                <label>
+                  Recognized image text
+                  <textarea
+                    rows={5}
+                    maxLength={8000}
+                    value={input.imageText}
+                    onChange={(e) =>
+                      setInput({ ...input, imageText: e.target.value })
+                    }
+                  />
+                  <span className="field-hint">
+                    Correct OCR mistakes before running. Add visual context for
+                    jokes that depend on the scene.
+                  </span>
+                </label>
+              )}
               <label>
                 Setup / top text
                 <textarea
@@ -92,14 +163,16 @@ export function Memes() {
                   maxLength={4000}
                 />
               </label>
-              <div className="meme-preview" aria-label="Text meme preview">
-                <p>{input.setup || "Your setup"}</p>
-                <div className="meme-scene">
-                  <Sparkles size={30} />
-                  <span>the moment of realization</span>
+              {!input.imageUrl && (
+                <div className="meme-preview" aria-label="Text meme preview">
+                  <p>{input.setup || "Your setup"}</p>
+                  <div className="meme-scene">
+                    <Sparkles size={30} />
+                    <span>the moment of realization</span>
+                  </div>
+                  <p>{input.punchline || "Your punchline"}</p>
                 </div>
-                <p>{input.punchline || "Your punchline"}</p>
-              </div>
+              )}
               <label>
                 Visual context
                 <textarea
@@ -123,14 +196,15 @@ export function Memes() {
               </label>
             </fieldset>
             <p className="muted">
-              Describe the image in words. This prototype evaluates text, not
-              image pixels.
+              Jev evaluates your captions, reviewed OCR text, and visual
+              description. It does not inspect image pixels.
             </p>
           </div>
           <div className="panel-bottom">
             <span className="muted">4 closed-set questions · 1 request</span>
             <RunButton
               busy={busy}
+              disabled={readingImage}
               onClick={run}
               onCancel={() => controller.current?.abort()}
             >

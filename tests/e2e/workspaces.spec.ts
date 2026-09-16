@@ -241,3 +241,82 @@ test("responsive boundaries and short landscape keep actions reachable", async (
     }
   }
 });
+
+test("meta meme, image URL OCR review, and GitHub link are usable", async ({
+  page,
+}) => {
+  await page.goto("/memes");
+  await expect(
+    page.getByRole("link", { name: "View TypeSafe AI Playground on GitHub" }),
+  ).toHaveAttribute(
+    "href",
+    "https://github.com/BunsDev/typesafe-ai-playground",
+  );
+  await expect(page.getByRole("img", { name: /Meta meme:/ })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Download meta meme" }),
+  ).toHaveAttribute("href", "/memes/meta-meme.png");
+  const image = await (await page.request.get("/memes/meta-meme.png")).body();
+  await page.route("**/api/meme-image", (route) =>
+    route.fulfill({ contentType: "image/png", body: image }),
+  );
+  await page.route(
+    "https://cdn.jsdelivr.net/npm/tesseract.js@*/dist/worker.min.js",
+    (route) =>
+      route.fulfill({
+        contentType: "application/javascript",
+        body: `self.onmessage=({data:m})=>self.postMessage({workerId:m.workerId,jobId:m.jobId,action:m.action,status:'resolve',data:m.action==='recognize'?{text:'OCR meme caption'}:{}});`,
+      }),
+  );
+  let calls = 0;
+  await page.route("**/api/run", (route) => {
+    calls++;
+    const p = route.request().postDataJSON();
+    expect(p.state.imageText).toBe("Reviewed meme caption");
+    expect(p.state.setup).toBe("");
+    return route.fulfill({
+      json: { answers: { lands: { type: "noul", noul: 0.7 } } },
+    });
+  });
+  await page
+    .getByLabel("Image address URL")
+    .fill("https://example.com/meme.png");
+  await page.getByRole("button", { name: "Read image", exact: true }).click();
+  await expect(page.getByLabel("Recognized image text")).toHaveValue(
+    "OCR meme caption",
+  );
+  expect(calls).toBe(0);
+  await page.getByLabel("Recognized image text").fill("Reviewed meme caption");
+  await page.getByRole("button", { name: "Test meme", exact: true }).click();
+  await expect(page.locator(".meme-verdict")).toContainText("70.0%");
+  expect(calls).toBe(1);
+});
+
+test("question JSON stays synchronized and protects concurrent edits", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.locator(".question-edit").first().locator("summary").click();
+  await page
+    .locator(".question-edit")
+    .first()
+    .getByLabel("Instructions")
+    .fill("Updated instruction");
+  await page.getByText("Edit all questions as JSON", { exact: true }).click();
+  await expect(page.getByLabel("Questions JSON")).toContainText(
+    "Updated instruction",
+  );
+  await page
+    .getByLabel("Questions JSON")
+    .fill(
+      '[{"id":"test","label":"Test","type":"noul","instructions":"Test question"}]',
+    );
+  await page
+    .getByRole("button", { name: "Apply questions", exact: true })
+    .click();
+  await expect(page.locator(".experiment-panel .count").first()).toHaveText(
+    "1 questions",
+  );
+  await page.locator(".question-edit").first().locator("summary").click();
+  await expect(page.getByLabel("Include this question")).toBeChecked();
+});

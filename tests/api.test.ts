@@ -104,3 +104,26 @@ test("same-origin dev host reaches provider; key stays in the authorization head
     else process.env.TYPESAFE_API_KEY = key;
   }
 });
+test("blank keys are unconfigured and invalid upstream shapes are rejected", async () => {
+  const original = globalThis.fetch;
+  const key = process.env.TYPESAFE_API_KEY;
+  const makeRequest = () =>
+    new Request("https://demo.test/api/run", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  try {
+    process.env.TYPESAFE_API_KEY = "   ";
+    assert.equal((await POST(makeRequest())).status, 503);
+    process.env.TYPESAFE_API_KEY = " test-only ";
+    for (const value of [null, [], 42, {}, { answers: [] }]) {
+      globalThis.fetch = async () => Response.json(value);
+      assert.equal((await POST(makeRequest())).status, 502);
+    }
+  } finally {
+    globalThis.fetch = original;
+    if (key === undefined) delete process.env.TYPESAFE_API_KEY;
+    else process.env.TYPESAFE_API_KEY = key;
+  }
+});

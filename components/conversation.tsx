@@ -31,7 +31,14 @@ export function Conversation() {
   } catch (e) {
     parseError = errorMessage(e);
   }
-  const signature = JSON.stringify([text, format, policy, mode, model]);
+  const signature = JSON.stringify([
+    text,
+    format,
+    policy,
+    mode,
+    model,
+    expected,
+  ]);
   const stale = !!snapshot && snapshot !== signature;
   const winners = lab.pickWinners(rows, threshold / 100);
   async function run() {
@@ -111,7 +118,10 @@ export function Conversation() {
             <button
               className="button quiet"
               disabled={busy}
-              onClick={() => setText(sample)}
+              onClick={() => {
+                setText(sample);
+                setExpected("");
+              }}
             >
               Load example
             </button>
@@ -134,7 +144,10 @@ export function Conversation() {
                 className="transcript"
                 value={text}
                 maxLength={40000}
-                onChange={(e) => setText(e.target.value)}
+                onChange={(e) => {
+                  setText(e.target.value);
+                  setExpected("");
+                }}
                 spellCheck={false}
               />
               <p className="muted">Paste from Discord, or use Name: message.</p>
@@ -146,7 +159,10 @@ export function Conversation() {
                   Paste format
                   <select
                     value={format}
-                    onChange={(e) => setFormat(e.target.value)}
+                    onChange={(e) => {
+                      setFormat(e.target.value);
+                      setExpected("");
+                    }}
                   >
                     <option value="auto">Auto-detect</option>
                     <option value="discord">Discord</option>
@@ -217,7 +233,16 @@ export function Conversation() {
               <h2>The reply decision</h2>
             </div>
             <Export
-              data={rows.length ? rows : null}
+              data={
+                rows.length
+                  ? {
+                      run: JSON.parse(snapshot),
+                      threshold: threshold / 100,
+                      selection: winners,
+                      rows,
+                    }
+                  : null
+              }
               name="conversation-results.json"
             />
           </div>
