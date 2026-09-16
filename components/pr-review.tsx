@@ -322,13 +322,13 @@ export function PullRequestReview() {
               onClick={run}
               onCancel={() => controller.current?.abort()}
             >
-              Review with Jev
+              Review PR
             </RunButton>
           </div>
         </section>
         <section className="panel pr-results-panel">
           <div className="panel-heading">
-            <h2>Review gate</h2>
+            <h2>Review decision</h2>
             <button
               className="button quiet"
               disabled={!mode || locked || !!thresholdError || !queue.length}
@@ -351,7 +351,7 @@ export function PullRequestReview() {
               }
             >
               <Download size={14} />
-              Export review queue
+              Export flagged hunks
             </button>
           </div>
           <div className="panel-content scroll">
@@ -360,12 +360,30 @@ export function PullRequestReview() {
                 {mode ? "PR CANDIDATE RESULT" : "AWAITING CLASSIFICATION"}
               </span>
               <strong>
-                {thresholdError
-                  ? "needs_review"
-                  : mode
-                    ? summary.decision
-                    : "Not reviewed"}
+                {!mode
+                  ? "Paste a PR to get started"
+                  : busy
+                    ? "Reviewing changes…"
+                    : summary.decision === "block_candidate"
+                      ? "Hold for human review"
+                      : summary.decision === "approve_candidate"
+                        ? "Candidate for approval"
+                        : "Further review required"}
               </strong>
+              {mode && (
+                <code>
+                  {thresholdError ? "needs_review" : summary.decision}
+                </code>
+              )}
+              <div className="review-next-action">
+                {!mode
+                  ? "Paste a link or diff, then choose Review PR."
+                  : summary.pending
+                    ? "Wait for the remaining hunks, or stop and export the incomplete review."
+                    : queue.length
+                      ? `Next: export ${queue.length} flagged hunk${queue.length === 1 ? "" : "s"} for ${summary.counts.human ? "human review" : "LLM review"}${summary.counts.human && summary.counts.llm ? " and the LLM queue" : ""}.`
+                      : "Next: confirm this candidate through your normal approval process."}
+              </div>
               <p>
                 {summary.pending
                   ? `${summary.pending} hunks still need classification. Unfinished reviews cannot approve.`
@@ -503,23 +521,49 @@ function HunkCard({
   result: Classification;
   routed?: RoutedReview;
 }) {
-  const selected = result.decisions.filter(
+  const positive = result.decisions.filter(
     (d) => d.selected !== "not_applicable",
   );
+  const selected = [...new Set(positive.map((d) => d.selected))].map(
+    (label) => {
+      const group = positive.filter((d) => d.selected === label);
+      return {
+        selected: label,
+        certainty: group.some((d) => d.certainty === null)
+          ? null
+          : Math.min(...group.map((d) => d.certainty!)),
+      };
+    },
+  );
+  const lines = result.hunk.diff.split("\n").slice(1);
+  const added = lines.filter((line) => line.startsWith("+"));
+  const removed = lines.filter((line) => line.startsWith("-"));
+  const preview = [removed[0], added[0]].filter(Boolean);
   return (
     <details className={`hunk-card risk-${routed?.risk || "unknown"}`}>
       <summary>
         <div className="hunk-title">
           <strong>{result.hunk.path}</strong>
-          <span>{result.hunk.header}</span>
+          <span>
+            Line {result.hunk.oldStart} → {result.hunk.newStart} · +
+            {added.length} / −{removed.length} · {routed?.risk || "unknown"}{" "}
+            risk
+          </span>
         </div>
-        <span className="type-badge">{routed?.route || "human"}</span>
+        <span className="type-badge">
+          {routed?.route === "skip"
+            ? "Skip review"
+            : routed?.route === "llm"
+              ? "LLM review"
+              : "Human review"}
+        </span>
         <div className="hunk-overview">
           <div className="hunk-labels">
             {selected.length ? (
               selected.map((d) => (
-                <span key={d.label}>
-                  {d.selected} <strong>{percent(d.certainty)}</strong>
+                <span key={d.selected}>
+                  {d.selected.replaceAll("_", " ")}{" "}
+                  <strong>{percent(d.certainty)}</strong>
                 </span>
               ))
             ) : (
@@ -527,6 +571,23 @@ function HunkCard({
             )}
           </div>
           <p>{routed?.reason || result.error}</p>
+          {!!preview.length && (
+            <pre className="hunk-preview">
+              {preview.map((line, i) => (
+                <span
+                  key={i}
+                  className={
+                    line.startsWith("+") ? "diff-added" : "diff-removed"
+                  }
+                >
+                  {line}
+                </span>
+              ))}
+            </pre>
+          )}
+          <small className="hunk-expand-label">
+            Expand for the complete diff and decision scores
+          </small>
         </div>
       </summary>
       <div className="hunk-detail">

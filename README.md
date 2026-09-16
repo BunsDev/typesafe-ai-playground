@@ -1,6 +1,6 @@
 # TypeSafe AI Playground
 
-A community playground for **Jev**: run small classification experiments, route conversations, apply decision rules, extract document fields, and test memes.
+A community playground for **Jev**: run small classification experiments, route conversations, apply decision rules, extract document fields, review code changes, verify logic, and test memes.
 
 **Shout-out to [@nickthompson480](https://github.com/nickthompson480) for the [original TypeSafe AI playground](https://github.com/nickthompson480/typesafe-ai-playground).** This fork builds on that project's example library and Python foundation with a Next.js interface and new interactive prototypes. This is an independent community project, not an official TypeSafe AI product.
 
@@ -23,18 +23,22 @@ npm run dev
 
 Open the address printed by Next.js, normally http://localhost:3000. To choose another port, use `npm run dev -- --port 3001`.
 
-`TYPESAFE_API_KEY` is read only by the server. Do not prefix it with `NEXT_PUBLIC_`, hardcode it in a component, or commit `.env.local`. You can browse and edit examples without a key; Run buttons require one.
+`TYPESAFE_API_KEY` is read only by the server. Do not prefix it with `NEXT_PUBLIC_`, hardcode it in a component, or commit `.env.local`. You can browse and edit examples without a key; Live Jev actions require one. Mock governance/PR demos and exact Z3 checks do not.
 
-## Five workspaces
+## Eight workspaces
 
-| Workspace | What it does |
-| --- | --- |
-| **Examples** `/` | 110 examples across 22 categories, including 41 A/B comparisons. Edit input and questions, run Jev, and inspect typed answers. |
-| **Conversation lab** `/conversation` | Paste raw Discord or labeled chat, rank potential reply recipients, compare context, and evaluate conversation frames. |
-| **Workflow chat** `/workflow` | Describe a case and apply editable decision rules. Missing evidence produces a follow-up question. |
-| **Document extraction** `/extraction` | Find likely values locally, then ask Jev to select candidates or `null`, with probabilities and source evidence. |
-| **PR review** `/pr-review` | Paste a public PR link or diff; classify hunks and queue uncertain changes for review. |
-| **Meme lab** `/memes` | Test humor style, audience fit, tone, and likely confusion using captions or reviewed text from an image URL. |
+| Workspace                             | What it does                                                                                                                     |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Examples** `/`                      | 110 examples across 22 categories, including 41 A/B comparisons. Edit input and questions, run Jev, and inspect typed answers.   |
+| **Conversation lab** `/conversation`  | Paste raw Discord or labeled chat, rank potential reply recipients, compare context, and evaluate conversation frames.           |
+| **Workflow chat** `/workflow`         | Describe a case and apply editable decision rules. Missing evidence produces a follow-up question.                               |
+| **Document extraction** `/extraction` | Find likely values locally, then ask Jev to select candidates or `null`, with probabilities and source evidence.                 |
+| **PR review** `/pr-review`            | Paste a public PR link or diff; classify hunks and queue uncertain changes for review.                                           |
+| **AST governance** `/ast-governance`  | Trace changed symbols and callers, apply deterministic policy, and classify ambiguous findings. Includes a simulated test cache. |
+| **SMT solver** `/smt-solver`          | Compare closed-set Jev predictions with real Z3 checks, independent-group decomposition, and measured benchmarks.                |
+| **Meme lab** `/memes`                 | Test humor style, audience fit, tone, and likely confusion using captions or reviewed text from an image URL.                    |
+
+Every page has its own 1200 × 630 Open Graph image and Twitter preview. A shared branded template keeps route titles, descriptions and images consistent.
 
 The interface uses charcoal surfaces, lavender accents, serif headlines, dark/light themes, and responsive panels. Desktop panels scroll independently; narrow screens stack content. Examples has a collapsible Results rail, which opens when a run begins. Mobile controls have larger touch targets, and reduced-motion preferences are respected.
 
@@ -76,7 +80,15 @@ Results show the selected value, its Jev probability, confidence when returned, 
 
 ### PR Review
 
-Paste a PR URL or diff and click **Review with Jev**. The lab loads public PR metadata automatically, preserves every hunk as evidence, and uses fixed labels and rule candidates. Thresholds control safe skips, review queues, and candidate blocks. Try the clearly labeled mock auth-change demo without an API call. No GitHub actions or second-stage LLM calls are performed. See [PR Review setup and limits](docs/pr-review.md).
+Paste a PR URL or diff and click **Review PR**. The lab loads public PR metadata automatically, preserves every hunk as evidence, and uses fixed labels and rule candidates. Thresholds control safe skips, review queues, and candidate blocks. Try the clearly labeled mock auth-change demo without an API call. No GitHub actions or second-stage LLM calls are performed. See [PR Review setup and limits](docs/pr-review.md).
+
+### AST-aware governance
+
+Start with **Run mock demo** for an auth-signature change with a missed caller and missing test updates. The page explains what changed, how callers are affected, why each policy applies, and what to check next. **Analyze changes** runs local static checks; **Classify with Jev** uses only fixed outcomes. Sensitive-file changes block before any Jev call. The parser, symbol index, and test-cache workflow are prototypes; no code, tests, or merges are executed. See the [governance guide](docs/ast-governance.md).
+
+### SMT solver lab
+
+Paste Boolean, integer, equality, ordering or scheduling constraints and choose **Run Check**. Jev predicts one of four outcomes; Z3 verifies the full problem on the server and wins any definitive disagreement. Independent groups run through Jev in parallel. Confidence below 85% requires decomposition. Five seeded cases populate a measured benchmark table on demand. See [syntax, decomposition, routing and benchmark limits](docs/smt-solver.md).
 
 ### Meme lab: text, images, and a meta meme
 
@@ -122,17 +134,17 @@ python3 -m unittest discover -s tests -v
 
 Browser coverage includes desktop/mobile flows, theme persistence, saved drafts, extraction, meme failures, workflow decisions, and responsive boundaries from 320px to 2560px, including short landscape screens. `npm start` runs the built production app.
 
-| Path | Responsibility |
-| --- | --- |
-| `app/` | Next.js routes, server API handlers, global styling, and social metadata |
-| `components/` | Shared shell and React workspace interfaces |
-| `lib/` | Request contracts, image fetching, OCR, and client utilities |
-| `src/extraction/` | Candidate extraction and Jev ranking |
-| `web/catalog.json` | Shared example catalog |
-| `web/library.js`, `web/conversation.js`, `web/workflow.js` | Tested logic shared with the legacy UI |
-| `tests/` | Unit/API checks and Playwright browser tests |
-| `public/og.png` | Open Graph and Twitter sharing image |
-| `public/memes/` | Meta meme asset and editable SVG source |
+| Path                                                       | Responsibility                                                           |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `app/`                                                     | Next.js routes, server API handlers, global styling, and social metadata |
+| `components/`                                              | Shared shell and React workspace interfaces                              |
+| `lib/`                                                     | Request contracts, image fetching, OCR, and client utilities             |
+| `src/extraction/`                                          | Candidate extraction and Jev ranking                                     |
+| `web/catalog.json`                                         | Shared example catalog                                                   |
+| `web/library.js`, `web/conversation.js`, `web/workflow.js` | Tested logic shared with the legacy UI                                   |
+| `tests/`                                                   | Unit/API checks and Playwright browser tests                             |
+| `public/og.png`                                            | Open Graph and Twitter sharing image                                     |
+| `public/memes/`                                            | Meta meme asset and editable SVG source                                  |
 
 ## Legacy Python UI
 

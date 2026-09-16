@@ -9,6 +9,8 @@ import {
   FileScan,
   GitBranch,
   GitPullRequest,
+  Network,
+  Scale,
   MessageSquare,
   Moon,
   Sun,
@@ -44,6 +46,18 @@ const pages = [
     label: "PR review",
     icon: GitPullRequest,
     detail: "Review the risky parts",
+  },
+  {
+    href: "/ast-governance",
+    label: "AST governance",
+    icon: Network,
+    detail: "Trace change impact",
+  },
+  {
+    href: "/smt-solver",
+    label: "SMT solver",
+    icon: Scale,
+    detail: "Verify structured logic",
   },
   { href: "/memes", label: "Meme lab", icon: Laugh, detail: "Read the room" },
 ];

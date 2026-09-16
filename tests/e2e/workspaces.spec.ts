@@ -16,6 +16,8 @@ test("all workspaces fit the viewport and navigate without runtime errors", asyn
     "/extraction",
     "/memes",
     "/pr-review",
+    "/ast-governance",
+    "/smt-solver",
   ]) {
     await page.goto(path);
     await expect(page.locator("h1")).toBeVisible();
@@ -106,7 +108,12 @@ test("meme test displays classifications and preserves a clear failure state", a
     });
   });
   await page.goto("/memes");
-  await page.getByRole("button", { name: "Test meme", exact: true }).click();
+  await page
+    .getByRole("button", {
+      name: "Test meme",
+      exact: true,
+    })
+    .click();
   await expect(page.locator(".meme-verdict")).toContainText("84.0%");
   await expect(page.locator(".classification").first()).toHaveText("relatable");
   await page.unroute("**/api/run");
@@ -116,7 +123,12 @@ test("meme test displays classifications and preserves a clear failure state", a
       json: { error: "Rate limit reached. Try again." },
     }),
   );
-  await page.getByRole("button", { name: "Test meme", exact: true }).click();
+  await page
+    .getByRole("button", {
+      name: "Test meme",
+      exact: true,
+    })
+    .click();
   await expect(page.locator("main").getByRole("alert")).toContainText(
     "Rate limit reached",
   );
@@ -213,6 +225,8 @@ test("responsive boundaries and short landscape keep actions reachable", async (
       "/extraction",
       "/memes",
       "/pr-review",
+      "/ast-governance",
+      "/smt-solver",
     ]) {
       await page.goto(route);
       await expect(page.locator("h1")).toBeVisible();
@@ -238,8 +252,12 @@ test("responsive boundaries and short landscape keep actions reachable", async (
                 : route === "/extraction"
                   ? "Run extraction"
                   : route === "/pr-review"
-                    ? "Review with Jev"
-                    : "Test meme",
+                    ? "Review PR"
+                    : route === "/ast-governance"
+                      ? "Analyze changes"
+                      : route === "/smt-solver"
+                        ? "Run Check"
+                        : "Test meme",
         exact: true,
       });
       await action.scrollIntoViewIfNeeded();
@@ -303,7 +321,12 @@ test("meta meme, image URL OCR review, and GitHub link are usable", async ({
   );
   expect(calls).toBe(0);
   await page.getByLabel("Recognized image text").fill("Reviewed meme caption");
-  await page.getByRole("button", { name: "Test meme", exact: true }).click();
+  await page
+    .getByRole("button", {
+      name: "Test meme",
+      exact: true,
+    })
+    .click();
   await expect(page.locator(".meme-verdict")).toContainText("70.0%");
   expect(calls).toBe(1);
 });
@@ -534,9 +557,7 @@ test("PR review sends only closed decisions and rejects invented model labels", 
   await page
     .getByRole("button", { name: "Run mock demo", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Review with Jev", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Review PR", exact: true }).click();
   await expect(page.locator(".review-progress")).toContainText("3 of 3");
   await expect(page.locator(".pr-verdict")).toContainText("needs_review");
   await expect(page.locator(".hunk-card").first()).toContainText(
@@ -609,13 +630,193 @@ test("pasting a PR link needs just one review action", async ({ page }) => {
   await page
     .getByLabel("PR URL or diff")
     .fill("https://github.com/example/repo/pull/42");
-  await page
-    .getByRole("button", { name: "Review with Jev", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Review PR", exact: true }).click();
   await expect(page.locator(".pr-verdict")).toContainText("approve_candidate");
   expect(loads).toBe(1);
   expect(reviews).toBe(1);
   expect(
     (await page.locator(".sidebar").boundingBox())!.height,
   ).toBeLessThanOrEqual(54);
+});
+
+test("AST governance traces callers, preserves policy gates, and simulates cache reuse", async ({
+  page,
+}) => {
+  await page.goto("/ast-governance");
+  let requests = 0;
+  await page.route("**/api/run", async (route) => {
+    requests++;
+    await route.abort();
+  });
+  await page.getByRole("button", { name: "Run mock demo" }).click();
+  await expect(
+    page.getByText("Human review required", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Not updated — verify compatibility", { exact: true }),
+  ).toBeVisible();
+  const graph = await page.locator(".impact-graph").boundingBox();
+  const panel = await page.locator("#governance-results").boundingBox();
+  expect(graph!.x + graph!.width).toBeLessThanOrEqual(panel!.x + panel!.width);
+  await page
+    .getByText("Why it matters & what to do", { exact: true })
+    .first()
+    .click();
+  await expect(
+    page.getByText(
+      "Ask the responsible code owner to inspect the linked changes.",
+      { exact: false },
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByText("possible_breaking_change", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText("missing_test_coverage", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(page.getByText("rerun tests", { exact: true })).toBeVisible();
+  await page
+    .getByRole("button", { name: "Simulate verified test run" })
+    .click();
+  await expect(page.getByText("skip tests", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Human review required", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByLabel("Unified diff", { exact: true })
+    .fill(
+      "diff --git a/.env b/.env\n--- a/.env\n+++ b/.env\n@@ -1 +1 @@\n-KEY=old\n+KEY=new\n",
+    );
+  await page
+    .getByRole("button", { name: "Analyze changes", exact: true })
+    .click();
+  await expect(
+    page.getByText("Blocked by policy", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Classify with Jev" }),
+  ).toBeDisabled();
+  expect(requests).toBe(0);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBeTruthy();
+});
+
+test("SMT uses real Z3, rejects invalid syntax, and defers to exact results on disagreement", async ({
+  page,
+}) => {
+  await page.route("**/api/run", (r) =>
+    r.fulfill({
+      json: {
+        answers: {
+          outcome: {
+            type: "choice",
+            choice: "satisfiable",
+            confidence: 0.99,
+            probabilities: { satisfiable: 0.99 },
+          },
+        },
+      },
+    }),
+  );
+  await page.goto("/smt-solver");
+  await page.getByRole("button", { name: "Run Check", exact: true }).click();
+  await expect(page.locator(".compact-verdict h2")).toHaveText("unsatisfiable");
+  await expect(page.getByText("Agreement: No", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("The methods disagree. Z3 is authoritative.", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page
+    .getByLabel("Constraints", { exact: true })
+    .fill("x > 5; process.exit()");
+  await page.getByRole("button", { name: "Run Check", exact: true }).click();
+  await expect(page.locator(".error-note")).toContainText("Unsupported syntax");
+  await expect(page.locator(".compact-verdict")).toHaveCount(0);
+});
+test("SMT decomposes independent groups and records measured benchmark rows", async ({
+  page,
+}) => {
+  let requests = 0;
+  await page.route("**/api/run", async (r) => {
+    requests++;
+    const p = r.request().postDataJSON();
+    expect(Object.keys(p.questions.outcome.criteria)).toEqual([
+      "satisfiable",
+      "unsatisfiable",
+      "needs_decomposition",
+      "unknown",
+    ]);
+    await r.fulfill({
+      json: {
+        answers: {
+          outcome: {
+            type: "choice",
+            choice: "satisfiable",
+            confidence: 0.6,
+            probabilities: { satisfiable: 0.9 },
+          },
+        },
+      },
+    });
+  });
+  await page.goto("/smt-solver");
+  await page.getByLabel("Seeded example").selectOption("1");
+  await page.getByRole("button", { name: "Run Check", exact: true }).click();
+  await expect(page.locator(".compact-verdict h2")).toHaveText("satisfiable");
+  await expect(
+    page.getByRole("heading", { name: "Independent groups · 4" }),
+  ).toBeVisible();
+  expect(requests).toBe(4);
+  await expect(
+    page.getByRole("heading", { name: "needs_decomposition", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Run benchmark" }).click();
+  await expect(page.getByText(/5\/5 cases completed/)).toBeVisible({
+    timeout: 25000,
+  });
+  await expect(page.getByText(/5 abstentions or unknowns/)).toBeVisible();
+});
+
+test("every workspace has a distinct branded OG and matching Twitter preview", async ({
+  page,
+  request,
+}, info) => {
+  test.skip(info.project.name !== "desktop", "Metadata matrix runs once.");
+  const images = new Set<string>();
+  for (const path of [
+    "/",
+    "/conversation",
+    "/workflow",
+    "/extraction",
+    "/memes",
+    "/pr-review",
+    "/ast-governance",
+    "/smt-solver",
+  ]) {
+    await page.goto(path);
+    const og = await page
+      .locator('meta[property="og:image"]')
+      .getAttribute("content");
+    const twitter = await page
+      .locator('meta[name="twitter:image"]')
+      .getAttribute("content");
+    expect(og).toBeTruthy();
+    expect(twitter).toBe(og);
+    expect(images.has(og!)).toBeFalsy();
+    images.add(og!);
+    expect(
+      await page.locator('meta[property="og:title"]').getAttribute("content"),
+    ).toContain("TypeSafe");
+    const r = await request.get(new URL(og!).pathname);
+    expect(r.ok()).toBeTruthy();
+    expect(r.headers()["content-type"]).toContain("image/png");
+    const bytes = await r.body();
+    expect(bytes.subarray(1, 4).toString()).toBe("PNG");
+    expect(bytes.readUInt32BE(16)).toBe(1200);
+    expect(bytes.readUInt32BE(20)).toBe(630);
+  }
 });

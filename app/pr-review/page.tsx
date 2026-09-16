@@ -1,6 +1,6 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "../../lib/social";
 import { PullRequestReview } from "../../components/pr-review";
-export const metadata: Metadata = { title: "PR review · TypeSafe Playground" };
+export const metadata = pageMetadata("pr-review");
 export default function Page() {
   return <PullRequestReview />;
 }

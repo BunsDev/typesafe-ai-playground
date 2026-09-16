@@ -6,7 +6,7 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "node --test tests/test_catalog.js tests/test_conversation.js tests/test_workflow.js && tsx --test tests/extraction.test.ts tests/api.test.ts tests/meme-image.test.ts tests/meme-captions.test.ts tests/pr-review.test.ts tests/pr-review-github.test.ts",
+    "test": "node --test tests/test_catalog.js tests/test_conversation.js tests/test_workflow.js && tsx --test tests/extraction.test.ts tests/api.test.ts tests/meme-image.test.ts tests/meme-captions.test.ts tests/pr-review.test.ts tests/pr-review-github.test.ts tests/governance.test.ts tests/smt.test.ts",
     "test:e2e": "playwright test"
   },
   "devDependencies": {
@@ -25,7 +25,8 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "sharp": "0.35.4",
-    "tesseract.js": "7.0.0"
+    "tesseract.js": "7.0.0",
+    "z3-solver": "5.2.0"
   },
   "engines": {
     "node": ">=22.0.0"
