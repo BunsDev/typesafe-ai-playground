@@ -113,3 +113,42 @@ test("centered enemy features match the executable firing cone", () => {
     );
   }
 });
+
+test("first-person camera and perception share a horizontal field of view", async () => {
+  const { DOOM_FOV, verticalFieldOfView } = await import("../lib/doom-camera");
+  for (const aspect of [0.5, 1, 2, 3]) {
+    const vertical = (verticalFieldOfView(aspect) * Math.PI) / 180;
+    assert.ok(
+      Math.abs(2 * Math.atan(Math.tan(vertical / 2) * aspect) - DOOM_FOV) <
+        1e-10,
+    );
+  }
+  const state = createGame(7);
+  state.map = Array.from({ length: 11 }, () => ".".repeat(15)); // Isolate FOV from wall occlusion.
+  state.player = { ...state.player, x: 10.5, y: 5.5, angle: 0 };
+  state.enemies = [{ id: "edge", x: 12.5, y: 7.6, health: 40 }];
+  assert.equal(extractGameState(state).enemy_visible, false);
+  state.enemies[0].y = 7.4;
+  assert.equal(extractGameState(state).enemy_visible, true);
+});
+
+test("a complete seeded sector can be cleared using only ordinary controls", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const run = JSON.parse(
+    await readFile(
+      new URL("./fixtures/doom-winning-run.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  let game = createGame(run.seed);
+  for (const action of run.actions) {
+    assert.ok(DOOM_ACTIONS.includes(action));
+    game = stepGame(game, action);
+  }
+  assert.equal(game.status, "won");
+  assert.equal(game.kills, 5);
+  assert.ok(game.player.health > 0);
+  assert.ok(game.tick < 450);
+  assert.ok(run.actions.includes("open_door"));
+  assert.equal(stepGame(game, "shoot"), game);
+});

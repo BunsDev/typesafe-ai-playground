@@ -7,10 +7,22 @@ export class JevProviderError extends Error {
     super(message);
   }
 }
-/** Server/CLI transport. The API key never enters a payload or browser bundle. */
-export async function serverJevTransport(value: unknown, signal?: AbortSignal) {
+/** Server/CLI transport. Keys stay out of model payloads and responses. */
+export async function serverJevTransport(
+  value: unknown,
+  signal?: AbortSignal,
+  override?: string | null,
+) {
   const payload = validatePayload(value);
-  const key = process.env.TYPESAFE_API_KEY?.trim();
+  const key = override?.trim() || process.env.TYPESAFE_API_KEY?.trim();
+  if (
+    override !== undefined &&
+    override !== null &&
+    (!override.trim() ||
+      !/^[\x21-\x7e]+$/.test(override.trim()) ||
+      override.length > 1024)
+  )
+    throw new JevProviderError("Invalid API key override.", 400);
   if (!key)
     throw new JevProviderError(
       "Set TYPESAFE_API_KEY on the server to run Jev.",

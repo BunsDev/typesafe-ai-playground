@@ -1,7 +1,8 @@
+import { jevHeaders } from "./api-key";
 export async function runJev(payload: unknown, signal?: AbortSignal) {
   const response = await fetch("/api/run", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: jevHeaders(),
     body: JSON.stringify(payload),
     signal,
   });

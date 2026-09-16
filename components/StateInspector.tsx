@@ -17,7 +17,7 @@ export function StateInspector({
       <p className="muted">
         Deterministic geometry supplies these features. Jev receives no pixels,
         source code, or hidden map. Visible targets must be within eight tiles,
-        a 120° field of view, and an unobstructed line of sight.
+        a 90° horizontal field of view, and an unobstructed line of sight.
       </p>
       {seen && (
         <p className="muted">

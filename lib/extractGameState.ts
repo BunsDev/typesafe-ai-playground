@@ -1,3 +1,4 @@
+import { DOOM_FOV } from "./doom-camera";
 import type { GameFeatures, GameState, Point } from "../types/doom";
 import {
   angleDifference,
@@ -19,7 +20,7 @@ export function extractGameState(
   const visible = (q: Point) =>
     distance(p, q) <= 8 &&
     Math.abs(angleDifference(Math.atan2(q.y - p.y, q.x - p.x), p.angle)) <=
-      Math.PI / 3 &&
+      DOOM_FOV / 2 &&
     lineOfSight(state, p, q);
   const enemy = state.enemies
     .filter((e) => e.health > 0 && visible(e))

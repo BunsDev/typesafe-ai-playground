@@ -33,9 +33,16 @@ export async function POST(request: Request) {
     );
   }
   try {
-    return Response.json(await serverJevTransport(payload, request.signal), {
-      headers: { "Cache-Control": "no-store" },
-    });
+    return Response.json(
+      await serverJevTransport(
+        payload,
+        request.signal,
+        request.headers.get("x-typesafe-api-key"),
+      ),
+      {
+        headers: { "Cache-Control": "no-store" },
+      },
+    );
   } catch (error) {
     return Response.json(
       {

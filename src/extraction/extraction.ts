@@ -1,3 +1,4 @@
+import { jevHeaders } from "../../lib/api-key";
 export const FIELDS = [
   "date",
   "counterparty",
@@ -108,7 +109,7 @@ async function transport(
 ): Promise<unknown> {
   const response = await fetch("/api/run", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: jevHeaders(),
     body: JSON.stringify(payload),
     signal,
   });

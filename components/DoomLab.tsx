@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Play, Pause, RotateCcw, Gamepad2 } from "lucide-react";
+import { Play, Pause, RotateCcw, Maximize2, Minimize2 } from "lucide-react";
 import { Heading, ErrorNote, Export } from "./ui";
+import { JevDoomBrand } from "./JevDoomBrand";
 import { GameViewport } from "./GameViewport";
 import { StateInspector } from "./StateInspector";
 import { ActionProbabilities } from "./ActionProbabilities";
@@ -45,6 +46,54 @@ type Trace = {
   applied: boolean;
 };
 export function DoomLab() {
+  const arenaRef = useRef<HTMLElement>(null);
+  const fullscreenButton = useRef<HTMLButtonElement>(null);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [captureMode, setCaptureMode] = useState(false);
+  useEffect(() => {
+    const changed = () => {
+      setFullscreen(document.fullscreenElement === arenaRef.current);
+      if (!document.fullscreenElement) setCaptureMode(false);
+    };
+    document.addEventListener("fullscreenchange", changed);
+    return () => document.removeEventListener("fullscreenchange", changed);
+  }, []);
+  useEffect(() => {
+    if (!fullscreen) return;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    arenaRef.current?.querySelector<HTMLElement>(".doom-viewport")?.focus();
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !document.fullscreenElement) {
+        setFullscreen(false);
+        setCaptureMode(false);
+        fullscreenButton.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.body.style.overflow = overflow;
+      document.removeEventListener("keydown", escape);
+    };
+  }, [fullscreen]);
+  async function toggleFullscreen() {
+    if (fullscreen) {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      setFullscreen(false);
+      setCaptureMode(false);
+      fullscreenButton.current?.focus();
+      return;
+    }
+    if (document.fullscreenEnabled && arenaRef.current?.requestFullscreen) {
+      try {
+        await arenaRef.current.requestFullscreen();
+        return;
+      } catch {
+        /* Fall back to a viewport-sized arena. */
+      }
+    }
+    setFullscreen(true);
+  }
   const [game, setGame] = useState(() => createGame(7)),
     [mode, setMode] = useState<ControlMode>("human"),
     [active, setActive] = useState(false),
@@ -248,7 +297,7 @@ export function DoomLab() {
   }
   function keyboard(e: React.KeyboardEvent<HTMLDivElement>, pressed: boolean) {
     const action = keys[e.key] ?? keys[e.key.toLowerCase()];
-    if (!action || mode !== "human") return;
+    if (!action || mode !== "human" || !active) return;
     e.preventDefault();
     if (pressed) {
       human.current = action;
@@ -259,19 +308,49 @@ export function DoomLab() {
     <div className="workspace compact-lab doom-lab">
       <Heading
         eyebrow="Reactive decisions · browser arena"
-        title="Jev plays Doom."
-        description="Ten actions. One tiny decision at a time. Play the maze shooter, then hand the controls to Jev."
+        title="JevDoom."
+        description="Ten actions. One tiny decision at a time. Play the first-person 3D shooter, then hand the controls to Jev."
       />
       <div className="doom-layout">
-        <section className="panel doom-arena-panel">
+        <section
+          ref={arenaRef}
+          className={
+            "panel doom-arena-panel" +
+            (fullscreen ? " doom-fullscreen" : "") +
+            (captureMode ? " doom-capture" : "")
+          }
+        >
           <div className="panel-heading">
-            <div>
-              <Gamepad2 size={16} />
-              <h2>Sector 01 · maze shooter</h2>
+            <JevDoomBrand />
+            <div className="doom-window-actions">
+              {fullscreen && (
+                <button
+                  className="button"
+                  aria-pressed={captureMode}
+                  onClick={() => {
+                    halt();
+                    setCaptureMode(!captureMode);
+                  }}
+                >
+                  {captureMode ? "Show controls" : "Screenshot mode"}
+                </button>
+              )}
+              <button
+                ref={fullscreenButton}
+                className="button"
+                aria-pressed={fullscreen}
+                onClick={() => void toggleFullscreen()}
+              >
+                {fullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+                {fullscreen ? "Exit fullscreen" : "Fullscreen"}
+              </button>
             </div>
-            <span className="doom-prototype-label">Original mini-game</span>
           </div>
           <div className="doom-arena-content">
+            <div className="doom-capture-caption">
+              SECTOR 01 <span>•</span> A LITTLE CHAOS, CLASSIFIED.
+              <small>TypeSafe AI · Powered by Jev</small>
+            </div>
             <ControlModeToggle
               mode={mode}
               onChange={(m) => {
@@ -282,6 +361,9 @@ export function DoomLab() {
               game={game}
               active={active}
               mode={mode}
+              onAction={(action) => {
+                if (active && mode === "human") humanPulse.current = action;
+              }}
               onKeyDown={(e) => keyboard(e, true)}
               onKeyUp={(e) => keyboard(e, false)}
               onBlur={() => {
@@ -310,7 +392,8 @@ export function DoomLab() {
               <>
                 <p className="doom-controls-hint">
                   Focus the arena: W/S move · A/D strafe · Q/E or ←/→ turn ·
-                  Space shoot · F door · R item.
+                  Space shoot · F door · R item. Drag the 3D view to turn; click
+                  or tap to fire.
                 </p>
                 <div
                   className="doom-touch-controls"
@@ -367,9 +450,9 @@ export function DoomLab() {
               </label>
             </div>
             <p className="doom-controls-hint">
-              Changing controls or chaos starts a fresh run. The map shows the
-              whole arena; Jev gets only the inspectable visibility features. No
-              Doom assets or emulator are required.
+              Changing controls or chaos starts a fresh run. The optional
+              tactical map shows the whole arena; Jev gets only the inspectable
+              visibility features. No Doom assets or emulator are required.
             </p>
             <ErrorNote message={error} />
           </div>

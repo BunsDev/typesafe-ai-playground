@@ -48,7 +48,14 @@ export async function POST(request: Request) {
   try {
     const router = createJevRoutingTool({
       transport:
-        input.mode === "mock" ? mockRoutingTransport : serverJevTransport,
+        input.mode === "mock"
+          ? mockRoutingTransport
+          : (payload, signal) =>
+              serverJevTransport(
+                payload,
+                signal,
+                request.headers.get("x-typesafe-api-key"),
+              ),
       mode: input.mode,
     });
     const output = await router.invoke(

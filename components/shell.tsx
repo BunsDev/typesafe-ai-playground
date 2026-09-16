@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import { ApiKeySettings } from "./ApiKeySettings";
+import { API_KEY_EVENT, readApiKey } from "../lib/api-key";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
@@ -107,6 +109,17 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const [dark, setDark] = useState(false);
   const [health, setHealth] = useState("Connecting");
+  const [personalKey, setPersonalKey] = useState(false);
+  useEffect(() => {
+    const sync = () => setPersonalKey(!!readApiKey());
+    sync();
+    window.addEventListener(API_KEY_EVENT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(API_KEY_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
   useEffect(() => {
     setDark(document.documentElement.dataset.theme === "dark");
     fetch("/api/health")
@@ -177,6 +190,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           </a>
         </div>
         <div className="header-actions">
+          <ApiKeySettings />
           <a
             className="icon-button github-link"
             href="https://github.com/BunsDev/typesafe-ai-playground"
@@ -196,8 +210,10 @@ export function Shell({ children }: { children: React.ReactNode }) {
             </svg>
           </a>
           <span
-            title={health}
-            aria-label={health}
+            title={
+              personalKey ? "Personal API key saved (not yet verified)" : health
+            }
+            aria-label={personalKey ? "Personal API key saved" : health}
             className={`connection ${health === "Jev connected" ? "connected" : ""}`}
           >
             <i />

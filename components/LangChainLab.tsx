@@ -1,4 +1,6 @@
 "use client";
+import { jevHeaders } from "../lib/api-key";
+
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Heading, RunButton, ErrorNote, Export } from "./ui";
@@ -60,7 +62,7 @@ export function LangChainLab() {
     try {
       const response = await fetch("/api/langchain-route", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: jevHeaders(),
         body: JSON.stringify({ request, current_node: current, mode }),
         signal: abort.signal,
       });
