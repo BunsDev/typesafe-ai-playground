@@ -5,7 +5,7 @@ import {
   mockRoutingTransport,
   routingToolSchema,
 } from "../../../lib/langchain/jev-tool";
-import { serverJevTransport } from "../../../lib/serverJev";
+import { serverJevTransport, JevProviderError } from "../../../lib/serverJev";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 const inputSchema = routingToolSchema.extend({
@@ -45,25 +45,39 @@ export async function POST(request: Request) {
     );
   }
   const start = performance.now();
+  let usage: any = { attempted: false };
+  let providerError: unknown;
   try {
     const router = createJevRoutingTool({
       transport:
         input.mode === "mock"
           ? mockRoutingTransport
-          : (payload, signal) =>
-              serverJevTransport(
-                payload,
-                signal,
-                request.headers.get("x-typesafe-api-key"),
-              ),
+          : async (payload, signal) => {
+              try {
+                const result = await serverJevTransport(
+                  payload,
+                  signal,
+                  request.headers.get("x-typesafe-api-key"),
+                );
+                usage = result._playgroundUsage;
+                return result;
+              } catch (error) {
+                providerError = error;
+                if (error instanceof JevProviderError)
+                  usage = error.usage ?? { attempted: false };
+                throw error;
+              }
+            },
       mode: input.mode,
     });
     const output = await router.invoke(
       { request: input.request, current_node: input.current_node },
       { signal: request.signal },
     );
+    if (providerError) throw providerError;
     return Response.json(
       {
+        _playgroundUsage: usage,
         tool: router.name,
         mode: input.mode,
         latencyMs: performance.now() - start,
@@ -71,12 +85,21 @@ export async function POST(request: Request) {
       },
       { headers: { "Cache-Control": "no-store" } },
     );
-  } catch {
+  } catch (error) {
     return Response.json(
       {
-        error: "The LangChain routing tool could not complete this invocation.",
+        _playgroundUsage: usage,
+        error:
+          error instanceof JevProviderError
+            ? error.message
+            : "The LangChain routing tool could not complete this invocation.",
       },
-      { status: 502 },
+      {
+        status:
+          providerError instanceof JevProviderError
+            ? providerError.status
+            : 502,
+      },
     );
   }
 }

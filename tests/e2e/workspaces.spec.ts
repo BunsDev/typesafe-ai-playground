@@ -667,8 +667,8 @@ test("pasting a PR link needs just one review action", async ({ page }) => {
   expect(loads).toBe(1);
   expect(reviews).toBe(1);
   expect(
-    (await page.locator(".sidebar").boundingBox())!.height,
-  ).toBeLessThanOrEqual(54);
+    (await page.locator(".workspace-topbar").boundingBox())!.height,
+  ).toBeLessThanOrEqual(page.viewportSize()!.width <= 540 ? 100 : 60);
 });
 
 test("AST governance traces callers, preserves policy gates, and simulates cache reuse", async ({

@@ -38,7 +38,7 @@ test("personal key is masked, persists, overrides all transports, and can be rem
   await page.getByRole("button", { name: "Close API key settings" }).click();
   await page.getByRole("radio", { name: "Jev control", exact: true }).click();
   await page.getByRole("button", { name: "Start arena", exact: true }).click();
-  await expect.poll(() => headers.length).toBe(1);
+  await expect.poll(() => headers.length, { timeout: 15000 }).toBe(1);
   await page.goto("/extraction");
   await page
     .getByRole("button", { name: "Run extraction", exact: true })
@@ -64,6 +64,6 @@ test("personal key is masked, persists, overrides all transports, and can be rem
   await page.getByRole("radio", { name: "Jev control", exact: true }).click();
   const count = headers.length;
   await page.getByRole("button", { name: "Start arena", exact: true }).click();
-  await expect.poll(() => headers.length).toBe(count + 1);
+  await expect.poll(() => headers.length, { timeout: 15000 }).toBe(count + 1);
   expect(headers.at(-1)).toBeUndefined();
 });

@@ -1,4 +1,5 @@
 "use client";
+import { useUsage, usageBlocked } from "../lib/logUsageEntry";
 import { useEffect, useRef, useState } from "react";
 import { Play, Pause, RotateCcw, Maximize2, Minimize2 } from "lucide-react";
 import { Heading, ErrorNote, Export } from "./ui";
@@ -46,6 +47,8 @@ type Trace = {
   applied: boolean;
 };
 export function DoomLab() {
+  useUsage();
+  const quotaBlocked = usageBlocked();
   const arenaRef = useRef<HTMLElement>(null);
   const fullscreenButton = useRef<HTMLButtonElement>(null);
   const [fullscreen, setFullscreen] = useState(false);
@@ -374,7 +377,10 @@ export function DoomLab() {
               <button
                 className="button primary"
                 onClick={active ? halt : start}
-                disabled={game.status !== "playing"}
+                disabled={
+                  game.status !== "playing" ||
+                  (!active && mode === "jev" && quotaBlocked)
+                }
               >
                 {active ? <Pause size={15} /> : <Play size={15} />}{" "}
                 {active ? "Pause arena" : "Start arena"}

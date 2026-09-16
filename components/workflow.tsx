@@ -1,4 +1,5 @@
 "use client";
+import { useUsage, usageBlocked } from "../lib/logUsageEntry";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowUp,
@@ -14,6 +15,8 @@ import { ErrorNote, Export, Heading } from "./ui";
 import { WORKFLOW_EXAMPLES } from "../lib/workflow-examples";
 type Turn = workflow.Turn & { decision?: workflow.Decision };
 export function Workflow() {
+  useUsage();
+  const quotaBlocked = usageBlocked();
   const [exampleId, setExampleId] = useState("delivery");
   const example = WORKFLOW_EXAMPLES.find((e) => e.id === exampleId)!;
   const [rules, setRules] = useState(workflow.defaults);
@@ -190,7 +193,7 @@ export function Workflow() {
               />
               <button
                 className="button quiet"
-                disabled={busy}
+                disabled={busy || quotaBlocked}
                 onClick={() => {
                   setTurns([]);
                   setError("");
@@ -222,7 +225,7 @@ export function Workflow() {
                     <button
                       key={starter.label}
                       onClick={() => send(starter.text)}
-                      disabled={busy}
+                      disabled={busy || quotaBlocked}
                     >
                       {starter.label} <span>↗</span>
                     </button>
@@ -281,7 +284,7 @@ export function Workflow() {
                   maxLength={8000}
                   placeholder="Describe the case, or add a detail…"
                   rows={2}
-                  disabled={busy}
+                  disabled={busy || quotaBlocked}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyDown={(e) => {
                     if (
@@ -305,7 +308,7 @@ export function Workflow() {
                 ) : (
                   <button
                     className="send-button"
-                    disabled={!message.trim()}
+                    disabled={!message.trim() || quotaBlocked}
                     aria-label="Send message"
                   >
                     <ArrowUp size={19} />

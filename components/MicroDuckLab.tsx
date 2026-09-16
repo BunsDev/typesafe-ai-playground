@@ -1,4 +1,5 @@
 "use client";
+import { useUsage, usageBlocked } from "../lib/logUsageEntry";
 import { useEffect, useRef, useState } from "react";
 import {
   Bot,
@@ -39,7 +40,7 @@ import {
   type SimStateField,
   type World,
 } from "../types/microduck";
-import { DuckArena } from "./DuckArena";
+import { MicroDuckStage } from "./MicroDuckStage";
 import { DuckTelemetry } from "./DuckTelemetry";
 import { Empty, ErrorNote, Export, Heading } from "./ui";
 const logLimit = 240;
@@ -56,6 +57,8 @@ interface Reply {
   latencyMs: number;
 }
 export function MicroDuckLab() {
+  useUsage();
+  const quotaBlocked = usageBlocked();
   const [options, setOptions] = useState<ArenaOptions>(defaultArena);
   const [world, setWorld] = useState<World>(() => createWorld(defaultArena));
   const [decisions, setDecisions] = useState<Decision[]>([]);
@@ -217,6 +220,17 @@ export function MicroDuckLab() {
       for (let i = 0; i < count; i++) {
         if (signal.aborted) break;
         await tick(signal);
+        if (mode === "jev" && usageBlocked()) break;
+        if (i < count - 1 && !signal.aborted)
+          await new Promise<void>((resolve) => {
+            const done = () => {
+              clearTimeout(timer);
+              signal.removeEventListener("abort", done);
+              resolve();
+            };
+            const timer = setTimeout(done, 220);
+            signal.addEventListener("abort", done, { once: true });
+          });
       }
     } catch (e) {
       setError(signal.aborted ? "Run stopped." : errorMessage(e));
@@ -249,6 +263,10 @@ export function MicroDuckLab() {
       latencyMs = performance.now() - at;
     } catch (e) {
       advice = signal.aborted ? "Advice cancelled." : errorMessage(e);
+    }
+    if (signal.aborted) {
+      setBusy(false);
+      return;
     }
     const applied = step(snapshot, duck.id, action);
     commit(advance(applied.world));
@@ -306,10 +324,71 @@ export function MicroDuckLab() {
             </button>
           </div>
           <div className="panel-content scroll">
-            <DuckArena
+            <MicroDuckStage
               world={world}
               selected={selected}
               onSelect={setSelected}
+              busy={busy}
+              controls={
+                <>
+                  <select
+                    aria-label="Arena control mode"
+                    value={mode}
+                    disabled={busy}
+                    onChange={(e) => setMode(e.target.value as ControlMode)}
+                  >
+                    {Object.entries(modeLabels).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                  {mode === "manual" ? (
+                    simActions.map((action) => (
+                      <button
+                        key={action}
+                        className="button"
+                        disabled={busy || quotaBlocked}
+                        onClick={() => drive(action)}
+                      >
+                        {actionLabels[action]}
+                      </button>
+                    ))
+                  ) : (
+                    <>
+                      <button
+                        className="button"
+                        disabled={busy || (mode === "jev" && quotaBlocked)}
+                        onClick={() => run(1)}
+                      >
+                        <SkipForward size={14} /> Step
+                      </button>
+                      <button
+                        className="button primary"
+                        disabled={busy || (mode === "jev" && quotaBlocked)}
+                        onClick={() => run(ticks)}
+                      >
+                        <Play size={14} /> Run {ticks} ticks
+                      </button>
+                    </>
+                  )}
+                  {busy && (
+                    <button
+                      className="button"
+                      onClick={() => controller.current?.abort()}
+                    >
+                      <Square size={14} /> Stop
+                    </button>
+                  )}
+                  <button
+                    className="button"
+                    disabled={busy}
+                    onClick={() => rebuild({})}
+                  >
+                    <RotateCcw size={14} /> Reset
+                  </button>
+                </>
+              }
             />
             <div className="table-wrap">
               <table className="duck-roster">
@@ -352,27 +431,6 @@ export function MicroDuckLab() {
                 </tbody>
               </table>
             </div>
-            {mode === "manual" && (
-              <div className="manual-pad">
-                <h3>Drive {duck.name}</h3>
-                <div className="field-options">
-                  {simActions.map((action) => (
-                    <button
-                      key={action}
-                      className="button"
-                      disabled={busy}
-                      onClick={() => drive(action)}
-                    >
-                      {actionLabels[action]}
-                    </button>
-                  ))}
-                </div>
-                <p className="muted">
-                  Every manual move also asks Jev what it would have done, so
-                  the agreement rate is measured against your driving.
-                </p>
-              </div>
-            )}
             <fieldset disabled={busy}>
               <label htmlFor="duck-mode">Who drives</label>
               <select
@@ -497,33 +555,9 @@ export function MicroDuckLab() {
                 }
               />
             </label>
-            <div className="run-actions">
-              <button
-                className="button"
-                disabled={busy || mode === "manual"}
-                onClick={() => run(1)}
-              >
-                <SkipForward size={14} />
-                Step
-              </button>
-              <button
-                className="button primary"
-                disabled={busy || mode === "manual"}
-                onClick={() => run(ticks)}
-              >
-                <Play size={15} />
-                {busy ? "Running…" : `Run ${ticks} ticks`}
-              </button>
-              {busy && (
-                <button
-                  className="button"
-                  onClick={() => controller.current?.abort()}
-                >
-                  <Square size={13} />
-                  Stop
-                </button>
-              )}
-            </div>
+            <span className="muted">
+              Step, run, or drive from the arena controls.
+            </span>
           </div>
         </section>
         <section className="panel">

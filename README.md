@@ -42,7 +42,7 @@ Open the address printed by Next.js, normally http://localhost:3000. To choose a
 | **Vector reranker** /reranker         | Compare vector order, batched Jev relevance, and an explicit lexical mock baseline. Inspect rank disagreements and source snippets. |
 | **Jev plays Doom** `/doom` | Play an original first-person 3D browser shooter, hand control to Jev, and compare against a seeded random baseline. |
 | **Meme lab** `/memes`                 | Test humor style, audience fit, tone, and likely confusion using captions or reviewed text from an image URL.                       |
-| **MicroDuck arena** `/microduck`      | Drive a grid robot one tick at a time: nine sensor fields in, one of seven actions out, against a random baseline.                  |
+| **MicroDuck arena** `/microduck`      | Drive robots across a fullscreen 3D test floor: orbit and zoom, inspect cargo and docks, and compare seven-action Jev control with a random baseline.                  |
 
 The supplied TypeSafe [banner](https://pbs.twimg.com/profile_banners/2014504062797152256/1789084216/1500x500) and [profile mark](https://pbs.twimg.com/profile_images/2100293691227447296/bVoZ2u00_400x400.jpg) are stored locally in public/brand. The social images use IBM Plex Sans, distributed with its [SIL Open Font License](public/brand/OFL.txt). This remains an unofficial community playground.
 
@@ -141,9 +141,19 @@ English OCR runs in your browser using a lazily loaded Tesseract worker. It comp
 
 **Jev evaluates the reviewed text and visual description, not image pixels.** URLs are not a substitute for visual context. The output is a closed-set humor/tone classification, possible confusion, and an estimated probability the joke lands. This is subjective feedback, not measured audience engagement or a promise of virality.
 
+### Usage dashboard and navigation
+
+Every page shares a collapsible sidebar (preference saved locally) and a header usage badge showing tokens beside estimated session input cost. Open **Usage & budget** for per-call timestamps, example and endpoint, API-reported input/output tokens, session totals, and estimated input cost. Mock calls and LangChain policy stops are excluded. The latest 200 calls are retained in `sessionStorage`; totals cover the entire tab session. Keys and prompts are never stored in this ledger.
+
+TypeSafe’s [API reference](https://docs.typesafe.ai/api) documents per-response `usage.input_tokens` and `usage.output_tokens`, but no public account-quota resource as of September 16, 2026. `fetchAccountUsage()` explicitly reports that limitation; it does not probe guessed endpoints. Plan tier, daily caps, remaining budget, reset times and quota percentages stay unknown unless reported. The widget identifies community versus personal key configuration without claiming the account’s paid tier.
+
+Missing tokens on successful calls use a clearly marked characters ÷ 4 approximation. Failed/cancelled calls without usage remain unknown, not free. Cost is an **input-only estimate** using the [published list price](https://typesafe.ai/) of $42 per billion input tokens, not an invoice or a claim about your plan. Session totals may span multiple keys; the per-call list records key source.
+
+HTTP 429 immediately pauses live run controls across examples; provider `Retry-After` drives a countdown and re-enables calls at expiry. HTTP 402 gets a distinct billing/budget warning. Without a reset time, the widget offers an explicit retry after you resolve the issue. Switching API keys clears the old key’s block; in-flight replies from the previous key cannot block the replacement. Local/mock demos remain available.
+
 ### MicroDuck arena
 
-A deterministic top-down grid, inspired by [pollen-robotics/microduck](https://github.com/pollen-robotics/microduck). It is a stand-in for that simulator, not the simulator itself, and it runs entirely in your browser.
+A deterministic grid simulation with a Three.js 3D test floor, inspired by [pollen-robotics/microduck](https://github.com/pollen-robotics/microduck). It is a stand-in for that simulator, not the simulator itself, and it runs entirely in your browser.
 
 Each tick, every duck reports nine sensor fields — distance and direction to its goal, obstacles ahead and to each side, battery, whether cargo is aboard, whether it is standing on its goal, and its previous action. Jev answers with one of seven actions: forward, backward, turn left, turn right, stop, pick up, drop. The mission is to reach the cargo, carry it to the nest, and drop it there, which also recharges the duck.
 

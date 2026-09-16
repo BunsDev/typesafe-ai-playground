@@ -1,10 +1,16 @@
 "use client";
 import Link from "next/link";
+import { UsageDashboard } from "./UsageDashboard";
+import { QuotaWarningBanner } from "./QuotaWarningBanner";
 import { ApiKeySettings } from "./ApiKeySettings";
 import { API_KEY_EVENT, readApiKey } from "../lib/api-key";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
+  PanelLeftClose,
+  PanelLeftOpen,
+  Menu,
+  X,
   ArrowUpRight,
   Gamepad2,
   ArrowDownWideNarrow,
@@ -107,6 +113,52 @@ const pages = [
 ];
 export function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
+  const sidebarRef = useRef<HTMLElement>(null);
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  useEffect(() => {
+    try {
+      setCollapsed(localStorage.getItem("typesafe-nav-collapsed") === "true");
+    } catch {}
+  }, []);
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [path]);
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const previous = document.activeElement as HTMLElement | null;
+    sidebarRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
+    const keyboard = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileOpen(false);
+      if (e.key !== "Tab") return;
+      const controls = Array.from(
+        sidebarRef.current?.querySelectorAll<HTMLElement>("button, a[href]") ??
+          [],
+      ).filter((el) => el.getClientRects().length);
+      const first = controls[0],
+        last = controls.at(-1);
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last?.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first?.focus();
+      }
+    };
+    document.addEventListener("keydown", keyboard);
+    return () => {
+      document.removeEventListener("keydown", keyboard);
+      previous?.focus();
+    };
+  }, [mobileOpen]);
+  const toggleSidebar = () => {
+    const next = !collapsed;
+    setCollapsed(next);
+    try {
+      localStorage.setItem("typesafe-nav-collapsed", String(next));
+    } catch {}
+  };
+
   const [dark, setDark] = useState(false);
   const [health, setHealth] = useState("Connecting");
   const [personalKey, setPersonalKey] = useState(false);
@@ -139,11 +191,32 @@ export function Shell({ children }: { children: React.ReactNode }) {
     } catch {}
   }
   return (
-    <div className="app-shell">
+    <div
+      className={`app-shell dashboard-shell${collapsed ? " nav-collapsed" : ""}${mobileOpen ? " nav-mobile-open" : ""}`}
+    >
       <a href="#main" className="skip-link">
         Skip to workspace
       </a>
-      <aside className="sidebar">
+      {mobileOpen && (
+        <button
+          className="nav-backdrop"
+          aria-label="Dismiss navigation overlay"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+      <aside
+        ref={sidebarRef}
+        className="sidebar"
+        id="playground-navigation"
+        aria-label="Playground sidebar"
+      >
+        <button
+          className="icon-button sidebar-mobile-close"
+          aria-label="Close navigation"
+          onClick={() => setMobileOpen(false)}
+        >
+          <X size={18} />
+        </button>
         <Link
           className="brand"
           href="/"
@@ -189,46 +262,81 @@ export function Shell({ children }: { children: React.ReactNode }) {
             Docs <ArrowUpRight size={15} />
           </a>
         </div>
-        <div className="header-actions">
-          <ApiKeySettings />
-          <a
-            className="icon-button github-link"
-            href="https://github.com/BunsDev/typesafe-ai-playground"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="View TypeSafe AI Playground on GitHub"
-            title="View source on GitHub"
-          >
-            <svg
-              width="19"
-              height="19"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              fill="currentColor"
-            >
-              <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2.23c-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.95.1-.74.4-1.25.73-1.54-2.56-.29-5.25-1.28-5.25-5.69 0-1.26.45-2.28 1.19-3.08-.12-.29-.52-1.46.11-3.04 0 0 .97-.31 3.16 1.18a11 11 0 0 1 5.75 0c2.19-1.49 3.15-1.18 3.15-1.18.63 1.58.23 2.75.11 3.04.74.8 1.19 1.82 1.19 3.08 0 4.42-2.69 5.4-5.26 5.69.42.36.78 1.06.78 2.14v3.17c0 .31.21.67.79.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z" />
-            </svg>
-          </a>
-          <span
-            title={
-              personalKey ? "Personal API key saved (not yet verified)" : health
-            }
-            aria-label={personalKey ? "Personal API key saved" : health}
-            className={`connection ${health === "Jev connected" ? "connected" : ""}`}
-          >
-            <i />
-            {health}
-          </span>
-          <button
-            className="icon-button"
-            onClick={toggle}
-            aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
-          >
-            {dark ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
-        </div>
+        <button
+          className="sidebar-toggle"
+          onClick={toggleSidebar}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-expanded={!collapsed}
+        >
+          {collapsed ? (
+            <PanelLeftOpen size={17} />
+          ) : (
+            <PanelLeftClose size={17} />
+          )}
+          <span>Collapse sidebar</span>
+        </button>
       </aside>
       <div className="app-body">
+        <header className="workspace-topbar">
+          <div className="workspace-breadcrumb">
+            <button
+              className="icon-button mobile-menu"
+              aria-label="Open navigation"
+              aria-expanded={mobileOpen}
+              aria-controls="playground-navigation"
+              onClick={() => setMobileOpen(!mobileOpen)}
+            >
+              <Menu size={18} />
+            </button>
+            <span>Playground</span>
+            <span>/</span>
+            <strong>
+              {pages.find((page) => page.href === path)?.label ?? "Workspace"}
+            </strong>
+          </div>
+          <div className="header-actions">
+            <UsageDashboard />
+            <ApiKeySettings />
+            <a
+              className="icon-button github-link"
+              href="https://github.com/BunsDev/typesafe-ai-playground"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="View TypeSafe AI Playground on GitHub"
+              title="View source on GitHub"
+            >
+              <svg
+                width="19"
+                height="19"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                fill="currentColor"
+              >
+                <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2.23c-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.95.1-.74.4-1.25.73-1.54-2.56-.29-5.25-1.28-5.25-5.69 0-1.26.45-2.28 1.19-3.08-.12-.29-.52-1.46.11-3.04 0 0 .97-.31 3.16 1.18a11 11 0 0 1 5.75 0c2.19-1.49 3.15-1.18 3.15-1.18.63 1.58.23 2.75.11 3.04.74.8 1.19 1.82 1.19 3.08 0 4.42-2.69 5.4-5.26 5.69.42.36.78 1.06.78 2.14v3.17c0 .31.21.67.79.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z" />
+              </svg>
+            </a>
+            <span
+              title={
+                personalKey
+                  ? "Personal API key saved (not yet verified)"
+                  : health
+              }
+              aria-label={personalKey ? "Personal API key saved" : health}
+              className={`connection ${health === "Jev connected" ? "connected" : ""}`}
+            >
+              <i />
+              {health}
+            </span>
+            <button
+              className="icon-button"
+              onClick={toggle}
+              aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {dark ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+          </div>
+        </header>
+        <QuotaWarningBanner />
         <main id="main" tabIndex={-1}>
           {children}
         </main>

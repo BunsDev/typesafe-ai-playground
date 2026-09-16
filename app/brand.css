@@ -1272,3 +1272,53 @@ h1,
     min-height: 44px;
   }
 }
+
+/* MicroDuck: a robotics test floor, with controls that travel into fullscreen. */
+.microduck-stage { color: #e3edf7; background: #080e1b; border: 1px solid #2a3c51; border-radius: 12px; overflow: hidden; isolation: isolate; }
+.microduck-stage-header { padding: 16px 18px; display: flex; justify-content: space-between; align-items: center; gap: 12px; background: #101b2b; border-bottom: 1px solid #29394d; }
+.microduck-kicker { font: 10px/1.4 var(--font-mono), monospace; letter-spacing: .14em; color: #8ea9bf; }
+.microduck-stage-header h2 { font-size: 24px; letter-spacing: -.06em; margin: 3px 0 0; color: #e8f2ff; }
+.microduck-stage-header h2 span { font-weight: 400; color: #7d99b3; }
+.microduck-stage-tools { display: flex; gap: 6px; }
+.microduck-stage .button { min-height: 40px; border-color: #35485f; color: #dce9f6; background: #18273a; border-radius: 6px; white-space: nowrap; }
+.microduck-stage .button.primary { color: #08212b; background: #8fe4ee; border-color: #8fe4ee; }
+.microduck-stage .button:hover:not(:disabled) { filter: brightness(1.15); }
+.microduck-scene-wrap { position: relative; height: clamp(310px, 40vw, 480px); min-height: 0; }
+.microduck-scene { position: absolute; inset: 0; }
+.microduck-scene canvas { width: 100%; height: 100%; display: block; touch-action: none; }
+.microduck-hud { position: absolute; inset: 16px 18px auto; display: flex; justify-content: space-between; pointer-events: none; font: 10px/1.4 var(--font-mono), monospace; letter-spacing: .1em; color: #a5b9ce; }
+.microduck-hud span { background: #080e1bd9; padding: 6px 8px; border-radius: 4px; }
+.microduck-hud b { color: #e4f1ff; font-size: 14px; }
+.microduck-hud i { display: inline-block; height: 6px; width: 6px; border-radius: 50%; background: #74899e; margin-right: 8px; }
+.microduck-hud i.active { background: #8affca; box-shadow: 0 0 8px #8affca88; }
+.microduck-scene-caption { position: absolute; inset: auto 12px 10px; text-align: center; pointer-events: none; font-size: 10px; color: #b9cada; text-shadow: 0 1px 3px #000; }
+.microduck-scene-status { position: absolute; top: 45%; width: 100%; text-align: center; color: #a6c4d9; }
+.microduck-fallback { position: absolute; inset: 44px 16px 32px; overflow: auto; }
+.microduck-fallback p { font-size: 12px; }
+.microduck-fallback .arena { max-height: 85%; }
+.microduck-fallback svg { max-height: 270px; }
+.microduck-console { background: #101b2b; padding: 14px 16px; border-top: 1px solid #29394d; }
+.microduck-crew { display: flex; gap: 6px; flex-wrap: wrap; }
+.microduck-robot { display: flex; align-items: center; gap: 8px; border: 1px solid #35485f; border-radius: 6px; padding: 8px 10px; background: transparent; color: #c3d4e5; min-height: 40px; cursor: pointer; font-size: 12px; }
+.microduck-robot[aria-pressed="true"] { border-color: #85ddea; background: #173140; color: #ecfaff; }
+.microduck-robot small { font: 10px var(--font-mono), monospace; color: #a0b6c8; }
+.microduck-dot { width: 7px; height: 7px; border-radius: 50%; background: #67e8f9; }
+.microduck-dot.duck-color-1 { background: #ff92cf; }.microduck-dot.duck-color-2 { background: #fbbf60; }.microduck-dot.duck-color-3 { background: #a5b4fc; }
+.microduck-status { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; font: 10px/1.5 var(--font-mono), monospace; color: #9fb4c8; margin: 12px 0; }
+.microduck-drive { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.microduck-drive select { width: auto; max-width: 100%; min-height: 40px; padding: 8px; border-color: #35485f; background: #18273a; color: #dce9f6; border-radius: 6px; }
+.microduck-stage.is-fullscreen { position: fixed; inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; z-index: 10000; border: 0; border-radius: 0; display: grid; grid-template-rows: auto minmax(100px, 1fr) auto; }
+.microduck-stage.is-fullscreen .microduck-scene-wrap { height: auto; }
+.microduck-stage.is-fullscreen .microduck-console { max-height: 44dvh; overflow-y: auto; padding-bottom: max(14px, env(safe-area-inset-bottom)); }
+.microduck-stage.is-fullscreen .microduck-stage-header { padding-top: max(12px, env(safe-area-inset-top)); }
+.microduck-stage:focus-visible, .microduck-stage button:focus-visible, .microduck-stage select:focus-visible { outline: 2px solid #8fe4ee; outline-offset: -3px; }
+@media (max-width: 600px) {
+  .microduck-stage-header { padding: 12px; gap: 6px; }
+  .microduck-stage-header h2 { font-size: 21px; }
+  .microduck-kicker { font-size: 8px; letter-spacing: .07em; }
+  .microduck-stage-tools .button { padding: 8px; }
+  .microduck-stage-tools .button span { display: none; }
+  .microduck-stage .button, .microduck-robot, .microduck-drive select { min-height: 44px; }
+  .microduck-console { padding: 12px; }
+  .microduck-scene-caption { font-size: 9px; }
+}

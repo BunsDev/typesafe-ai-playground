@@ -28,7 +28,10 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     return Response.json(
-      { error: error instanceof Error ? error.message : "Invalid request." },
+      {
+        error: error instanceof Error ? error.message : "Invalid request.",
+        _playgroundUsage: { attempted: false },
+      },
       { status: 400 },
     );
   }
@@ -46,6 +49,10 @@ export async function POST(request: Request) {
   } catch (error) {
     return Response.json(
       {
+        _playgroundUsage:
+          error instanceof JevProviderError
+            ? (error.usage ?? { attempted: false })
+            : { attempted: false },
         error:
           error instanceof JevProviderError
             ? error.message

@@ -1,15 +1,6 @@
-import { jevHeaders } from "./api-key";
-export async function runJev(payload: unknown, signal?: AbortSignal) {
-  const response = await fetch("/api/run", {
-    method: "POST",
-    headers: jevHeaders(),
-    body: JSON.stringify(payload),
-    signal,
-  });
-  const data = await response.json();
-  if (!response.ok)
-    throw Error(data.error || `Request failed (${response.status}).`);
-  return data;
+import { usageRequest } from "./usageRequest";
+export function runJev(payload: unknown, signal?: AbortSignal) {
+  return usageRequest("/api/run", payload, signal);
 }
 export function download(name: string, value: unknown) {
   const url = URL.createObjectURL(

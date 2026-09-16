@@ -1,5 +1,5 @@
 "use client";
-import { jevHeaders } from "../lib/api-key";
+import { usageRequest } from "../lib/usageRequest";
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -60,14 +60,12 @@ export function LangChainLab() {
     const abort = new AbortController();
     controller.current = abort;
     try {
-      const response = await fetch("/api/langchain-route", {
-        method: "POST",
-        headers: jevHeaders(),
-        body: JSON.stringify({ request, current_node: current, mode }),
-        signal: abort.signal,
-      });
-      const data = await response.json();
-      if (!response.ok) throw Error(data.error || "Invocation failed.");
+      const data = await usageRequest(
+        "/api/langchain-route",
+        { request, current_node: current, mode },
+        abort.signal,
+        { mock: mode === "mock", example: "langchain" },
+      );
       setResult(data);
       revealResults("langchain-result");
     } catch (e) {

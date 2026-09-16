@@ -1,4 +1,4 @@
-import { jevHeaders } from "../../lib/api-key";
+import { usageRequest } from "../../lib/usageRequest";
 export const FIELDS = [
   "date",
   "counterparty",
@@ -107,17 +107,7 @@ async function transport(
   payload: Payload,
   signal?: AbortSignal,
 ): Promise<unknown> {
-  const response = await fetch("/api/run", {
-    method: "POST",
-    headers: jevHeaders(),
-    body: JSON.stringify(payload),
-    signal,
-  });
-  if (!response.ok)
-    throw new Error(
-      `Extraction request failed (HTTP ${response.status}). Check the server connection and API key.`,
-    );
-  return response.json();
+  return usageRequest("/api/run", payload, signal, { example: "extraction" });
 }
 function record(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)

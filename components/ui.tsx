@@ -6,6 +6,7 @@ import {
   Square,
   CircleDashed,
 } from "lucide-react";
+import { useUsage, usageBlocked } from "../lib/logUsageEntry";
 import { download } from "../lib/client";
 export function Heading({
   eyebrow,
@@ -35,19 +36,28 @@ export function RunButton({
   onClick,
   onCancel,
   disabled,
+  usesJev = true,
 }: {
   busy: boolean;
   children: React.ReactNode;
   onClick?: () => void;
   onCancel?: () => void;
   disabled?: boolean;
+  usesJev?: boolean;
 }) {
+  useUsage();
+  const blocked = usesJev && usageBlocked();
   return (
     <div className="run-actions">
       <button
         type={onClick ? "button" : "submit"}
         className="button primary"
-        disabled={busy || disabled}
+        disabled={busy || disabled || blocked}
+        title={
+          blocked
+            ? "Live API calls paused — open Usage in the header."
+            : undefined
+        }
         onClick={onClick}
       >
         {busy ? (

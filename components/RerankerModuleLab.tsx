@@ -1,4 +1,5 @@
 "use client";
+import { useUsage, usageBlocked } from "../lib/logUsageEntry";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowDownWideNarrow, Play, RotateCcw } from "lucide-react";
 import { Heading, ErrorNote, Export } from "./ui";
@@ -16,6 +17,8 @@ import { MetricsPanel } from "./MetricsPanel";
 import type { RankingRun } from "../types/rerank";
 const sampleText = () => JSON.stringify(sampleCandidates(), null, 2);
 export function RerankerModuleLab() {
+  useUsage();
+  const quotaBlocked = usageBlocked();
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
   const [query, setQuery] = useState("where is authentication handled?");
@@ -222,7 +225,7 @@ export function RerankerModuleLab() {
           <div className="inline-actions">
             <button
               className="button primary"
-              disabled={busy || !!parsed.error || !query.trim()}
+              disabled={quotaBlocked || busy || !!parsed.error || !query.trim()}
               onClick={() => run("both")}
             >
               <Play size={15} />
@@ -230,7 +233,7 @@ export function RerankerModuleLab() {
             </button>
             <button
               className="button"
-              disabled={busy || !!parsed.error || !query.trim()}
+              disabled={quotaBlocked || busy || !!parsed.error || !query.trim()}
               onClick={() => run("jev")}
             >
               Rerank with Jev

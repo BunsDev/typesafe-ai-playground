@@ -1,4 +1,14 @@
 const STORAGE_KEY = "typesafe-api-key-override";
+export function apiKeyRevision(): string {
+  try {
+    return (
+      localStorage.getItem("typesafe-api-key-revision") ||
+      (readApiKey() ? "personal-initial" : "community")
+    );
+  } catch {
+    return "unknown";
+  }
+}
 export const API_KEY_EVENT = "typesafe-api-key-change";
 export function readApiKey(): string {
   if (typeof window === "undefined") return "";
@@ -14,6 +24,7 @@ export function saveApiKey(value: string) {
     throw Error("Use an API key without spaces, up to 1,024 characters.");
   if (key) localStorage.setItem(STORAGE_KEY, key);
   else localStorage.removeItem(STORAGE_KEY);
+  localStorage.setItem("typesafe-api-key-revision", crypto.randomUUID());
   window.dispatchEvent(new Event(API_KEY_EVENT));
 }
 export function jevHeaders(): Record<string, string> {

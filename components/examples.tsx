@@ -1,4 +1,5 @@
 "use client";
+import { useUsage, usageBlocked } from "../lib/logUsageEntry";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Search,
@@ -28,6 +29,8 @@ type ResponseData = {
 };
 const initial = library.catalogExamples(catalog);
 export function Examples() {
+  useUsage();
+  const quotaBlocked = usageBlocked();
   const [resultsOpen, setResultsOpen] = useState(false);
   const [examples, setExamples] = useState(initial);
   const [selected, setSelected] = useState(initial[0].id);
@@ -679,6 +682,7 @@ export function Examples() {
               <button
                 className="button"
                 disabled={
+                  quotaBlocked ||
                   busy ||
                   !!validation.error ||
                   !!validation.comparisonError ||
