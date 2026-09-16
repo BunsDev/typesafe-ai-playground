@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "../../lib/social";
 import { Memes } from "../../components/memes";
 export default function Page() {
   return <Memes />;
 }
 
-export const metadata: Metadata = { title: "Meme lab · TypeSafe Playground" };
+export const metadata = pageMetadata("memes");

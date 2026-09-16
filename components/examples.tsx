@@ -276,7 +276,7 @@ export function Examples() {
     }
   }
   return (
-    <div className="workspace">
+    <div className="workspace" inert={!restored} aria-busy={!restored}>
       <ErrorNote message={error} />
       <div
         className={`examples-layout ${resultsOpen ? "results-open" : "results-collapsed"}`}
@@ -485,7 +485,7 @@ export function Examples() {
               {example.title}
             </h1>
             <p className="muted">{example.description}</p>
-            <fieldset disabled={busy}>
+            <fieldset disabled={busy || !restored}>
               <div className="setup-step">
                 <span>01</span>
                 <div>

@@ -1,9 +1,7 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "../../lib/social";
 import { Workflow } from "../../components/workflow";
 export default function Page() {
   return <Workflow />;
 }
 
-export const metadata: Metadata = {
-  title: "Workflow chat · TypeSafe Playground",
-};
+export const metadata = pageMetadata("workflow");

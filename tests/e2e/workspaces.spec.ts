@@ -4,7 +4,7 @@ test.beforeEach(async ({ page }) => {
     r.fulfill({ json: { ok: true, configured: true } }),
   );
 });
-test("seven workspaces fit the viewport and navigate without runtime errors", async ({
+test("all workspaces fit the viewport and navigate without runtime errors", async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -17,6 +17,13 @@ test("seven workspaces fit the viewport and navigate without runtime errors", as
     "/extraction",
     "/memes",
     "/microduck",
+    "/pr-review",
+    "/ast-governance",
+    "/smt-solver",
+    "/tool-router",
+    "/langchain",
+    "/reranker",
+    "/doom",
   ]) {
     await page.goto(path);
     await expect(page.locator("h1")).toBeVisible();
@@ -107,7 +114,12 @@ test("meme test displays classifications and preserves a clear failure state", a
     });
   });
   await page.goto("/memes");
-  await page.getByRole("button", { name: "Test meme", exact: true }).click();
+  await page
+    .getByRole("button", {
+      name: "Test meme",
+      exact: true,
+    })
+    .click();
   await expect(page.locator(".meme-verdict")).toContainText("84.0%");
   await expect(page.locator(".classification").first()).toHaveText("relatable");
   await page.unroute("**/api/run");
@@ -117,7 +129,12 @@ test("meme test displays classifications and preserves a clear failure state", a
       json: { error: "Rate limit reached. Try again." },
     }),
   );
-  await page.getByRole("button", { name: "Test meme", exact: true }).click();
+  await page
+    .getByRole("button", {
+      name: "Test meme",
+      exact: true,
+    })
+    .click();
   await expect(page.locator("main").getByRole("alert")).toContainText(
     "Rate limit reached",
   );
@@ -172,6 +189,13 @@ test("conversation chooses winner and recomputes threshold without API calls", a
   await page.goto("/conversation");
   await page.getByRole("button", { name: "Pick a recipient" }).click();
   await expect(page.locator(".winner-card")).toContainText("Tyler");
+  await expect(page.locator(".winner-card .message-preview")).toHaveText(
+    "Can you prototype the codebase search flow? I need exact context, line-by-line search, and AST support.",
+  );
+  await expect(page.locator(".ranked-message")).toHaveCount(2);
+  await expect(
+    page.locator(".ranked-message .message-preview").first(),
+  ).toHaveText("Do they have a desktop app?");
   await page.getByRole("slider").fill("99");
   await expect(page.locator(".winner-card")).toContainText("No reply needed");
   expect(calls).toBe(3);
@@ -191,69 +215,91 @@ test("example edits persist across refresh", async ({ page }) => {
   await expect(page.locator("#example-state")).toHaveValue("My saved example");
 });
 
-test("responsive boundaries and short landscape keep actions reachable", async ({
-  page,
-}, info) => {
-  test.skip(info.project.name !== "desktop", "Viewport matrix runs once.");
-  for (const [width, height] of [
-    [320, 568],
-    [650, 700],
-    [651, 700],
-    [844, 390],
-    [900, 700],
-    [1024, 768],
-    [1200, 800],
-    [1440, 900],
-    [2560, 1440],
-  ]) {
-    await page.setViewportSize({ width, height });
-    for (const route of [
-      "/",
-      "/conversation",
-      "/gate",
-      "/workflow",
-      "/extraction",
-      "/memes",
-      "/microduck",
-    ]) {
-      await page.goto(route);
-      await expect(page.locator("h1")).toBeVisible();
-      expect(
-        await page.evaluate(
-          () => document.documentElement.scrollWidth <= innerWidth,
-        ),
-        `${route} at ${width}x${height}`,
-      ).toBe(true);
-      if (route === "/" && width > 650 && height < 600) {
+for (const [width, height] of [
+  [320, 568],
+  [650, 700],
+  [651, 700],
+  [844, 390],
+  [900, 700],
+  [1024, 768],
+  [1200, 800],
+  [1440, 900],
+  [2560, 1440],
+]) {
+  test(
+    "responsive boundaries at " + width + "x" + height,
+    async ({ page }, info) => {
+      test.skip(info.project.name !== "desktop", "Viewport matrix runs once.");
+      await page.setViewportSize({ width, height });
+      for (const route of [
+        "/",
+        "/conversation",
+        "/gate",
+        "/workflow",
+        "/extraction",
+        "/memes",
+        "/microduck",
+        "/pr-review",
+        "/ast-governance",
+        "/smt-solver",
+        "/tool-router",
+        "/langchain",
+        "/reranker",
+        "/doom",
+      ]) {
+        await page.goto(route);
+        await expect(page.locator("h1")).toBeVisible();
         expect(
-          (await page.locator(".example-list").boundingBox())!.height,
-        ).toBeGreaterThan(60);
+          await page.evaluate(
+            () => document.documentElement.scrollWidth <= innerWidth,
+          ),
+          `${route} at ${width}x${height}`,
+        ).toBe(true);
+        if (route === "/" && width > 650 && height < 600) {
+          expect(
+            (await page.locator(".example-list").boundingBox())!.height,
+          ).toBeGreaterThan(60);
+        }
+        const action = page.getByRole("button", {
+          name:
+            route === "/"
+              ? "Run example"
+              : route === "/conversation"
+                ? "Pick a recipient"
+                : route === "/gate"
+                  ? "Run triage"
+                  : route === "/workflow"
+                    ? "Send message"
+                    : route === "/extraction"
+                      ? "Run extraction"
+                      : route === "/microduck"
+                        ? "Step"
+                        : route === "/pr-review"
+                          ? "Review PR"
+                          : route === "/ast-governance"
+                            ? "Analyze changes"
+                            : route === "/smt-solver"
+                              ? "Run Check"
+                              : route === "/tool-router"
+                                ? "Run Routing Step"
+                                : route === "/langchain"
+                                  ? "Invoke LangChain tool"
+                                  : route === "/reranker"
+                                    ? "Compare both"
+                                    : route === "/doom"
+                                      ? "Start arena"
+                                      : "Test meme",
+          exact: true,
+        });
+        await action.scrollIntoViewIfNeeded();
+        const bounds = await action.boundingBox();
+        expect(bounds, `${route} action bounds`).not.toBeNull();
+        expect(bounds!.y).toBeGreaterThanOrEqual(0);
+        expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(height);
       }
-      const action = page.getByRole("button", {
-        name:
-          route === "/"
-            ? "Run example"
-            : route === "/conversation"
-              ? "Pick a recipient"
-              : route === "/gate"
-                ? "Run triage"
-                : route === "/workflow"
-                  ? "Send message"
-                  : route === "/extraction"
-                    ? "Run extraction"
-                    : route === "/memes"
-                      ? "Test meme"
-                      : "Step",
-        exact: true,
-      });
-      await action.scrollIntoViewIfNeeded();
-      const bounds = await action.boundingBox();
-      expect(bounds, `${route} action bounds`).not.toBeNull();
-      expect(bounds!.y).toBeGreaterThanOrEqual(0);
-      expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(height);
-    }
-  }
-});
+    },
+  );
+}
 
 test("meta meme, image URL OCR review, and GitHub link are usable", async ({
   page,
@@ -307,7 +353,12 @@ test("meta meme, image URL OCR review, and GitHub link are usable", async ({
   );
   expect(calls).toBe(0);
   await page.getByLabel("Recognized image text").fill("Reviewed meme caption");
-  await page.getByRole("button", { name: "Test meme", exact: true }).click();
+  await page
+    .getByRole("button", {
+      name: "Test meme",
+      exact: true,
+    })
+    .click();
   await expect(page.locator(".meme-verdict")).toContainText("70.0%");
   expect(calls).toBe(1);
 });
@@ -470,6 +521,490 @@ test("results rail toggles from its bottom edge and with the keyboard", async ({
   await collapse.focus();
   await page.keyboard.press("Enter");
   await expect(rail).toHaveAttribute("aria-expanded", "false");
+});
+
+test("PR review demo preserves evidence, filters risks, and recalculates thresholds", async ({
+  page,
+}) => {
+  let calls = 0;
+  await page.route("**/api/run", (r) => {
+    calls++;
+    return r.abort();
+  });
+  await page.goto("/pr-review");
+  await page
+    .getByRole("button", { name: "Run mock demo", exact: true })
+    .click();
+  await expect(page.locator(".pr-verdict")).toContainText("block_candidate");
+  await expect(
+    page.getByText("Mock results — no Jev request was made.", { exact: true }),
+  ).toBeVisible();
+  await page.getByLabel("Risk filter").selectOption("high");
+  await expect(page.locator(".hunk-card")).toHaveCount(1);
+  await expect(page.locator(".hunk-card")).toContainText("src/auth.ts");
+  await page.locator(".hunk-card summary").click();
+  await expect(page.locator(".diff-evidence")).toContainText(
+    "+export function authenticate(token: string, bypass: boolean)",
+  );
+  await page.getByText("Advanced thresholds", { exact: true }).click();
+  await page.getByLabel("High-risk threshold").fill("1");
+  await expect(page.locator(".pr-verdict")).toContainText("needs_review");
+  expect(calls).toBe(0);
+});
+
+test("PR review sends only closed decisions and rejects invented model labels", async ({
+  page,
+}) => {
+  let calls = 0;
+  await page.route("**/api/run", async (route) => {
+    calls++;
+    const p = route.request().postDataJSON();
+    expect(p.state.hunk.diff).toContain("@@");
+    expect(p.state.changedFiles.length).toBe(3);
+    const answers = Object.fromEntries(
+      Object.entries(p.questions).map(([id, q]: [string, any]) => {
+        expect(q.type).toBe("choice");
+        expect(q.criteria.unknown).toBeTruthy();
+        expect(q.criteria.needs_human_review).toBeTruthy();
+        const choice =
+          id === "rule"
+            ? "hunk_evidence"
+            : id === "safe_change"
+              ? "invented_label"
+              : "not_applicable";
+        return [
+          id,
+          {
+            type: "choice",
+            choice,
+            confidence: 0.99,
+            probabilities: { [choice]: 0.99 },
+          },
+        ];
+      }),
+    );
+    await route.fulfill({ json: { answers } });
+  });
+  await page.goto("/pr-review");
+  await page
+    .getByRole("button", { name: "Run mock demo", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Review PR", exact: true }).click();
+  await expect(page.locator(".review-progress")).toContainText("3 of 3");
+  await expect(page.locator(".pr-verdict")).toContainText("needs_review");
+  await expect(page.locator(".hunk-card").first()).toContainText(
+    "invalid closed-set answer",
+  );
+  expect(calls).toBe(3);
+});
+
+test("pasting a PR link needs just one review action", async ({ page }) => {
+  let loads = 0;
+  let reviews = 0;
+  await page.route("**/api/pull-request", async (route) => {
+    loads++;
+    expect(route.request().postDataJSON().url).toBe(
+      "https://github.com/example/repo/pull/42",
+    );
+    await route.fulfill({
+      json: {
+        title: "Fix typo",
+        description: "Docs only",
+        url: "https://github.com/example/repo/pull/42",
+        headSha: "abc",
+        baseSha: "def",
+        diff: "",
+        files: [
+          {
+            path: "README.md",
+            hunks: [
+              {
+                id: "f0-h0",
+                path: "README.md",
+                header: "@@ -1 +1 @@",
+                diff: "@@ -1 +1 @@\n-tyop\n+typo",
+                oldStart: 1,
+                newStart: 1,
+                complete: true,
+              },
+            ],
+          },
+        ],
+      },
+    });
+  });
+  await page.route("**/api/run", async (route) => {
+    reviews++;
+    const p = route.request().postDataJSON();
+    expect(p.state.pr.title).toBe("Fix typo");
+    const answers = Object.fromEntries(
+      Object.keys(p.questions).map((id) => {
+        const choice =
+          id === "rule"
+            ? "hunk_evidence"
+            : id === "safe_change"
+              ? "safe_change"
+              : "not_applicable";
+        return [
+          id,
+          {
+            type: "choice",
+            choice,
+            confidence: 0.99,
+            probabilities: { [choice]: 0.99 },
+          },
+        ];
+      }),
+    );
+    await route.fulfill({ json: { answers } });
+  });
+  await page.goto("/pr-review");
+  await page
+    .getByLabel("PR URL or diff")
+    .fill("https://github.com/example/repo/pull/42");
+  await page.getByRole("button", { name: "Review PR", exact: true }).click();
+  await expect(page.locator(".pr-verdict")).toContainText("approve_candidate");
+  expect(loads).toBe(1);
+  expect(reviews).toBe(1);
+  expect(
+    (await page.locator(".sidebar").boundingBox())!.height,
+  ).toBeLessThanOrEqual(54);
+});
+
+test("AST governance traces callers, preserves policy gates, and simulates cache reuse", async ({
+  page,
+}) => {
+  await page.goto("/ast-governance");
+  let requests = 0;
+  await page.route("**/api/run", async (route) => {
+    requests++;
+    await route.abort();
+  });
+  await page.getByRole("button", { name: "Run mock demo" }).click();
+  await expect(
+    page.getByText("Human review required", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Not updated — verify compatibility", { exact: true }),
+  ).toBeVisible();
+  const graph = await page.locator(".impact-graph").boundingBox();
+  const panel = await page.locator("#governance-results").boundingBox();
+  expect(graph!.x + graph!.width).toBeLessThanOrEqual(panel!.x + panel!.width);
+  await page
+    .getByText("Why it matters & what to do", { exact: true })
+    .first()
+    .click();
+  await expect(
+    page.getByText(
+      "Ask the responsible code owner to inspect the linked changes.",
+      { exact: false },
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByText("possible_breaking_change", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText("missing_test_coverage", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(page.getByText("rerun tests", { exact: true })).toBeVisible();
+  await page
+    .getByRole("button", { name: "Simulate verified test run" })
+    .click();
+  await expect(page.getByText("skip tests", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Human review required", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByLabel("Unified diff", { exact: true })
+    .fill(
+      "diff --git a/.env b/.env\n--- a/.env\n+++ b/.env\n@@ -1 +1 @@\n-KEY=old\n+KEY=new\n",
+    );
+  await page
+    .getByRole("button", { name: "Analyze changes", exact: true })
+    .click();
+  await expect(
+    page.getByText("Blocked by policy", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Classify with Jev" }),
+  ).toBeDisabled();
+  expect(requests).toBe(0);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBeTruthy();
+});
+
+test("SMT uses real Z3, rejects invalid syntax, and defers to exact results on disagreement", async ({
+  page,
+}) => {
+  await page.route("**/api/run", (r) =>
+    r.fulfill({
+      json: {
+        answers: {
+          outcome: {
+            type: "choice",
+            choice: "satisfiable",
+            confidence: 0.99,
+            probabilities: { satisfiable: 0.99 },
+          },
+        },
+      },
+    }),
+  );
+  await page.goto("/smt-solver");
+  await page.getByRole("button", { name: "Run Check", exact: true }).click();
+  await expect(page.locator(".compact-verdict h2")).toHaveText("unsatisfiable");
+  await expect(page.getByText("Agreement: No", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("The methods disagree. Z3 is authoritative.", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page
+    .getByLabel("Constraints", { exact: true })
+    .fill("x > 5; process.exit()");
+  await page.getByRole("button", { name: "Run Check", exact: true }).click();
+  await expect(page.locator(".error-note")).toContainText("Unsupported syntax");
+  await expect(page.locator(".compact-verdict")).toHaveCount(0);
+});
+test("SMT decomposes independent groups and records measured benchmark rows", async ({
+  page,
+}) => {
+  let requests = 0;
+  await page.route("**/api/run", async (r) => {
+    requests++;
+    const p = r.request().postDataJSON();
+    expect(Object.keys(p.questions.outcome.criteria)).toEqual([
+      "satisfiable",
+      "unsatisfiable",
+      "needs_decomposition",
+      "unknown",
+    ]);
+    await r.fulfill({
+      json: {
+        answers: {
+          outcome: {
+            type: "choice",
+            choice: "satisfiable",
+            confidence: 0.6,
+            probabilities: { satisfiable: 0.9 },
+          },
+        },
+      },
+    });
+  });
+  await page.goto("/smt-solver");
+  await page
+    .getByRole("button", { name: "Team availability", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Run Check", exact: true }).click();
+  await expect(page.locator(".compact-verdict h2")).toHaveText("satisfiable");
+  await expect(
+    page.getByRole("heading", { name: "Independent groups · 4" }),
+  ).toBeVisible();
+  expect(requests).toBe(4);
+  await expect(
+    page.getByRole("heading", { name: "needs_decomposition", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Run benchmark" }).click();
+  await expect(page.getByText(/5\/5 cases completed/)).toBeVisible({
+    timeout: 25000,
+  });
+  await expect(page.getByText(/5 abstentions or unknowns/)).toBeVisible();
+  await page.locator(".solver-options > summary").click();
+  await page.getByLabel("Full exact check required").check();
+  await expect(
+    page.getByText("No benchmark measurements yet.", { exact: false }),
+  ).toBeVisible();
+});
+
+test("every workspace has a distinct branded OG and matching Twitter preview", async ({
+  page,
+  request,
+}, info) => {
+  test.skip(info.project.name !== "desktop", "Metadata matrix runs once.");
+  const images = new Set<string>();
+  for (const path of [
+    "/",
+    "/conversation",
+    "/gate",
+    "/workflow",
+    "/extraction",
+    "/memes",
+    "/microduck",
+    "/pr-review",
+    "/ast-governance",
+    "/smt-solver",
+    "/tool-router",
+    "/langchain",
+    "/reranker",
+    "/doom",
+  ]) {
+    await page.goto(path);
+    const og = await page
+      .locator('meta[property="og:image"]')
+      .getAttribute("content");
+    const twitter = await page
+      .locator('meta[name="twitter:image"]')
+      .getAttribute("content");
+    expect(og).toBeTruthy();
+    expect(twitter).toBe(og);
+    expect(images.has(og!)).toBeFalsy();
+    images.add(og!);
+    expect(
+      await page.locator('meta[property="og:title"]').getAttribute("content"),
+    ).toContain("TypeSafe");
+    const r = await request.get(new URL(og!).pathname);
+    expect(r.ok()).toBeTruthy();
+    expect(r.headers()["content-type"]).toContain("image/png");
+    const bytes = await r.body();
+    expect(bytes.subarray(1, 4).toString()).toBe("PNG");
+    expect(bytes.readUInt32BE(16)).toBe(1200);
+    expect(bytes.readUInt32BE(20)).toBe(630);
+  }
+});
+
+test("tool router shows approval and blocks sensitive requests without a Jev call", async ({
+  page,
+}) => {
+  let requests = 0;
+  await page.route("**/api/run", async (r) => {
+    requests++;
+    await r.abort();
+  });
+  await page.goto("/tool-router");
+  await page.getByLabel("Demo scenario").selectOption("1");
+  await page.getByRole("button", { name: "Run mock scenario" }).click();
+  await expect(page.locator(".compact-verdict h2")).toHaveText(
+    "Approval checkpoint",
+  );
+  await expect(
+    page.getByRole("button", { name: "Run Routing Step", exact: true }),
+  ).toBeDisabled();
+  await page.getByRole("button", { name: "Approve mock step" }).click();
+  await expect(page.locator(".compact-verdict h2")).toHaveText(
+    "Modify configuration",
+  );
+  await page
+    .getByRole("button", { name: "Run Routing Step", exact: true })
+    .click();
+  await expect(page.locator(".compact-verdict h2")).toHaveText("Complete");
+  await page.getByLabel("Demo scenario").selectOption("2");
+  await page
+    .getByRole("button", { name: "Run Routing Step", exact: true })
+    .click();
+  await expect(page.locator(".compact-verdict h2")).toHaveText(
+    "Blocked by policy",
+  );
+  expect(requests).toBe(0);
+  const bounds = await page.locator(".compact-verdict").boundingBox();
+  expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(
+    page.viewportSize()!.width,
+  );
+});
+test("tool router limits live choices to outgoing allowed nodes and falls back on low confidence", async ({
+  page,
+}) => {
+  const seen: string[][] = [];
+  await page.route("**/api/run", async (r) => {
+    const p = r.request().postDataJSON();
+    const keys = Object.keys(p.questions.next_node.criteria);
+    seen.push(keys);
+    expect(keys).toContain("needs_clarification");
+    expect(keys).not.toContain("export_secrets_tool");
+    const choice = seen.length === 1 ? "ops_agent" : "modify_config_tool";
+    await r.fulfill({
+      json: {
+        answers: {
+          next_node: {
+            type: "choice",
+            choice,
+            confidence: seen.length === 1 ? 0.99 : 0.2,
+            probabilities: { [choice]: 0.99 },
+          },
+        },
+      },
+    });
+  });
+  await page.goto("/tool-router");
+  await page
+    .getByRole("button", { name: "Run Routing Step", exact: true })
+    .click();
+  await expect(page.locator(".compact-verdict h2")).toHaveText(
+    "Operations agent",
+  );
+  await page
+    .getByRole("button", { name: "Run Routing Step", exact: true })
+    .click();
+  await expect(page.locator(".compact-verdict h2")).toHaveText(
+    "Needs clarification",
+  );
+  expect(seen[1]).toEqual([
+    "read_config_tool",
+    "modify_config_tool",
+    "needs_clarification",
+  ]);
+  await expect(
+    page.getByRole("button", { name: "Approve mock step" }),
+  ).toHaveCount(0);
+});
+
+test("LangChain demo invokes the real structured tool and surfaces approval without execution", async ({
+  page,
+}) => {
+  await page.goto("/langchain");
+  await page.getByRole("button", { name: "Try mock invocation" }).click();
+  await expect(page.locator(".compact-verdict h2")).toHaveText(
+    "Read configuration",
+  );
+  await expect(
+    page.getByText("None · routing only", { exact: true }),
+  ).toBeVisible();
+  await expect(page.locator("#langchain-result pre")).toContainText(
+    '"executed": false',
+  );
+  await page.getByLabel("Example request").selectOption("1");
+  await page.getByRole("button", { name: "Try mock invocation" }).click();
+  await expect(page.locator(".compact-verdict h2")).toHaveText(
+    "Approval checkpoint",
+  );
+  await expect(
+    page.getByRole("heading", { name: "Your host must ask for approval" }),
+  ).toBeVisible();
+  await page.getByLabel("Example request").selectOption("2");
+  await page
+    .getByRole("button", { name: "Invoke LangChain tool", exact: true })
+    .click();
+  await expect(page.locator(".compact-verdict h2")).toHaveText(
+    "Blocked by policy",
+  );
+  await expect(page.locator("#langchain-result pre")).toContainText(
+    '"source": "deterministic"',
+  );
+});
+
+test("PR decision trace links model signals and policy gates back to exact evidence", async ({
+  page,
+}) => {
+  await page.goto("/pr-review");
+  await page.getByRole("button", { name: "Run mock demo" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Why this decision" }),
+  ).toBeVisible();
+  await expect(page.locator(".trace-thresholds")).toContainText("95.0%");
+  await page
+    .getByRole("button", { name: /Inspect evidence for/ })
+    .first()
+    .click();
+  await expect(page.locator(".hunk-card[open] .hunk-gate-trace")).toBeVisible();
+  await expect(page.locator(".hunk-card[open] .hunk-gate-trace")).toContainText(
+    "Final route: human review",
+  );
+  await expect(page.locator(".hunk-card[open] .diff-evidence")).toContainText(
+    "@@",
+  );
 });
 
 test("ask gate cites its evidence and hands weak matches to a human", async ({

@@ -1,9 +1,6 @@
-import type { Metadata } from "next";
 import { MicroDuckLab } from "../../components/MicroDuckLab";
+import { pageMetadata } from "../../lib/social";
+export const metadata = pageMetadata("microduck");
 export default function Page() {
   return <MicroDuckLab />;
 }
-
-export const metadata: Metadata = {
-  title: "MicroDuck arena · TypeSafe Playground",
-};

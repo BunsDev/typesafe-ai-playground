@@ -1,0 +1,170 @@
+import type { Metadata } from "next";
+export const SOCIAL_PAGES = {
+  doom: {
+    path: "/doom",
+    title: "Jev plays Doom",
+    description: "Ten actions. One tiny decision at a time.",
+    category: "REACTIVE GAME CONTROL",
+    steps: [
+      "Capture structured state",
+      "Choose a fixed action",
+      "Play and compare",
+    ],
+    result: "Game state → next action",
+  },
+  reranker: {
+    path: "/reranker",
+    title: "Vector reranker",
+    description: "Good matches. Better order.",
+    category: "RETRIEVAL & RELEVANCE",
+    steps: [
+      "Load vector candidates",
+      "Score relevance with Jev",
+      "Compare the rankings",
+    ],
+    result: "Shortlist → better order",
+  },
+  "tool-router": {
+    path: "/tool-router",
+    title: "Jev tool router",
+    description: "Choose the next step. Keep policy in control.",
+    category: "GRAPH-BASED ROUTING",
+    steps: ["Gather allowed nodes", "Route with Jev", "Apply policy gates"],
+    result: "Request → safe next step",
+  },
+  langchain: {
+    path: "/langchain",
+    title: "Jev × LangChain",
+    description: "A small classifier. A useful tool.",
+    category: "TYPESCRIPT INTEGRATION",
+    steps: [
+      "Invoke a LangChain tool",
+      "Classify with Jev",
+      "Return a governed route",
+    ],
+    result: "Tool call → typed decision",
+  },
+  examples: {
+    path: "/",
+    title: "The playground",
+    description: "Small experiments. Clear decisions.",
+    category: "EXPLORE JEV",
+    steps: ["Choose an example", "Define the choices", "See the decision"],
+    result: "Ideas → clear outcomes",
+  },
+  conversation: {
+    path: "/conversation",
+    title: "Conversation lab",
+    description: "Find the message worth answering.",
+    category: "CONVERSATION ROUTING",
+    steps: [
+      "Paste a conversation",
+      "Compare candidates",
+      "Pick the right reply",
+    ],
+    result: "Context → recipient",
+  },
+  workflow: {
+    path: "/workflow",
+    title: "Workflow chat",
+    description: "Turn your process into a clear next step.",
+    category: "POLICY & PROCESS",
+    steps: [
+      "Describe the scenario",
+      "Apply your process",
+      "Choose the next action",
+    ],
+    result: "Scenario → action",
+  },
+  extraction: {
+    path: "/extraction",
+    title: "Document extraction",
+    description: "From raw text to grounded answers.",
+    category: "CLOSED-SET EXTRACTION",
+    steps: ["Find candidate values", "Rank with Jev", "Keep the evidence"],
+    result: "Document → structured data",
+  },
+  memes: {
+    path: "/memes",
+    title: "Meme lab",
+    description: "Read the joke. Test the reaction.",
+    category: "MEME CLASSIFICATION",
+    steps: ["Add a meme", "Review the caption", "Classify the reaction"],
+    result: "Meme → prediction",
+  },
+  "pr-review": {
+    path: "/pr-review",
+    title: "PR review",
+    description: "Focus review on the changes that matter.",
+    category: "CLASSIFY & ROUTE",
+    steps: [
+      "Paste a pull request",
+      "Classify each hunk",
+      "Review the risky parts",
+    ],
+    result: "Diff → review decision",
+  },
+  "ast-governance": {
+    path: "/ast-governance",
+    title: "AST-aware governance",
+    description: "Understand the change. Trace the impact.",
+    category: "CODE & POLICY",
+    steps: ["Map affected symbols", "Apply fixed rules", "Review the evidence"],
+    result: "Change → informed review",
+  },
+  gate: {
+    path: "/gate",
+    title: "Ask gate",
+    description: "Ask Jev, or ask a human?",
+    category: "QUESTION TRIAGE",
+    steps: ["Read the channel", "Gate the question", "Cite the answer"],
+    result: "Question → routed or answered",
+  },
+  microduck: {
+    path: "/microduck",
+    title: "MicroDuck arena",
+    description: "Nine sensors in. One action out.",
+    category: "EMBODIED DECISIONS",
+    steps: ["Sense the grid", "Choose one action", "Compare to a baseline"],
+    result: "Sensors → next move",
+  },
+  "smt-solver": {
+    path: "/smt-solver",
+    title: "SMT solver lab",
+    description: "Fast predictions. Exact verification.",
+    category: "JEV + Z3",
+    steps: ["Define constraints", "Predict with Jev", "Verify with Z3"],
+    result: "Constraints → verified result",
+  },
+} as const;
+export type SocialPage = keyof typeof SOCIAL_PAGES;
+export function pageMetadata(key: SocialPage): Metadata {
+  const p = SOCIAL_PAGES[key];
+  const image = `${p.path === "/" ? "" : p.path}/opengraph-image`;
+  return {
+    title: `${p.title} · TypeSafe Playground`,
+    description: p.description,
+    alternates: { canonical: p.path },
+    openGraph: {
+      title: `${p.title} · TypeSafe AI`,
+      description: p.description,
+      url: p.path,
+      siteName: "TypeSafe AI Playground",
+      type: "website",
+      images: [
+        {
+          url: image,
+          width: 1200,
+          height: 630,
+          alt: `TypeSafe AI Playground — ${p.title}. ${p.description}`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${p.title} · TypeSafe AI`,
+      description: p.description,
+      images: [image],
+    },
+  };
+}

@@ -1,9 +1,7 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "../../lib/social";
 import { Extraction } from "../../components/extraction";
 export default function Page() {
   return <Extraction />;
 }
 
-export const metadata: Metadata = {
-  title: "Document extraction · TypeSafe Playground",
-};
+export const metadata = pageMetadata("extraction");
