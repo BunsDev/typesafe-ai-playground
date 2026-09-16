@@ -4,10 +4,17 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   ArrowUpRight,
+  Gamepad2,
+  ArrowDownWideNarrow,
   Laugh,
   Blocks,
   FileScan,
   GitBranch,
+  GitPullRequest,
+  Network,
+  Scale,
+  Route,
+  Plug,
   MessageSquare,
   Moon,
   Sun,
@@ -38,11 +45,52 @@ const pages = [
     icon: FileScan,
     detail: "From source to structured data",
   },
+  {
+    href: "/pr-review",
+    label: "PR review",
+    icon: GitPullRequest,
+    detail: "Review the risky parts",
+  },
+  {
+    href: "/ast-governance",
+    label: "AST governance",
+    icon: Network,
+    detail: "Trace change impact",
+  },
+  {
+    href: "/smt-solver",
+    label: "SMT solver",
+    icon: Scale,
+    detail: "Verify structured logic",
+  },
+  {
+    href: "/tool-router",
+    label: "Tool router",
+    icon: Route,
+    detail: "Route with policy",
+  },
+  {
+    href: "/langchain",
+    label: "LangChain",
+    icon: Plug,
+    detail: "Integrate Jev",
+  },
+  {
+    href: "/reranker",
+    label: "Vector reranker",
+    icon: ArrowDownWideNarrow,
+    detail: "Compare relevance",
+  },
+  {
+    href: "/doom",
+    label: "Jev plays Doom",
+    icon: Gamepad2,
+    detail: "Play with a classifier",
+  },
   { href: "/memes", label: "Meme lab", icon: Laugh, detail: "Read the room" },
 ];
 export function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
-  const current = pages.find((p) => p.href === path);
   const [dark, setDark] = useState(false);
   const [health, setHealth] = useState("Connecting");
   useEffect(() => {
@@ -69,12 +117,16 @@ export function Shell({ children }: { children: React.ReactNode }) {
         Skip to workspace
       </a>
       <aside className="sidebar">
-        <Link className="brand" href="/">
+        <Link
+          className="brand"
+          href="/"
+          aria-label="TypeSafe AI community playground"
+        >
           <span className="brand-mark">
-            <Blocks size={21} />
+            <img src="/brand/mark.jpg" width={32} height={32} alt="" />
           </span>
           <span>
-            TypeSafe<span className="brand-sub">PLAYGROUND</span>
+            TypeSafe AI<span className="brand-sub">COMMUNITY PLAYGROUND</span>
           </span>
         </Link>
         <div className="nav-label">WORKSPACE</div>
@@ -107,50 +159,46 @@ export function Shell({ children }: { children: React.ReactNode }) {
             rel="noreferrer"
             className="docs-link"
           >
-            API documentation <ArrowUpRight size={15} />
+            Docs <ArrowUpRight size={15} />
           </a>
+        </div>
+        <div className="header-actions">
+          <a
+            className="icon-button github-link"
+            href="https://github.com/BunsDev/typesafe-ai-playground"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="View TypeSafe AI Playground on GitHub"
+            title="View source on GitHub"
+          >
+            <svg
+              width="19"
+              height="19"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              fill="currentColor"
+            >
+              <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2.23c-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.95.1-.74.4-1.25.73-1.54-2.56-.29-5.25-1.28-5.25-5.69 0-1.26.45-2.28 1.19-3.08-.12-.29-.52-1.46.11-3.04 0 0 .97-.31 3.16 1.18a11 11 0 0 1 5.75 0c2.19-1.49 3.15-1.18 3.15-1.18.63 1.58.23 2.75.11 3.04.74.8 1.19 1.82 1.19 3.08 0 4.42-2.69 5.4-5.26 5.69.42.36.78 1.06.78 2.14v3.17c0 .31.21.67.79.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z" />
+            </svg>
+          </a>
+          <span
+            title={health}
+            aria-label={health}
+            className={`connection ${health === "Jev connected" ? "connected" : ""}`}
+          >
+            <i />
+            {health}
+          </span>
+          <button
+            className="icon-button"
+            onClick={toggle}
+            aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {dark ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
         </div>
       </aside>
       <div className="app-body">
-        <header className="app-header">
-          <div className="breadcrumb">
-            Playground <span>/</span>{" "}
-            <strong>{current?.label ?? "Workspace"}</strong>
-          </div>
-          <div className="header-actions">
-            <a
-              className="icon-button github-link"
-              href="https://github.com/BunsDev/typesafe-ai-playground"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="View TypeSafe AI Playground on GitHub"
-              title="View source on GitHub"
-            >
-              <svg
-                width="19"
-                height="19"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-                fill="currentColor"
-              >
-                <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2.23c-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.95.1-.74.4-1.25.73-1.54-2.56-.29-5.25-1.28-5.25-5.69 0-1.26.45-2.28 1.19-3.08-.12-.29-.52-1.46.11-3.04 0 0 .97-.31 3.16 1.18a11 11 0 0 1 5.75 0c2.19-1.49 3.15-1.18 3.15-1.18.63 1.58.23 2.75.11 3.04.74.8 1.19 1.82 1.19 3.08 0 4.42-2.69 5.4-5.26 5.69.42.36.78 1.06.78 2.14v3.17c0 .31.21.67.79.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z" />
-              </svg>
-            </a>
-            <span
-              className={`connection ${health === "Jev connected" ? "connected" : ""}`}
-            >
-              <i />
-              {health}
-            </span>
-            <button
-              className="icon-button"
-              onClick={toggle}
-              aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {dark ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
-          </div>
-        </header>
         <main id="main" tabIndex={-1}>
           {children}
         </main>

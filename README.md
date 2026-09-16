@@ -1,6 +1,6 @@
 # TypeSafe AI Playground
 
-A community playground for **Jev**: run small classification experiments, route conversations, apply decision rules, extract document fields, and test memes.
+A community playground for **Jev**: run small classification experiments, route conversations, apply decision rules, extract document fields, review code changes, verify logic, and test memes.
 
 **Shout-out to [@nickthompson480](https://github.com/nickthompson480) for the [original TypeSafe AI playground](https://github.com/nickthompson480/typesafe-ai-playground).** This fork builds on that project's example library and Python foundation with a Next.js interface and new interactive prototypes. This is an independent community project, not an official TypeSafe AI product.
 
@@ -23,19 +23,30 @@ npm run dev
 
 Open the address printed by Next.js, normally http://localhost:3000. To choose another port, use `npm run dev -- --port 3001`.
 
-`TYPESAFE_API_KEY` is read only by the server. Do not prefix it with `NEXT_PUBLIC_`, hardcode it in a component, or commit `.env.local`. You can browse and edit examples without a key; Run buttons require one.
+`TYPESAFE_API_KEY` is read only by the server. Do not prefix it with `NEXT_PUBLIC_`, hardcode it in a component, or commit `.env.local`. You can browse and edit examples without a key; Live Jev actions require one. Mock governance/PR demos and exact Z3 checks do not.
 
-## Five workspaces
+## Eleven workspaces
 
-| Workspace | What it does |
-| --- | --- |
-| **Examples** `/` | 110 examples across 22 categories, including 41 A/B comparisons. Edit input and questions, run Jev, and inspect typed answers. |
-| **Conversation lab** `/conversation` | Paste raw Discord or labeled chat, rank potential reply recipients, compare context, and evaluate conversation frames. |
-| **Workflow chat** `/workflow` | Describe a case and apply editable decision rules. Missing evidence produces a follow-up question. |
-| **Document extraction** `/extraction` | Find likely values locally, then ask Jev to select candidates or `null`, with probabilities and source evidence. |
-| **Meme lab** `/memes` | Test humor style, audience fit, tone, and likely confusion using captions or reviewed text from an image URL. |
+| Workspace                             | What it does                                                                                                                        |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **Examples** `/`                      | 110 examples across 22 categories, including 41 A/B comparisons. Edit input and questions, run Jev, and inspect typed answers.      |
+| **Conversation lab** `/conversation`  | Paste raw Discord or labeled chat, rank potential reply recipients, compare context, and evaluate conversation frames.              |
+| **Workflow chat** `/workflow`         | Describe a case and apply editable decision rules. Missing evidence produces a follow-up question.                                  |
+| **Document extraction** `/extraction` | Find likely values locally, then ask Jev to select candidates or `null`, with probabilities and source evidence.                    |
+| **PR review** `/pr-review`            | Paste a public PR link or diff; classify hunks and queue uncertain changes for review.                                              |
+| **AST governance** `/ast-governance`  | Trace changed symbols and callers, apply deterministic policy, and classify ambiguous findings. Includes a simulated test cache.    |
+| **SMT solver** `/smt-solver`          | Compare closed-set Jev predictions with real Z3 checks, independent-group decomposition, and measured benchmarks.                   |
+| **Tool router** `/tool-router`        | Follow a LangGraph-style mock workflow with closed-set node selection, policy blocks, approval gates and a step log.                |
+| **Vector reranker** /reranker         | Compare vector order, batched Jev relevance, and an explicit lexical mock baseline. Inspect rank disagreements and source snippets. |
+| **LangChain** `/langchain`            | Invoke a real LangChain routing tool with live or mocked Jev predictions; inspect typed policy-gated output.                        |
+| **Jev plays Doom** `/doom` | Play an original browser maze shooter, hand control to Jev, and compare against a seeded random baseline. |
+| **Meme lab** `/memes`                 | Test humor style, audience fit, tone, and likely confusion using captions or reviewed text from an image URL.                       |
 
-The interface uses charcoal surfaces, lavender accents, serif headlines, dark/light themes, and responsive panels. Desktop panels scroll independently; narrow screens stack content. Examples has a collapsible Results rail, which opens when a run begins. Mobile controls have larger touch targets, and reduced-motion preferences are respected.
+The supplied TypeSafe [banner](https://pbs.twimg.com/profile_banners/2014504062797152256/1789084216/1500x500) and [profile mark](https://pbs.twimg.com/profile_images/2100293691227447296/bVoZ2u00_400x400.jpg) are stored locally in public/brand. The social images use IBM Plex Sans, distributed with its [SIL Open Font License](public/brand/OFL.txt). This remains an unofficial community playground.
+
+Every page has its own 1200 × 630 Open Graph image and Twitter preview. A shared branded template keeps route titles, descriptions and images consistent.
+
+The interface follows TypeSafe’s pink/sky-blue dithered artwork, geometric mark, bold sans-serif headlines, monospace labels, and compact window borders. Light and dark themes share the same responsive layout. Desktop panels scroll independently; narrow screens stack content. Examples has a collapsible Results rail, which opens when a run begins. Mobile controls have larger touch targets, and reduced-motion preferences are respected.
 
 ### Examples
 
@@ -55,11 +66,11 @@ Paste Discord messages with names and timestamps, `Name: message` text, or plain
 - **Compare context (A/B)** compares full context with the final message alone.
 - **Evaluate final message** sends one full-context request.
 
-Changing the reply threshold recomputes decisions locally. Optional expected-frame labels build session confusion matrices; changing the transcript or format clears the label. Exports include the run input, rows, threshold, and selected recipient. No messages are sent to Discord.
+The winning message gets a full source preview with its speaker and timestamp; other messages appear in ranked cards with expandable previews. Ties and unscored candidates remain explicit. Changing the reply threshold recomputes decisions locally. Optional expected-frame labels build session confusion matrices; changing the transcript or format clears the label. Exports include the run input, rows, threshold, and selected recipient. No messages are sent to Discord.
 
 ### Workflow chat
 
-The starter playbook handles damaged deliveries: sender-caused damage, delivery damage, first buyer-caused incidents, and repeat buyer-caused incidents. Edit rules before starting a case. Jev must identify a supported rule before the UI recommends its configured action; otherwise it asks for more facts.
+Choose one of five playbooks: **damaged delivery**, **account recovery**, **duplicate payment**, **service incident**, or **expense approval**. Each has a seeded incomplete case and a fixed follow-up question. The delivery playbook handles sender-caused damage, delivery damage, first buyer-caused incidents, and repeat buyer-caused incidents. Edit rules before starting a case. Jev must identify a supported rule before the UI recommends its configured action; otherwise it asks for more facts.
 
 **Recommendations only:** this prototype does not refund customers, fine delivery services, resend items, or ban accounts. Start a new case to change the rules. Export a case to save its conversation.
 
@@ -72,6 +83,32 @@ Paste raw document text and select `date`, `counterparty`, `amount`, or `documen
 3. `runExtraction(text)` coordinates the selected fields, with up to three requests in parallel.
 
 Results show the selected value, its Jev probability, confidence when returned, every candidate, and a source snippet. Evidence is copied from the document, not generated. Empty candidate sets return local `null` without an API call; failures are distinct from null selections. See [the extraction guide](docs/document-extraction.md) for limits and module details.
+
+### PR Review
+
+Paste a PR URL or diff and click **Review PR**. The lab loads public PR metadata automatically, preserves every hunk as evidence, and uses fixed labels and rule candidates. Thresholds control safe skips, review queues, and candidate blocks. **Why this decision** traces priority hunks from model labels through gates to a route, with direct links to the original diff. Try the clearly labeled mock auth-change demo without an API call. No GitHub actions or second-stage LLM calls are performed. See [PR Review setup and limits](docs/pr-review.md).
+
+### AST-aware governance
+
+Start with **Run mock demo** for an auth-signature change with a missed caller and missing test updates. The page explains what changed, how callers are affected, why each policy applies, and what to check next. **Analyze changes** runs local static checks; **Classify with Jev** uses only fixed outcomes. Sensitive-file changes block before any Jev call. The parser, symbol index, and test-cache workflow are prototypes; no code, tests, or merges are executed. See the [governance guide](docs/ast-governance.md).
+
+### SMT solver lab
+
+Choose a scenario card or write Boolean, integer, equality, ordering or scheduling rules, then choose **Run Check**. Plain-language prompts, live rule/variable counts, and a keyboard shortcut guide the input; advanced options stay collapsed. Jev predicts one of four outcomes; Z3 verifies the full problem on the server and wins any definitive disagreement. Independent groups run through Jev in parallel. Confidence below 85% requires decomposition. Five seeded cases populate a measured benchmark table on demand. See [syntax, decomposition, routing and benchmark limits](docs/smt-solver.md).
+
+### Jev tool router
+
+**Run Routing Step** chooses among the current node’s allowed outgoing edges. Fixed policy removes blocked tools, stops sensitive requests before Jev, and pauses configuration changes for explicit mock approval. Low confidence asks for clarification. Try read settings, change production, and request a secret; the step log shows each transition. All agents and tools are simulated. See [the Tool Router guide](docs/tool-router.md).
+
+### Vector reranker
+
+Load the synthetic Blink-style code-search sample or paste a JSON candidate list. Choose K (20–200, capped by the supplied list), then **Compare both** for the default three-column comparison. Jev processes ten candidates per request with three requests in parallel. Unknown or failed classifications stay unscored and suppress aggregate metrics.
+
+Top-10 overlap, rank correlation, measured latency, configurable cost estimates, and large rank differences help inspect results. The local baseline is a lexical mock, not a neural reranker or a quality ground truth. See [the reranker module](docs/reranker.md) for scoring and adapter details.
+
+### Jev × LangChain
+
+A real `@langchain/core` tool validates input with Zod, routes through the shared Jev/policy logic, and returns structured data without executing downstream actions. Use **Invoke LangChain tool** for live Jev or **Try mock invocation** for seeded predictions. `npm run example:langchain` runs the tool in a RunnableLambda chain; add `-- --live` to use your configured key. This is a local integration example, not a published plugin. See [setup and adapter usage](docs/langchain.md).
 
 ### Meme lab: text, images, and a meta meme
 
@@ -115,19 +152,21 @@ npm run test:e2e             # Mocked API calls; no TypeSafe credits used
 python3 -m unittest discover -s tests -v
 ```
 
+CI tests the production build. To reproduce locally without stopping the dev preview, run E2E_PRODUCTION=1 E2E_PORT=3002 npm run test:e2e after building.
+
 Browser coverage includes desktop/mobile flows, theme persistence, saved drafts, extraction, meme failures, workflow decisions, and responsive boundaries from 320px to 2560px, including short landscape screens. `npm start` runs the built production app.
 
-| Path | Responsibility |
-| --- | --- |
-| `app/` | Next.js routes, server API handlers, global styling, and social metadata |
-| `components/` | Shared shell and React workspace interfaces |
-| `lib/` | Request contracts, image fetching, OCR, and client utilities |
-| `src/extraction/` | Candidate extraction and Jev ranking |
-| `web/catalog.json` | Shared example catalog |
-| `web/library.js`, `web/conversation.js`, `web/workflow.js` | Tested logic shared with the legacy UI |
-| `tests/` | Unit/API checks and Playwright browser tests |
-| `public/og.png` | Open Graph and Twitter sharing image |
-| `public/memes/` | Meta meme asset and editable SVG source |
+| Path                                                       | Responsibility                                                           |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `app/`                                                     | Next.js routes, server API handlers, global styling, and social metadata |
+| `components/`                                              | Shared shell and React workspace interfaces                              |
+| `lib/`                                                     | Request contracts, image fetching, OCR, and client utilities             |
+| `src/extraction/`                                          | Candidate extraction and Jev ranking                                     |
+| `web/catalog.json`                                         | Shared example catalog                                                   |
+| `web/library.js`, `web/conversation.js`, `web/workflow.js` | Tested logic shared with the legacy UI                                   |
+| `tests/`                                                   | Unit/API checks and Playwright browser tests                             |
+| `public/og.png`                                            | Open Graph and Twitter sharing image                                     |
+| `public/memes/`                                            | Meta meme asset and editable SVG source                                  |
 
 ## Legacy Python UI
 
@@ -138,3 +177,13 @@ The original static playground remains in `web/`. With Python 3.10+, run `python
 Add synthetic scenarios to `web/catalog.json`, include stable IDs and clear questions, and run the checks above. See [CONTRIBUTING.md](CONTRIBUTING.md). Jev's `noul`, `choice`, and `score` outputs are typed decisions; a valid typed answer can still be wrong.
 
 Thanks again to **[@nickthompson480](https://github.com/nickthompson480)** for sharing the [original playground](https://github.com/nickthompson480/typesafe-ai-playground), and to TypeSafe AI for Jev. This fork retains the [MIT license](LICENSE).
+
+### Jev plays Doom
+
+Open `/doom` and start the arena in Human, Jev, or Random mode. All modes use the same seeded maze, 200ms simulation clock, and 90-second limit. Focus the arena for W/S movement, A/D strafing, Q/E turning, Space firing, F doors, and R items; on-screen controls also support touch. Switching modes saves the current run in the session scoreboard and resets the arena.
+
+The browser extracts deterministic visibility, distance, bearing, health, ammo, obstacles, and item features. Jev receives 1, 4, or 8 captured frames and chooses only among the ten displayed actions. Calls use the existing server-side API key setup. The newest answer may control the game only while at most two ticks old; earlier frames are inspectable throughput samples. Invalid answers idle, request failures pause, and resetting or pausing cancels pending work. Calls are bounded to one in flight and at most 50 per minute.
+
+Chaos mode hides enemy distance, allowing direct inspection of confidence changes without assuming confidence must decrease. The decision panel and export retain exact submitted features, probabilities, response timing, and acceptance status. Latency includes network time; decisions per second measures batched classification throughput, not game actions. The 200ms blink challenge is a demonstration target. No performance or game-playing superiority is promised.
+
+This is an original top-down mini-game, not the Doom engine, and uses no Doom assets. Simulation runs locally; only structured features go to Jev. No model-generated code is executed.

@@ -1,9 +1,7 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "../../lib/social";
 import { Conversation } from "../../components/conversation";
 export default function Page() {
   return <Conversation />;
 }
 
-export const metadata: Metadata = {
-  title: "Conversation lab · TypeSafe Playground",
-};
+export const metadata = pageMetadata("conversation");
