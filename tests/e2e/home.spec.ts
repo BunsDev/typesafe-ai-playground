@@ -11,6 +11,12 @@ test("home discovers examples by type and query and opens the existing builder",
   );
   await expect(page.locator(".home-example-card")).toHaveCount(15);
   await expect(page.locator(".home-section")).toHaveCount(4);
+  await page.locator(".playground-home").hover();
+  await page.mouse.wheel(0, 10000);
+  await expect(page.locator(".home-note")).toBeInViewport();
+  await page
+    .locator(".playground-home")
+    .evaluate((element) => element.scrollTo(0, 0));
   await page.screenshot({
     path: `/tmp/typesafe-home-${info.project.name}.png`,
   });

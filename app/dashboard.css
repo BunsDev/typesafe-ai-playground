@@ -723,6 +723,8 @@ body {
 }
 .dashboard-shell .playground-home {
   display: block;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
   padding-bottom: 24px;
 }
 .home-intro {

@@ -49,7 +49,12 @@ export const SOCIAL_PAGES = {
     title: "The Jev playground",
     description: "Find your next small experiment.",
     category: "EXPLORE THE POSSIBILITIES",
-    steps: ["Language & data", "Agents & governance", "Games & simulations"],
+    steps: [
+      "Language & data",
+      "Agents & workflows",
+      "Code & governance",
+      "Games & simulations",
+    ],
     result: "One small model. Many clear choices.",
   },
   examples: {
