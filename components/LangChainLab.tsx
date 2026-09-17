@@ -296,14 +296,14 @@ export function LangChainLab() {
         <pre className="diff-evidence">{snippet}</pre>
         <div className="integration-notes">
           <p>
-            <strong>Try locally:</strong> <code>npm run example:langchain</code>{" "}
+            <strong>Try locally:</strong> <code>pnpm example:langchain</code>{" "}
             runs the actual tool through a RunnableLambda chain with mock
             predictions.
           </p>
           <p>
             <strong>Use live Jev:</strong> set <code>TYPESAFE_API_KEY</code> in
             your server environment or <code>.env.local</code>, then run{" "}
-            <code>npm run example:langchain -- --live</code>.
+            <code>pnpm example:langchain --live</code>.
           </p>
           <p>
             The factory is in <code>lib/langchain/jev-tool.ts</code>. Pass it as

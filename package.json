@@ -3,14 +3,21 @@
   "private": true,
   "packageManager": "pnpm@10.34.5",
   "scripts": {
-    "preinstall": "npx -y only-allow pnpm",
+    "preinstall": "node scripts/require-pnpm.cjs",
     "dev": "next dev",
     "example:langchain": "tsx scripts/langchain-example.ts",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "node --test tests/test_*.js && tsx --test tests/*.test.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "predev": "node scripts/require-pnpm.cjs",
+    "prebuild": "node scripts/require-pnpm.cjs",
+    "prestart": "node scripts/require-pnpm.cjs",
+    "pretest": "node scripts/require-pnpm.cjs",
+    "pretypecheck": "node scripts/require-pnpm.cjs",
+    "pretest:e2e": "node scripts/require-pnpm.cjs",
+    "preexample:langchain": "node scripts/require-pnpm.cjs"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",
