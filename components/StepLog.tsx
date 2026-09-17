@@ -2,6 +2,7 @@ import type { RoutingLogEntry } from "../types/workflow";
 import { nodeById } from "../lib/workflowGraph";
 import { percent } from "../lib/client";
 export function StepLog({ entries }: { entries: RoutingLogEntry[] }) {
+  if (!entries.length) return null;
   return (
     <section className="router-step-log">
       <div className="router-section-title">
@@ -15,10 +16,10 @@ export function StepLog({ entries }: { entries: RoutingLogEntry[] }) {
           <li key={e.step}>
             <div className="step-number">{e.step}</div>
             <div>
-              <strong>
-                {nodeById(e.from)?.label} <span className="path-arrow">→</span>{" "}
-                {nodeById(e.finalNode)?.label}
-              </strong>
+              <span className="router-step-from">
+                From {nodeById(e.from)?.label}
+              </span>
+              <strong>{nodeById(e.finalNode)?.label}</strong>
               <div className="step-badges">
                 <span className="tag">
                   {e.source === "deterministic"
