@@ -11,6 +11,7 @@ test("all workspaces fit the viewport and navigate without runtime errors", asyn
   page.on("pageerror", (e) => errors.push(e.message));
   for (const path of [
     "/",
+    "/examples",
     "/conversation",
     "/gate",
     "/chess",
@@ -202,7 +203,7 @@ test("conversation chooses winner and recomputes threshold without API calls", a
   expect(calls).toBe(3);
 });
 test("example edits persist across refresh", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/examples");
   await expect(page.locator(".connection")).toContainText("Jev connected");
   await page.locator("#example-state").fill("My saved example");
   await expect
@@ -234,6 +235,7 @@ for (const [width, height] of [
       await page.setViewportSize({ width, height });
       for (const route of [
         "/",
+        "/examples",
         "/conversation",
         "/gate",
         "/chess",
@@ -257,14 +259,15 @@ for (const [width, height] of [
           ),
           `${route} at ${width}x${height}`,
         ).toBe(true);
-        if (route === "/" && width > 650 && height < 600) {
+        if (route === "/examples" && width > 650 && height < 600) {
           expect(
             (await page.locator(".example-list").boundingBox())!.height,
           ).toBeGreaterThan(60);
         }
+        if (route === "/") continue;
         const action = page.getByRole("button", {
           name:
-            route === "/"
+            route === "/examples"
               ? "Run example"
               : route === "/conversation"
                 ? "Pick a recipient"
@@ -370,7 +373,7 @@ test("meta meme, image URL OCR review, and GitHub link are usable", async ({
 test("question JSON stays synchronized and protects concurrent edits", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/examples");
   await page.locator(".question-edit").first().locator("summary").click();
   await page
     .locator(".question-edit")
@@ -429,7 +432,7 @@ test("unreadable meme text does not report a successful extraction", async ({
 test("examples expose question selection, validation, and reversible reset", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/examples");
   const original = await page.locator("#example-state").inputValue();
   await page.locator("#example-state").fill("A changed draft");
   await expect(page.getByText("Edited draft", { exact: true })).toBeVisible();
@@ -459,7 +462,7 @@ test("examples expose question selection, validation, and reversible reset", asy
 test("example filters recover from empty results and preview the A/B change", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/examples");
   const browse = page.getByRole("button", {
     name: "Browse examples",
     exact: true,
@@ -503,7 +506,7 @@ test("results rail toggles from its bottom edge and with the keyboard", async ({
     "Full-height rail is a desktop layout.",
   );
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/examples");
   const rail = page.getByRole("button", {
     name: "Expand results",
     exact: true,
@@ -832,6 +835,7 @@ test("every workspace has a distinct branded OG and matching Twitter preview", a
   const images = new Set<string>();
   for (const path of [
     "/",
+    "/examples",
     "/conversation",
     "/gate",
     "/chess",

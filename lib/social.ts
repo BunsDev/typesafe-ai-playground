@@ -44,9 +44,17 @@ export const SOCIAL_PAGES = {
     ],
     result: "Tool call → typed decision",
   },
-  examples: {
+  home: {
     path: "/",
-    title: "The playground",
+    title: "The Jev playground",
+    description: "Find your next small experiment.",
+    category: "EXPLORE THE POSSIBILITIES",
+    steps: ["Language & data", "Agents & governance", "Games & simulations"],
+    result: "One small model. Many clear choices.",
+  },
+  examples: {
+    path: "/examples",
+    title: "Example builder",
     description: "Small experiments. Clear decisions.",
     category: "EXPLORE JEV",
     steps: ["Choose an example", "Define the choices", "See the decision"],
