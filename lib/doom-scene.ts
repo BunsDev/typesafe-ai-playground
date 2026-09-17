@@ -214,7 +214,8 @@ export function createDoomScene(canvas: HTMLCanvasElement, initial: GameState) {
     needsRender = true,
     renderUntil = performance.now() + 350;
   const draw = (now: number) => {
-    if (disposed || document.hidden || (!needsRender && now > renderUntil)) return;
+    if (disposed || document.hidden || (!needsRender && now > renderUntil))
+      return;
     if (software && now >= lastTime && now - lastTime < 1000 / 24) return;
     const delta = Math.min(0.05, (now - (lastTime || now)) / 1000);
     lastTime = now;
