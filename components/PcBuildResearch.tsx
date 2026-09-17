@@ -252,17 +252,14 @@ export function PcBuildResearch({
       )}
       <aside
         id="browser-inspector"
-        className="browser-sidepanel research-results"
+        className="browser-sidepanel pc-inspector"
         hidden={!inspectorOpen}
+        aria-label="Browser inspector"
       >
-        <p>
-          <strong>{goal}</strong>
-        </p>
-        <p className="field-hint">
-          US store · tower only · before tax and shipping. A focused AM5/DDR5
-          build search with Radeon RX 9070 XT and GeForce RTX 5070 Ti
-          candidates. No cart or purchase actions.
-        </p>
+        <header className="inspector-heading">
+          <h2>Inspector</h2>
+          <span>{busy ? "Working" : result ? "Run complete" : "Ready"}</span>
+        </header>
         {controlsHost ? (
           createPortal(
             <RunButton
@@ -280,13 +277,141 @@ export function PcBuildResearch({
             Find PC parts
           </RunButton>
         )}
-        <p role="status" className="field-hint">
-          {busy
-            ? "Browsing listings, selecting eight parts with Jev, and rechecking product pages…"
-            : "Local browser-use · Jev closed choices · budget checked in code."}
-        </p>
         <ErrorNote message={error || result?.error || ""} />
-        <div hidden={!inspectorOpen}>
+        {!result && (
+          <p className="inspector-empty">
+            {busy
+              ? `${browser.phase || "Opening local browser"}…`
+              : "Your parts and verification details will appear here."}
+          </p>
+        )}
+        {result?.build && (
+          <>
+            <section className="inspector-build-summary">
+              <h3>
+                {result.build.selectionMethod === "local-budget-baseline"
+                  ? "Local budget baseline"
+                  : "Proposed 1440p build"}
+              </h3>
+              <div className="inspector-total">
+                {money(result.build.totalCents)}
+                <span>/ $2,500</span>
+              </div>
+              <progress
+                aria-label="Build budget"
+                value={result.build.totalCents}
+                max={250000}
+              />
+              <p>
+                {money(result.build.remainingCents)} left · before tax &
+                shipping
+              </p>
+              <span
+                className="inspector-check-status"
+                data-verified={result.pricesVerified ? "true" : "false"}
+              >
+                {result.pricesVerified
+                  ? "Prices & stock checked"
+                  : "Verification gaps to review"}
+              </span>
+            </section>
+            <ol className="inspector-parts">
+              {result.build.parts.map((part) => (
+                <li key={part.id}>
+                  <div>
+                    <span>
+                      {part.category}
+                      <small>{part.id}</small>
+                    </span>
+                    <strong>{money(part.priceCents)}</strong>
+                  </div>
+                  <a
+                    href={part.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={part.title}
+                  >
+                    {part.title}
+                  </a>
+                </li>
+              ))}
+            </ol>
+            <details className="inspector-section">
+              <summary>
+                Verification & notes<span>{result.build.warnings.length}</span>
+              </summary>
+              <p>{result.build.summary}</p>
+              <ul>
+                {result.build.warnings.map((warning) => (
+                  <li key={warning}>{warning}</li>
+                ))}
+              </ul>
+              {result.build.parts.map((part) => (
+                <details key={part.id}>
+                  <summary>
+                    {part.category} · {part.id}
+                  </summary>
+                  <p>{part.reason}</p>
+                  <dl>
+                    {Object.entries(
+                      result.checks?.find((check) => check.id === part.id)
+                        ?.specs || {},
+                    ).map(([key, value]) => (
+                      <div key={key}>
+                        <dt>{key}</dt>
+                        <dd>{value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </details>
+              ))}
+            </details>
+          </>
+        )}
+        {result && (
+          <>
+            {!!result.gaps.length && (
+              <details className="inspector-section">
+                <summary>
+                  Coverage gaps<span>{result.gaps.length}</span>
+                </summary>
+                <ul>
+                  {result.gaps.map((gap) => (
+                    <li key={gap}>{gap}</li>
+                  ))}
+                </ul>
+              </details>
+            )}
+            <details className="inspector-section">
+              <summary>
+                Candidates<span>{result.candidates.length}</span>
+              </summary>
+              <ul>
+                {result.candidates.map((part) => (
+                  <li key={part.id}>
+                    {part.id} · {part.category} · {money(part.priceCents)}
+                    <br />
+                    <a href={part.url} target="_blank" rel="noreferrer">
+                      {part.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </details>
+            <details className="inspector-section">
+              <summary>
+                Run data<span>{(result.elapsedMs / 1000).toFixed(1)}s</span>
+              </summary>
+              <ResearchMetrics metrics={result.metrics} />
+              <p className="field-hint">
+                {result.candidates.length} candidates · {result.modelCalls ?? 0}{" "}
+                model calls · retrieved {result.retrievedAt}
+              </p>
+              <Export data={result} name="newegg-1440p-build.json" />
+            </details>
+          </>
+        )}
+        <div className="inspector-report">
           <CopyDebugReport
             disabled={busy || !exchange}
             version={exchange}
@@ -301,91 +426,6 @@ export function PcBuildResearch({
             }
           />
         </div>
-        {result && (
-          <>
-            <ResearchMetrics metrics={result.metrics} />
-            <Export data={result} name="newegg-1440p-build.json" />
-            <p className="field-hint">
-              {result.candidates.length} candidates · {result.modelCalls ?? 0}{" "}
-              model calls · {result.contextCharacters ?? 0} context characters ·{" "}
-              {(result.elapsedMs / 1000).toFixed(1)}s · retrieved{" "}
-              {result.retrievedAt}
-            </p>
-            {!!result.gaps.length && (
-              <details open>
-                <summary>Search coverage gaps</summary>
-                <ul>
-                  {result.gaps.map((g) => (
-                    <li key={g}>{g}</li>
-                  ))}
-                </ul>
-              </details>
-            )}
-            {result.build && (
-              <>
-                <h3>
-                  {result.build.selectionMethod === "local-budget-baseline"
-                    ? "Local budget baseline"
-                    : "Proposed 1440p build"}{" "}
-                  · {money(result.build.totalCents)}
-                </h3>
-                <p>{result.build.summary}</p>
-                <p>
-                  {money(result.build.remainingCents)} remaining before tax and
-                  shipping.{" "}
-                  {result.pricesVerified
-                    ? "Product prices and stock reconfirmed."
-                    : "Some prices or availability need review."}
-                </p>
-                <ul>
-                  {result.build.warnings.map((w) => (
-                    <li key={w}>{w}</li>
-                  ))}
-                </ul>
-                <ol className="research-answer">
-                  {result.build.parts.map((part) => (
-                    <li key={part.id}>
-                      <h3>
-                        {part.category} · {money(part.priceCents)}
-                      </h3>
-                      <a href={part.url} target="_blank" rel="noreferrer">
-                        {part.title}
-                      </a>
-                      <p>{part.reason}</p>
-                      <details>
-                        <summary>Observed specifications</summary>
-                        <dl>
-                          {Object.entries(
-                            result.checks?.find((c) => c.id === part.id)
-                              ?.specs || {},
-                          ).map(([k, v]) => (
-                            <div key={k}>
-                              <dt>{k}</dt>
-                              <dd>{v}</dd>
-                            </div>
-                          ))}
-                        </dl>
-                      </details>
-                    </li>
-                  ))}
-                </ol>
-              </>
-            )}
-            <details>
-              <summary>Candidate parts and observed prices</summary>
-              <ul>
-                {result.candidates.map((p) => (
-                  <li key={p.id}>
-                    {p.category} · {money(p.priceCents)} ·{" "}
-                    <a href={p.url} target="_blank" rel="noreferrer">
-                      {p.title}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </details>
-          </>
-        )}
       </aside>
     </div>
   );

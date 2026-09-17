@@ -415,46 +415,49 @@ function FlightBrowserAgentLab({
                 <RotateCcw size={14} /> Reset sandbox
               </button>
             </div>
-            <fieldset className="lab-fields" disabled={busy}>
-              <p className="field-hint">
-                The verifier checks a one-way Zurich → London search on
-                2026-09-20 for one adult in economy, with results visible and
-                nothing selected. This executor only runs the matching flight
-                preset.
-              </p>
-              <div className="row-fields">
-                <label>
-                  Model
+            <details className="inspector-section">
+              <summary>Run settings</summary>
+              <fieldset className="lab-fields" disabled={busy}>
+                <p className="field-hint">
+                  The verifier checks a one-way Zurich → London search on
+                  2026-09-20 for one adult in economy, with results visible and
+                  nothing selected. This executor only runs the matching flight
+                  preset.
+                </p>
+                <div className="row-fields">
+                  <label>
+                    Model
+                    <input
+                      aria-label="Model"
+                      value={model}
+                      onChange={(e) => setModel(e.target.value)}
+                    />
+                  </label>
+                </div>
+                <p className="field-hint">Text for TYPE_TEXT: {helperLabel}.</p>
+                <label className="lab-checkbox">
                   <input
-                    aria-label="Model"
-                    value={model}
-                    onChange={(e) => setModel(e.target.value)}
+                    type="checkbox"
+                    checked={sandbox.overlay}
+                    onChange={(e) =>
+                      reset({ ...sandbox, overlay: e.target.checked })
+                    }
                   />
+                  A popover covers the Search button until dismissed
+                  (covered-target path)
                 </label>
-              </div>
-              <p className="field-hint">Text for TYPE_TEXT: {helperLabel}.</p>
-              <label className="lab-checkbox">
-                <input
-                  type="checkbox"
-                  checked={sandbox.overlay}
-                  onChange={(e) =>
-                    reset({ ...sandbox, overlay: e.target.checked })
-                  }
-                />
-                A popover covers the Search button until dismissed
-                (covered-target path)
-              </label>
-              <label className="lab-checkbox">
-                <input
-                  type="checkbox"
-                  checked={sandbox.slowResults}
-                  onChange={(e) =>
-                    reset({ ...sandbox, slowResults: e.target.checked })
-                  }
-                />
-                Results load slowly (WAIT path)
-              </label>
-            </fieldset>
+                <label className="lab-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={sandbox.slowResults}
+                    onChange={(e) =>
+                      reset({ ...sandbox, slowResults: e.target.checked })
+                    }
+                  />
+                  Results load slowly (WAIT path)
+                </label>
+              </fieldset>
+            </details>
             <ErrorNote message={error} />
             <div className="lab-actions">
               {controlsHost &&

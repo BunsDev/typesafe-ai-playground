@@ -121,6 +121,7 @@ test("observe only reads the element table without a model call", async ({
     await expect(table).toContainText("combobox  Where from? · empty");
   await expect(table).toContainText("link      Flights");
   await expect(table).toContainText("combobox  Trip type · Round trip");
+  await page.getByText("Run settings", { exact: true }).click();
   await expect(page.getByText("Jev picks a span of the goal")).toBeVisible();
   expect(runCalls).toBe(0);
 });
