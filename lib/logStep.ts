@@ -24,6 +24,13 @@ export function startCycle(
     elapsedMs: 0,
     elementTable: formatElementTable(page.elements),
     visibleText: page.text,
+    observation: { url: page.url, title: page.title, width: page.width, height: page.height, scroll: page.scroll, marker: page.marker, pageKey: page.pageKey, omitted: page.omitted },
+    request: null,
+    response: null,
+    usage: null,
+    textMode: null,
+    textContext: null,
+    textResult: null,
     operation: null,
     target: null,
     targetLabel: null,
@@ -54,6 +61,9 @@ export function recordDecision(entry: CycleLog, decision: Decision): CycleLog {
     targetProbabilities: decision.targetProbabilities,
     speculativeHeads: decision.speculativeHeads,
     jevLatencyMs: Math.round(decision.latencyMs),
+    request: decision.request,
+    response: decision.response,
+    usage: decision.usage,
   };
 }
 export function finishCycle(
@@ -100,7 +110,7 @@ export function describeCycle(entry: CycleLog): string {
     : "no decision";
   return `${choice} → ${outcomeLabels[entry.outcome]}${entry.detail ? `: ${entry.detail}` : ""}`;
 }
-/** What Export downloads: the whole run, with no keys or prompts beyond the goal. */
+/** Run evidence includes model prompts and responses, never transport headers. */
 export function exportRun(
   state: AgentState,
   verification: VerificationReport | null,

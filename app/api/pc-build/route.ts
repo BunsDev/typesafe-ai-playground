@@ -1,3 +1,4 @@
+import { ResearchMeter, researchPricing } from "../../../lib/researchMetrics";
 import { readBoundedBody } from "../../../lib/api";
 import { buildCandidatePayload, collectParts, PART_SEARCHES, validateBuild, verifySelectedParts } from "../../../lib/neweggResearch";
 export const runtime = "nodejs";
@@ -6,22 +7,26 @@ export const maxDuration = 120;
 export async function POST(request: Request) {
   const started = performance.now();
   const headers = { "Cache-Control": "no-store" };
+  const meter = new ResearchMeter();
+  const respond = (body: object, init: ResponseInit = {}) => Response.json({ ...body, metrics: meter.finish(researchPricing()) }, { ...init, headers });
   const origin = request.headers.get("origin");
   if ((origin && origin !== new URL(request.url).origin) || request.headers.get("sec-fetch-site") === "cross-site")
-    return Response.json({ error: "Cross-origin requests are not allowed." }, { status: 403, headers });
+    return respond({ error: "Cross-origin requests are not allowed." }, { status: 403, headers });
   // No user-controlled URLs or free-form instructions enter the fetching pipeline.
   const signal = AbortSignal.any([request.signal, AbortSignal.timeout(110000)]);
   let collection: Awaited<ReturnType<typeof collectParts>>;
-  try { collection = await collectParts(signal); }
-  catch { return Response.json({ error: "Newegg could not be read within the request budget." }, { status: 502, headers }); }
+  try { collection = await collectParts(signal, meter.read); }
+  catch { return respond({ error: "Newegg could not be read within the request budget." }, { status: 502, headers }); }
   const missing = Object.keys(PART_SEARCHES).filter((category) => !collection.candidates.some((c) => c.category === category));
-  if (missing.length) return Response.json({ ...collection, build: null, error: `No verified listings for: ${missing.join(", ")}. Cannot produce a complete PC build.`, elapsedMs: Math.round(performance.now() - started) }, { headers });
+  if (missing.length) return respond({ ...collection, build: null, error: `No verified listings for: ${missing.join(", ")}. Cannot produce a complete PC build.`, elapsedMs: Math.round(performance.now() - started) }, { headers });
   const key = process.env.TEXT_MODEL_API_KEY?.trim();
-  if (!key) return Response.json({ ...collection, build: null, error: "Parts retrieved. Set TEXT_MODEL_API_KEY on the server to choose a complete build.", elapsedMs: Math.round(performance.now() - started) }, { headers });
+  if (!key) return respond({ ...collection, build: null, error: "Parts retrieved. Set TEXT_MODEL_API_KEY on the server to choose a complete build.", elapsedMs: Math.round(performance.now() - started) }, { headers });
   const context = buildCandidatePayload(collection.candidates);
+  meter.contextCharacters = context.length;
   try {
     const base = (process.env.TEXT_MODEL_BASE_URL?.trim() || "https://openrouter.ai/api/v1").replace(/\/+$/, "");
     const model = process.env.TEXT_MODEL?.trim() || "inception/mercury-2.5";
+    meter.modelCalls++;
     const response = await fetch(`${base}/chat/completions`, {
       method: "POST", cache: "no-store", signal: AbortSignal.any([signal, AbortSignal.timeout(45000)]),
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
@@ -32,8 +37,9 @@ export async function POST(request: Request) {
     });
     if (!response.ok) { await response.body?.cancel(); throw Error(`Selection model returned HTTP ${response.status}.`); }
     const data = JSON.parse(await readBoundedBody(response.body, 64 * 1024));
+    meter.usage = data.usage ?? null;
     const build = validateBuild(JSON.parse(data?.choices?.[0]?.message?.content), collection.candidates);
-    const checks = await verifySelectedParts(build, signal);
+    const checks = await verifySelectedParts(build, signal, meter.read);
     let pricesVerified = true;
     for (const check of checks) {
       const part = build.parts.find((p) => p.id === check.id)!;
@@ -53,8 +59,8 @@ export async function POST(request: Request) {
     if (!socketVerified) build.warnings.push("AM5 socket support is not explicit for the CPU, motherboard, and cooler.");
     if (!memoryVerified) build.warnings.push("Desktop DDR5 memory compatibility could not be verified.");
     build.warnings.push("Confirm exact CPU/BIOS support, RAM QVL, GPU and cooler clearance, case fans, and PSU connectors/capacity using the linked specifications. This is a proposed build, not a fully verified compatibility guarantee.");
-    return Response.json({ ...collection, build, checks, pricesVerified, compatibility: { socketVerified, memoryVerified }, model, modelCalls: 1, contextCharacters: context.length, usage: data.usage ?? null, elapsedMs: Math.round(performance.now() - started) }, { headers });
+    return respond({ ...collection, build, checks, pricesVerified, compatibility: { socketVerified, memoryVerified }, model, modelCalls: 1, contextCharacters: context.length, usage: data.usage ?? null, elapsedMs: Math.round(performance.now() - started) }, { headers });
   } catch (error) {
-    return Response.json({ ...collection, build: null, error: error instanceof Error ? error.message : "Build selection failed.", modelCalls: 1, contextCharacters: context.length, elapsedMs: Math.round(performance.now() - started) }, { headers });
+    return respond({ ...collection, build: null, error: error instanceof Error ? error.message : "Build selection failed.", modelCalls: 1, contextCharacters: context.length, elapsedMs: Math.round(performance.now() - started) }, { headers });
   }
 }

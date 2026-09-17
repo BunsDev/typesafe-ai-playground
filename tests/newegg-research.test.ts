@@ -32,3 +32,11 @@ test("selection context omits URLs and page HTML and stays within its token prox
   assert.ok(payload.length < 16000);
   assert.match(payload, /priceCents/);
 });
+
+test("rechecks the main buy box, never another seller or a crossed-out price", async () => {
+  const { extractPartVerification } = await import("../lib/neweggResearch");
+  const html = `<div class="product-buy-box"><div class="price-current_2026">$<strong>1,099</strong><sup>.99</sup></div><li class="price-was">$1299.99</li><button>Add to cart</button></div><li class="price-current"><strong>999</strong><sup>.99</sup></li>`;
+  const result = extractPartVerification(html, "P1");
+  assert.equal(result.priceCents, 109999);
+  assert.equal(result.available, true);
+});

@@ -5799,3 +5799,7 @@ button.chess-square:focus-visible {
 .research-answer > li { margin-block: 24px; }
 .research-answer blockquote { margin: 12px 0; padding-left: 16px; border-left: 2px solid currentColor; }
 .research-source { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 360px; overflow-y: auto; font-size: 12px; }
+.research-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; padding: 16px; background: var(--soft); border-radius: 8px; }
+.research-metrics dt { font-size: 11px; color: var(--muted); }
+.research-metrics dd { margin: 4px 0 0; font-variant-numeric: tabular-nums; }
+.research-metrics small { display: block; font-size: 10px; color: var(--muted); }

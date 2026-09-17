@@ -1,16 +1,18 @@
 "use client";
+import { ResearchMetrics } from "./ResearchMetrics";
+import type { ResearchMetrics as Metrics } from "../lib/researchMetrics";
 import { useEffect, useRef, useState } from "react";
 import type { ResearchAnswer, ResearchBundle, ResearchTask } from "../lib/browserResearch";
 import { ErrorNote, Export, RunButton } from "./ui";
 import { PcBuildResearch } from "./PcBuildResearch";
 import { errorMessage } from "../lib/client";
 
-type Result = ResearchBundle & { answer: ResearchAnswer | null; synthesisError?: string; model?: string };
+type Result = ResearchBundle & { metrics?: Metrics; answer: ResearchAnswer | null; synthesisError?: string; model?: string };
 const goals: Record<ResearchTask, string> = {
   github: "Find today's number 1 starred GitHub repo and read its docs",
   typesafe: "Read the docs for typesafe.ai and provide us the top 10 use cases",
 };
-export function BrowserResearch() {
+export function BrowserResearch({ onNeweggGoal }: { onNeweggGoal?: () => void } = {}) {
   const [task, setTask] = useState<ResearchTask | "newegg">("github");
   const [result, setResult] = useState<Result | null>(null);
   const [busy, setBusy] = useState(false);
@@ -40,7 +42,7 @@ export function BrowserResearch() {
       </div>
       <label>
         Research example
-        <select aria-label="Research example" value={task} disabled={busy} onChange={(e) => { setTask(e.target.value as ResearchTask | "newegg"); setResult(null); setError(""); }}>
+        <select aria-label="Research example" value={task} disabled={busy} onChange={(e) => { if (e.target.value === "newegg" && onNeweggGoal) { onNeweggGoal(); return; } setTask(e.target.value as ResearchTask | "newegg"); setResult(null); setError(""); }}>
           <option value="github">GitHub · today’s top trending repo</option>
           <option value="typesafe">TypeSafe · top 10 use cases</option>
           <option value="newegg">Newegg · $2,500 gaming PC</option>
@@ -55,6 +57,7 @@ export function BrowserResearch() {
       <p className="field-hint" role="status">{busy ? "Reading live sources and preparing a cited answer…" : "Fetches public docs directly. Answer generation uses the server’s TEXT_MODEL configuration; no Jev calls are needed for this preset."}</p>
       <ErrorNote message={error} />
       {result && <div className="research-results">
+        <ResearchMetrics metrics={result.metrics} />
         <p className="field-hint">Retrieved {result.retrievedAt} · {result.sources.length} pages read{result.model ? ` · ${result.model}` : ""}</p>
         {result.repository && <p><strong>#1 on <a href="https://github.com/trending?since=daily" target="_blank" rel="noreferrer">daily GitHub Trending</a>: </strong><a href={`https://github.com/${result.repository.repository}`} target="_blank" rel="noreferrer">{result.repository.repository}</a> · {result.repository.starsToday.toLocaleString()} stars today</p>}
         <ErrorNote message={result.synthesisError || ""} />

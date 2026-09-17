@@ -23,6 +23,7 @@ import {
   FLIGHT_GOAL,
   defaultSandbox,
   flightSandboxHtml,
+  flightRequirements,
   verifyFlightSearch,
   type SandboxOptions,
 } from "../lib/flightSandbox";
@@ -42,6 +43,9 @@ import type {
 } from "../types/browserAgent";
 import { Empty, ErrorNote, Export, Heading } from "./ui";
 import { BrowserResearch } from "./BrowserResearch";
+import { PcBuildResearch } from "./PcBuildResearch";
+import { BrowserAgentDiagnostics } from "./BrowserAgentDiagnostics";
+import { PC_BUILD_GOAL, resolveBrowserContext } from "../lib/browserTaskContext";
 const statusLabels: Record<AgentStatus, string> = {
   ready: "Ready",
   running: "Running",
@@ -89,9 +93,32 @@ function Checks({ report }: { report: VerificationReport }) {
   );
 }
 export function BrowserAgentLab() {
+  const [goal, setGoal] = useState(FLIGHT_GOAL);
+  const [busy, setBusy] = useState(false);
+  const context = resolveBrowserContext(goal);
+  return <div className="workspace compact-lab">
+    <Heading eyebrow="AGENTS · TASK CONTEXT" title="Jev-powered browser agent" description="Run a goal in its matching workflow. The flight sandbox uses Jev decisions; Newegg research reads live listings and checks a PC build." />
+    <section className="panel lab-panel">
+      <fieldset className="lab-fields" disabled={busy}>
+        <label>Task preset<select aria-label="Task preset" value={context.kind} onChange={(event) => setGoal(event.target.value === "newegg" ? PC_BUILD_GOAL : FLIGHT_GOAL)}>
+          <option value="flight">Flight sandbox</option>
+          <option value="newegg">Newegg · $2,500 / 1440p PC</option>
+          {context.kind === "unsupported" && <option value="unsupported" disabled>Custom goal · unsupported</option>}
+        </select></label>
+        <label>Goal<textarea aria-label="Goal" rows={4} maxLength={2000} value={goal} onChange={(event) => setGoal(event.target.value)} /></label>
+      </fieldset>
+      <p role="status">Execution context: {context.kind === "flight" ? "flight sandbox" : context.kind === "newegg" ? "Newegg PC research" : "unsupported goal"}</p>
+      {context.kind === "unsupported" && <ErrorNote message={context.reason} />}
+    </section>
+    {context.kind === "flight" && <FlightBrowserAgentLab key={goal} goal={goal} onBusyChange={setBusy} />}
+    {context.kind === "newegg" && <section className="panel lab-panel"><PcBuildResearch key={goal} goal={goal} onBusyChange={setBusy} /></section>}
+    {context.kind !== "newegg" && <BrowserResearch onNeweggGoal={() => setGoal(PC_BUILD_GOAL)} />}
+  </div>;
+}
+
+function FlightBrowserAgentLab({ goal, onBusyChange }: { goal: string; onBusyChange: (busy: boolean) => void }) {
   useUsage();
   const quotaBlocked = usageBlocked();
-  const [goal, setGoal] = useState(FLIGHT_GOAL);
   const [model, setModel] = useState("jev-latest");
   const [textMode, setTextMode] = useState<TextHelperMode>("auto");
   const [helper, setHelper] = useState<TextHelperStatus | null>(null);
@@ -101,6 +128,7 @@ export function BrowserAgentLab() {
     createAgentState(FLIGHT_GOAL),
   );
   const [busy, setBusy] = useState(false);
+  useEffect(() => { onBusyChange(busy); return () => onBusyChange(false); }, [busy, onBusyChange]);
   const [error, setError] = useState("");
   const [selected, setSelected] = useState<number | null>(null);
   const frame = useRef<HTMLIFrameElement>(null);
@@ -207,24 +235,10 @@ export function BrowserAgentLab() {
       className="workspace compact-lab agent-workspace"
       data-status={state.status}
     >
-      <Heading
-        eyebrow="AGENTS · DYNAMIC INDEXED ACTION SPACE"
-        title="Jev-powered browser agent"
-        description="One goal in. Each cycle Jev reads an indexed element table and picks an operation plus a target in one round trip. A small LLM writes text only for TYPE_TEXT, and DONE is checked independently."
-      >
-        <div className="agent-tags" aria-label="Tags">
-          <span className="pill">
-            <Bot size={14} /> Agents
-          </span>
-          <span className="pill">Speculative fan-out</span>
-          <span className="pill">No screenshots</span>
-        </div>
-      </Heading>
-      <BrowserResearch />
       <div className="lab-columns agent-columns">
         <section className="panel lab-panel">
           <div className="panel-heading">
-            <h2>Goal and run</h2>
+            <h2>Flight sandbox run</h2>
             <button
               className="button quiet"
               disabled={busy}
@@ -234,24 +248,10 @@ export function BrowserAgentLab() {
             </button>
           </div>
           <fieldset className="lab-fields" disabled={busy}>
-            <label>
-              Goal
-              <textarea
-                aria-label="Goal"
-                rows={4}
-                maxLength={2000}
-                value={goal}
-                onChange={(e) => {
-                  setGoal(e.target.value);
-                  setState((s) => ({ ...s, goal: e.target.value }));
-                }}
-              />
-            </label>
             <p className="field-hint">
               The verifier checks a one-way Zurich → London search on 2026-09-20
               for one adult in economy, with results visible and nothing
-              selected. Change the goal and the verifier will still check that
-              task.
+              selected. This executor only runs the matching flight preset.
             </p>
             <div className="row-fields">
               <label>
@@ -497,6 +497,7 @@ export function BrowserAgentLab() {
               target head in one request.
             </Empty>
           )}
+          <BrowserAgentDiagnostics state={state} busy={busy} context={{ verifier: { name: "verifyFlightSearch", requirements: flightRequirements }, sandbox }} />
           <section className="router-step-log">
             <div className="router-section-title">
               <h3>Cycle log</h3>

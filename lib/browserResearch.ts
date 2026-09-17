@@ -58,7 +58,8 @@ export function selectDocLinks(links: DocLink[], task: ResearchTask, limit = 6) 
     if (task === "typesafe") {
       if (u.hostname !== "docs.typesafe.ai") return { link, score: -1, index };
       if (/use.case/.test(value)) score += 20;
-      if (/patterns|primitives|confidence|how.to.build|system.one/.test(value)) score += 8;
+      if (/primitives|confidence|system.one/.test(value)) score += 8;
+      if (/patterns|how.to.build/.test(value)) score += 12;
       if (/sdk|changelog|\/api\//.test(value)) score -= 10;
     }
     if (/login|sign.?up|issues|pulls|releases|license|contribut|changelog|\.png$|\.svg$|\.jpg$/.test(value)) score = -1;

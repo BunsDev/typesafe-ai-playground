@@ -109,6 +109,7 @@ export interface Decision {
   /** Heads that were requested in the same round trip and then discarded. */
   speculativeHeads: string[];
   request: RunPayload;
+  response: unknown;
   usage: { inputTokens: number | null; outputTokens: number | null } | null;
 }
 export type TextHelperMode = "auto" | "llm" | "jev-span";
@@ -139,6 +140,13 @@ export interface CycleLog {
   elapsedMs: number;
   elementTable: string[];
   visibleText: string;
+  observation: Pick<PageSnapshot, "url" | "title" | "width" | "height" | "scroll" | "marker" | "pageKey" | "omitted">;
+  request: RunPayload | null;
+  response: unknown;
+  usage: Decision["usage"];
+  textMode: TextHelperMode | null;
+  textContext: unknown;
+  textResult: TextHelperResult | null;
   operation: Operation | null;
   target: string | null;
   targetLabel: string | null;

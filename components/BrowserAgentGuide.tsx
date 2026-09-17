@@ -173,13 +173,16 @@ page → element table → operation                 │
             type, resolved airports, ISO date, passengers, cabin, visible
             matching results and the absence of a selection. A rejected DONE is
             logged, fed back, and after three rejections the run fails instead
-            of pretending.
+            of pretending. A <code>BLOCKED</code> choice also checks for
+            completion, then gets one retry from a fresh observation with the
+            unmet checks in its history.
           </li>
           <li>
             <strong>Stop honestly.</strong> Budgets cover 40 actions and 80
             decisions. Three consecutive actions that change nothing, four
-            consecutive rejections, a <code>BLOCKED</code> choice, or two
-            consecutive model failures end the run with a reason in the log.
+            consecutive rejections, two consecutive fresh <code>BLOCKED</code>{" "}
+            choices, or two consecutive model failures end the run with a reason
+            in the log.
           </li>
         </ol>
         <table className="agent-files">

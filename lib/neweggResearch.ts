@@ -14,7 +14,7 @@ export const PART_SEARCHES = {
 export type PartCategory = keyof typeof PART_SEARCHES;
 export type PartCandidate = { id: string; category: PartCategory; title: string; priceCents: number; shipping: "free" | "unknown"; url: string };
 export type Build = { summary: string; parts: (PartCandidate & { reason: string })[]; totalCents: number; remainingCents: number; warnings: string[] };
-const ranges: Record<PartCategory, [number, number]> = { gpu: [450, 1200], cpu: [180, 550], motherboard: [110, 280], memory: [50, 350], storage: [60, 300], psu: [60, 200], case: [50, 180], cooler: [20, 140] };
+const ranges: Record<PartCategory, [number, number]> = { gpu: [450, 1200], cpu: [180, 550], motherboard: [110, 280], memory: [50, 600], storage: [60, 300], psu: [60, 200], case: [50, 180], cooler: [20, 140] };
 const patterns: Record<PartCategory, RegExp> = { gpu: /graphics card/i, cpu: /ryzen.*(?:processor|cpu)|(?:processor|cpu).*ryzen/i, motherboard: /motherboard/i, memory: /DDR5/i, storage: /SSD|solid state/i, psu: /power supply|PSU/i, case: /case|chassis/i, cooler: /cooler/i };
 export function parseNeweggProducts(html: string, category: PartCategory): PartCandidate[] {
   const $ = load(html);
@@ -23,6 +23,9 @@ export function parseNeweggProducts(html: string, category: PartCategory): PartC
     const card = $(node);
     const title = card.find(".item-title").text().replace(/\s+/g, " ").trim();
     const text = card.text();
+    if (/stealth|project zero|\bBTF\b|\bPZ\b|pre-installed.*power supply/i.test(title)) return;
+    if (category === "storage" && !/2\s?TB/i.test(title)) return;
+    if (category === "memory" && (!/32\s?GB/i.test(title) || !/(?:2\s*x\s*16\s?GB|16\s?GB\s*x\s*2)/i.test(title) || /SO-?DIMM/i.test(title))) return;
     if (!title || !patterns[category].test(title) || /desktop (?:computer|pc)|gaming (?:desktop|pc)|refurbished|renewed|open box|used/i.test(title) || /out of stock|sold out|notify me|Sponsored/i.test(text) || !/add to cart/i.test(text)) return;
     const dollars = card.find(".price-current strong").first().text().replaceAll(",", "");
     const fraction = card.find(".price-current sup").first().text();
@@ -43,13 +46,13 @@ export function parseNeweggProducts(html: string, category: PartCategory): PartC
   });
   return products;
 }
-export async function collectParts(signal: AbortSignal) {
+export async function collectParts(signal: AbortSignal, read = fetchPublicDocument) {
   const searches = Object.entries(PART_SEARCHES).flatMap(([category, queries]) => queries.map((query) => ({ category: category as PartCategory, url: `https://www.newegg.com/p/pl?d=${encodeURIComponent(query)}` })));
   const candidates: PartCandidate[] = [];
   const gaps: string[] = [];
   for (let i = 0; i < searches.length; i += 4) {
     const batch = searches.slice(i, i + 4);
-    const results = await Promise.allSettled(batch.map((s) => fetchPublicDocument(s.url, signal)));
+    const results = await Promise.allSettled(batch.map((s) => read(s.url, signal)));
     signal.throwIfAborted();
     results.forEach((result, j) => {
       if (result.status === "rejected") { gaps.push(`${batch[j].category}: ${String(result.reason)}`); return; }
@@ -107,6 +110,14 @@ export function extractPartVerification(html: string, id: string): PartVerificat
     }
   }
   $('script[type="application/ld+json"]').each((_, script) => { try { visit(JSON.parse($(script).text())); } catch {} });
+  const buyBox = $(".product-buy-box").first();
+  const current = buyBox.find(".price-current_2026, .price-current").filter((_, node) => $(node).find("strong").length > 0).first();
+  const dollars = current.find("strong").text().replaceAll(",", "");
+  const fraction = current.find("sup").text();
+  if (/^\d+$/.test(dollars) && /^\.\d{2}$/.test(fraction)) {
+    priceCents = Number(dollars) * 100 + Number(fraction.slice(1));
+    available = buyBox.find("button:not([disabled])").toArray().some((button) => /add to cart/i.test($(button).text()));
+  }
   const specs: Record<string, string> = {};
   $("table tr").each((_, row) => {
     const key = $(row).find("th").text().trim();
@@ -116,11 +127,11 @@ export function extractPartVerification(html: string, id: string): PartVerificat
   });
   return { id, priceCents, available, specs };
 }
-export async function verifySelectedParts(build: Build, signal: AbortSignal) {
+export async function verifySelectedParts(build: Build, signal: AbortSignal, read = fetchPublicDocument) {
   const checks: PartVerification[] = [];
   for (let i = 0; i < build.parts.length; i += 4) {
     const batch = build.parts.slice(i, i + 4);
-    const results = await Promise.allSettled(batch.map((p) => fetchPublicDocument(p.url, signal)));
+    const results = await Promise.allSettled(batch.map((p) => read(p.url, signal)));
     signal.throwIfAborted();
     results.forEach((result, j) => checks.push(result.status === "fulfilled" ? extractPartVerification(result.value.body, batch[j].id) : { id: batch[j].id, priceCents: null, available: false, specs: {}, error: String(result.reason) }));
   }

@@ -5,6 +5,7 @@ import {
   targetHeads,
   type ActionCandidate,
   type Decision,
+  type CycleLog,
   type HistoryEntry,
   type Operation,
   type PageSnapshot,
@@ -172,6 +173,7 @@ export function resolveDecision(
       (h) => h !== targetHeads[operation as TargetOperation],
     ),
     request: request.payload,
+    response: response ?? null,
     usage,
   };
   const targets = request.space.targets[operation as TargetOperation];
@@ -225,15 +227,19 @@ export async function decideWithJev(
   model: string,
   signal?: AbortSignal,
   transport: JevTransport = runJev as JevTransport,
+  onExchange?: (exchange: Pick<CycleLog, "request" | "response" | "jevLatencyMs" | "usage">) => void,
 ): Promise<Decision> {
   const request = buildDecisionPayload(page, goal, history, model);
   const started = performance.now();
-  const response = await transport(request.payload, signal);
-  const usage = response._playgroundUsage
-    ? {
-        inputTokens: response._playgroundUsage.inputTokens ?? null,
-        outputTokens: response._playgroundUsage.outputTokens ?? null,
-      }
-    : null;
-  return resolveDecision(response, request, performance.now() - started, usage);
+  let response: Awaited<ReturnType<JevTransport>> | null = null;
+  let usage: Decision["usage"] = null;
+  try {
+    response = await transport(request.payload, signal);
+    usage = response?._playgroundUsage
+      ? { inputTokens: response._playgroundUsage.inputTokens ?? null, outputTokens: response._playgroundUsage.outputTokens ?? null }
+      : null;
+    return resolveDecision(response ?? undefined, request, performance.now() - started, usage);
+  } finally {
+    onExchange?.({ request: request.payload, response, usage, jevLatencyMs: Math.round(performance.now() - started) });
+  }
 }

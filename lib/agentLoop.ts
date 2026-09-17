@@ -54,6 +54,7 @@ export interface AgentDeps {
 export interface LoopState extends AgentState {
   startedAt: number | null;
   doneRejections: number;
+  consecutiveBlocked: number;
   consecutiveRejections: number;
   consecutiveErrors: number;
   pendingText: { key: string; result: TextHelperResult } | null;
@@ -75,6 +76,7 @@ export function createAgentState(goal: string): LoopState {
     textCalls: 0,
     startedAt: null,
     doneRejections: 0,
+    consecutiveBlocked: 0,
     consecutiveRejections: 0,
     consecutiveErrors: 0,
     pendingText: null,
@@ -109,9 +111,12 @@ export async function agentCycle(
     );
   const step = state.log.length + 1;
   let entry = startCycle(step, elapsed(state), page);
+  entry.textMode = deps.textMode;
   const decide =
     deps.decide ??
-    ((p, g, h, m, s) => decideWithJev(p, g, h, m, s, deps.transport));
+    ((p, g, h, m, s) => decideWithJev(p, g, h, m, s, deps.transport, (exchange) => {
+      entry = { ...entry, ...exchange };
+    }));
   let decision: Decision;
   try {
     decision = await decide(
@@ -142,6 +147,8 @@ export async function agentCycle(
     decision,
     decisions: state.decisions + 1,
     consecutiveErrors: 0,
+    consecutiveBlocked:
+      decision.operation === "BLOCKED" ? state.consecutiveBlocked : 0,
   };
   entry = recordDecision(entry, decision);
   const remember = (h: Omit<HistoryEntry, "step">) => {
@@ -191,17 +198,19 @@ export async function agentCycle(
       );
     return { ...state, elapsedMs: elapsed(state) };
   };
-  if (decision.operation === "DONE") {
-    if (!isFresh(deps.doc, deps.win, page))
+  if (decision.operation === "DONE" || decision.operation === "BLOCKED") {
+    if (!isFresh(deps.doc, deps.win, page)) {
+      state = { ...state, consecutiveBlocked: 0 };
       return reject("stale", "Page changed since the decision. Choose again.");
+    }
     const verification = deps.verify(deps.doc, deps.win);
     state = { ...state, verification };
     if (verification.passed) {
       finish("done_verified", verification.summary, { verification });
       remember({
-        action: "DONE",
-        operation: "DONE",
-        kind: "done",
+        action: decision.operation,
+        operation: decision.operation,
+        kind: decision.operation === "DONE" ? "done" : "blocked",
         text: null,
         outcome: "verified",
         pageChanged: false,
@@ -209,8 +218,30 @@ export async function agentCycle(
       return stop(
         state,
         "done",
-        "Goal verified independently of the DONE choice.",
+        `Goal verified independently of the ${decision.operation} choice.`,
       );
+    }
+    if (decision.operation === "BLOCKED") {
+      state = { ...state, consecutiveBlocked: state.consecutiveBlocked + 1 };
+      const retry = state.consecutiveBlocked < 2;
+      const detail = retry
+        ? `BLOCKED is not confirmed. ${verification.summary} Choose again from a fresh observation: check editable fields, dropdowns, dismissible overlays, scrolling, and loading before giving up.`
+        : `Jev still reports no supported operation after a fresh observation. ${verification.summary} Review the goal and page before retrying.`;
+      finish("blocked", detail, { verification });
+      remember({
+        action: "BLOCKED",
+        operation: "BLOCKED",
+        kind: "blocked",
+        text: null,
+        outcome: retry ? `retry: ${detail}` : "blocked",
+        pageChanged: false,
+      });
+      if (!retry) return stop(state, "blocked", detail);
+      return {
+        ...observe(deps, state),
+        decision: null,
+        elapsedMs: elapsed(state),
+      };
     }
     state = {
       ...state,
@@ -233,21 +264,6 @@ export async function agentCycle(
         `DONE was rejected ${MAX_DONE_REJECTIONS} times by the verifier.`,
       );
     return { ...state, decision: null, elapsedMs: elapsed(state) };
-  }
-  if (decision.operation === "BLOCKED") {
-    finish(
-      "blocked",
-      "The policy reported that no supported operation can progress.",
-    );
-    remember({
-      action: "BLOCKED",
-      operation: "BLOCKED",
-      kind: "blocked",
-      text: null,
-      outcome: "blocked",
-      pageChanged: false,
-    });
-    return stop(state, "blocked", "Jev chose BLOCKED. Escalate to a person.");
   }
   const action = decision.action;
   if (!action) {
@@ -274,6 +290,7 @@ export async function agentCycle(
         "Page changed before text generation. Choose again.",
       );
     const context = buildTextContext(state.goal, action, page, state.history);
+    entry.textContext = context;
     const key = JSON.stringify(context);
     if (state.pendingText?.key === key) helper = state.pendingText.result;
     else {
@@ -302,6 +319,7 @@ export async function agentCycle(
       ...entry,
       textHelper: helper.helper,
       textLatencyMs: Math.round(helper.latencyMs),
+      textResult: helper,
     };
     if (helper.text === null) {
       state = { ...state, pendingText: null };

@@ -11,8 +11,9 @@ Open `/jev-browser-agent` to run a browser agent with a dynamic, indexed action 
 5. **Validate before executing.** `isFresh` compares the form/viewport key and the target guard for clicks and selects, and the full marker for everything else. `resolveTarget` re-reads geometry and hit-tests the centre point. Detached, hidden, disabled, read-only, offscreen and covered targets are rejected with a reason, and the rejection is fed back as recent history.
 6. **Execute, log, settle.** Execution is recorded before the next observation. Typing into a combobox waits for visible suggestions, capped at 200 ms; other interactions wait at most two animation frames or 50 ms. `WAIT` is 100 ms.
 7. **Verify DONE independently.** `verifyFlightSearch` reads the sandbox DOM: one-way trip, resolved Zürich and London airports, the ISO date, one adult, economy, visible matching results, and no selected flight. A rejected `DONE` is logged and fed back; three rejections fail the run.
+8. **Recheck BLOCKED.** A stale `BLOCKED` response is discarded. On a current page, the independent verifier checks for completion first. Otherwise, the loop records the unmet checks and asks Jev to decide once more from a fresh observation. A second consecutive `BLOCKED` stops the run. Speculative target answers never override the chosen operation.
 
-Budgets: 40 actions and 80 decisions. Three consecutive actions that change nothing, four consecutive rejections, a `BLOCKED` choice, or two consecutive model failures stop the run with a reason.
+Budgets: 40 actions and 80 decisions. Three consecutive actions that change nothing, four consecutive rejections, two consecutive fresh `BLOCKED` choices, or two consecutive model failures stop the run with a reason.
 
 ## The sandbox
 

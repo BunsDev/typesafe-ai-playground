@@ -60,3 +60,22 @@ test("answer validation requires ten distinct use cases and genuine source evide
   assert.throws(() => validateResearchAnswer({ ...valid, items: valid.items.map((i) => ({ ...i, evidence: [{ sourceId: "S9", quote: "invented" }] })) }, "typesafe", sources), /evidence/i);
   assert.throws(() => validateResearchAnswer({ ...valid, items: valid.items.map((i) => ({ ...i, evidence: [{ sourceId: "S1", quote: "invented" }] })) }, "typesafe", sources), /evidence/i);
 });
+
+test("run accounting uses reported usage, counts failed attempts, and does not invent credit prices", async () => {
+  const { ResearchMeter } = await import("../lib/researchMetrics");
+  const meter = new ResearchMeter();
+  meter.documentCalls = 3; meter.modelCalls = 1; meter.contextCharacters = 400;
+  meter.usage = { prompt_tokens: 123, completion_tokens: 45, cost: 0.012 };
+  const metrics = meter.finish({ usdPerCredit: 0.01 });
+  assert.equal(metrics.toolCalls, 4);
+  assert.equal(metrics.tokensIn, 123);
+  assert.equal(metrics.tokensOut, 45);
+  assert.equal(metrics.totalCostUsd, 0.012);
+  assert.equal(metrics.creditsUsed, 1.2);
+  assert.equal(metrics.costPerCreditUsd, 0.01);
+  assert.equal(meter.finish().costPerCreditUsd, null);
+  const unknown = new ResearchMeter(); unknown.modelCalls = 1;
+  assert.equal(unknown.finish().totalCostUsd, null);
+  assert.equal(unknown.finish().tokensIn, null);
+  assert.equal(new ResearchMeter().finish().totalCostUsd, 0);
+});

@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { validatePayload } from "../lib/api";
-import { buildDecisionPayload, resolveDecision } from "../lib/callJev";
+import { buildDecisionPayload, decideWithJev, resolveDecision } from "../lib/callJev";
 import { buildActionSpace } from "../lib/actions";
 import {
   buildSpanPayload,
@@ -15,6 +15,8 @@ import {
   startCycle,
 } from "../lib/logStep";
 import type { PageSnapshot } from "../types/browserAgent";
+import { createAgentState } from "../lib/agentLoop";
+import { analyzeRun, formatDebugReport } from "../lib/browserAgentDiagnostics";
 /** A hand-built observation of a small search form, no DOM needed. */
 const page = (): PageSnapshot => ({
   url: "about:srcdoc",
@@ -346,4 +348,86 @@ test("a cycle log records the table, the choice, its confidence and the outcome"
     describeCycle(entry),
     "CLICK [4] Search flights → Target rejected: Covered by dialog “Price tracking tip”.",
   );
+});
+
+test("diagnostics retain the exact request and all response heads, model, and usage", async () => {
+  const response = {
+    model: "jev-1.13.0",
+    answers: {
+      operation: { type: "choice", choice: "BLOCKED", confidence: 0.95, probabilities: { BLOCKED: 0.96, CLICK: 0.03, TYPE_TEXT: 0.01 } },
+      type_text_target: { type: "choice", choice: "2", confidence: 0.85, probabilities: { "2": 0.89, "3": 0.11 } },
+    },
+    _playgroundUsage: { inputTokens: 2586, outputTokens: 270 },
+  };
+  const decision = await decideWithJev(page(), goal, [], "jev-latest", undefined, async () => response);
+  const entry = recordDecision(startCycle(1, 0, page()), decision);
+  assert.deepEqual(entry.request, decision.request);
+  assert.deepEqual(entry.response, response);
+  assert.deepEqual(entry.usage, response._playgroundUsage);
+  assert.equal(entry.observation.omitted, 0);
+});
+
+test("failed and invalid decisions retain exchange evidence", async () => {
+  for (const invalid of [false, true]) {
+    const response = { answers: { operation: { type: "choice", choice: "OFF_LIST" } } };
+    let captured: any = null;
+    await assert.rejects(decideWithJev(page(), goal, [], "jev-latest", undefined, async () => {
+      if (invalid) return response;
+      throw Error("Provider unavailable");
+    }, (exchange) => { captured = exchange; }), invalid ? /no operation/ : /Provider unavailable/);
+    assert.equal(captured.request.model, "jev-latest");
+    assert.deepEqual(captured.response, invalid ? response : null);
+    assert.ok(captured.jevLatencyMs >= 0);
+  }
+});
+
+test("run analytics use cycle durations and report missing token coverage explicitly", () => {
+  const request = buildDecisionPayload(page(), goal, [], "jev-latest");
+  const decision = resolveDecision({ answers: { operation: { type: "choice", choice: "BLOCKED", confidence: 0.95, probabilities: { BLOCKED: 0.96, CLICK: 0.03, TYPE_TEXT: 0.01 } } } }, request, 100, { inputTokens: 2586, outputTokens: 270 });
+  const first = finishCycle(recordDecision(startCycle(1, 10, page()), decision), "blocked", "Retry", 110);
+  const second = { ...first, step: 2, startedMs: 120, elapsedMs: 320, jevLatencyMs: 200, usage: null };
+  const state = { ...createAgentState(goal), log: [first, second], decisions: 2 };
+  const analytics = analyzeRun(state);
+  assert.deepEqual(analytics.cycleLatencyMs, { n: 2, mean: 150, median: 150, p95: 200, max: 200 });
+  assert.deepEqual(analytics.decisionLatencyMs, analytics.cycleLatencyMs);
+  assert.deepEqual(analytics.tokens.input, { knownTotal: 2586, total: null, reportedCycles: 1, missingCycles: 1 });
+  assert.equal(analytics.choices[0].selectedProbability, 0.96);
+  assert.ok(Math.abs(analytics.choices[0].margin! - 0.93) < 1e-10);
+  assert.equal(analytics.choices[0].confidence, 0.95);
+});
+
+test("empty and malformed evidence never become zero-cost or confident diagnoses", () => {
+  const state = createAgentState(goal);
+  assert.equal(analyzeRun(state).decisionLatencyMs.mean, null);
+  const entry = startCycle(1, 0, page());
+  entry.operation = "BLOCKED";
+  entry.operationProbabilities = { BLOCKED: 1.2, CLICK: -0.2 };
+  state.log = [entry];
+  state.decisions = 1;
+  const analytics = analyzeRun(state);
+  assert.equal(analytics.choices[0].selectedProbability, null);
+  assert.equal(analytics.choices[0].margin, null);
+  assert.equal(analytics.tokens.input.total, null);
+  assert.deepEqual(analytics.evidenceCoverage.missingRequestSteps, [1]);
+});
+
+test("the pasteable report carries source evidence and explicit single-run limits", () => {
+  const state = createAgentState(goal);
+  const entry = startCycle(1, 0, page());
+  entry.request = buildDecisionPayload(page(), goal, [], "jev-latest").payload;
+  entry.response = { model: "jev-1.13.0", answers: { operation: { choice: "BLOCKED" }, type_text_target: { choice: "2" } } };
+  state.log = [entry];
+  state.decisions = 1;
+  const report = formatDebugReport(state, { environment: { userAgent: "Test browser" }, verifier: { name: "verifyFlightSearch" } });
+  assert.match(report, /single run/i);
+  assert.match(report, /not calibrated/i);
+  assert.match(report, /nearest-rank/i);
+  assert.match(report, /missing/i);
+  assert.match(report, /jev-1.13.0/);
+  assert.match(report, /type_text_target/);
+  assert.match(report, /Test browser/);
+  const evidence = JSON.parse(report.split("```json\n")[1].split("\n```")[0]);
+  assert.deepEqual(evidence.run.log[0].request, entry.request);
+  assert.deepEqual(evidence.run.log[0].response, entry.response);
+  assert.equal(evidence.schemaVersion, 1);
 });
