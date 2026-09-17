@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 const config: NextConfig = {
-  serverExternalPackages: ["z3-solver"],
+  serverExternalPackages: [
+    "z3-solver",
+    "@playwright/test",
+    "playwright",
+    "playwright-core",
+  ],
   outputFileTracingIncludes: {
     "/api/solve": [
       "./node_modules/z3-solver/build/**/*",

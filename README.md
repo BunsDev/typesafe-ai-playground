@@ -46,6 +46,7 @@ The home page groups the prototypes into Language & data, Agents & workflows, Co
 | **Tool router** `/tool-router` | Inspect closed-set routing with simulated tools, policy blocks, and mock approval gates. |
 | **LangChain** `/langchain` | Invoke a real LangChain tool adapter with mocked or live Jev predictions. |
 | **Vector reranker** `/reranker` | Compare vector order, batched Jev relevance, and a labeled lexical mock baseline. |
+| **Clean-room rebuild** `/clean-room` | Run three complete local rebuild demos, or use the CLI with live Jev classification and deterministic code generation. Export the app and verification evidence. |
 | **Browser agent** `/jev-browser-agent` | Research a Newegg PC build in a local browser-use session with Jev closed choices, or run the synthetic flight demo. No text-generation model required. |
 | **Jev plays Doom** `/doom` | Try an original browser shooter with human, Jev, and seeded random control. |
 | **Meme lab** `/memes` | Classify reviewed captions and visual descriptions for tone, audience fit, and possible confusion. |
@@ -171,3 +172,7 @@ Thanks again to **[@nickthompson480](https://github.com/nickthompson480)** for t
 Other `BunsDev` community projects serve distinct roles: [Clarity Judge](https://github.com/BunsDev/clarity-judge) evaluates writing against named checks; [Jev Tool & Model Router](https://github.com/BunsDev/typesafe-router) provides source-level routing logic; [TypeSafe UI](https://github.com/BunsDev/typesafe-ui) provides reusable interface patterns. They are not automatically wired together or officially supported as a suite.
 
 The intended GitHub About description and discovery topics are recorded in [repository-metadata.json](repository-metadata.json). Editing that file does not apply GitHub settings automatically, and discovery topics are not release tags.
+
+### Clean-room rebuild pipeline
+
+Open `/clean-room` for three prefilled, functional demos: catalog search, contacts CRUD, and support tickets. Each observes a real local target, reconstructs its UI and endpoint bindings, and independently compares browser behavior. Demo Jev choices are explicitly simulated; custom targets use live Jev. Both use the same local, deterministic code generator. No external generation model or extra credentials are required. `pnpm clean-room --demo catalog --serve` runs the same pipeline from the terminal. See [setup, artifacts, cost tracking, and limits](docs/clean-room/README.md).

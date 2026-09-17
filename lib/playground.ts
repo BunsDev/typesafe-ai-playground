@@ -106,6 +106,14 @@ export const playgroundGroups = [
         flow: "Tool call → governed route",
       },
       {
+        href: "/clean-room",
+        label: "Clean-room rebuild",
+        icon: Blocks,
+        detail:
+          "Rebuild observed screens and API contracts, then compare behavior in a real browser.",
+        flow: "Observed app → verified rebuild",
+      },
+      {
         href: "/jev-browser-agent",
         label: "Browser agent",
         icon: MousePointerClick,

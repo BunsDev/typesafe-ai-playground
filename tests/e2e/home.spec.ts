@@ -9,8 +9,11 @@ test("home discovers examples by type and query and opens the existing builder",
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     "Many possibilities.",
   );
-  await expect(page.locator(".home-example-card")).toHaveCount(16);
+  await expect(page.locator(".home-example-card")).toHaveCount(17);
   await expect(page.locator(".home-section")).toHaveCount(4);
+  await expect(
+    page.getByRole("link", { name: "Open Clean-room rebuild", exact: true }),
+  ).toHaveAttribute("href", "/clean-room");
   // Each tile closes on the two ends of its flow, as real definition pairs.
   const lead = page.locator(".home-example-card").first();
   await expect(lead.locator("dl > div")).toHaveCount(2);
@@ -42,7 +45,7 @@ test("home discovers examples by type and query and opens the existing builder",
     page.getByRole("heading", { name: "No matching examples" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Show all examples" }).click();
-  await expect(page.locator(".home-example-card")).toHaveCount(16);
+  await expect(page.locator(".home-example-card")).toHaveCount(17);
   await page
     .getByRole("link", { name: "Open Example builder", exact: true })
     .click();
