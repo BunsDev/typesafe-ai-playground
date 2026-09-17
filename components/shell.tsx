@@ -11,6 +11,7 @@ import {
   FileScan,
   GitBranch,
   Bird,
+  Crown,
   Inbox,
   GitPullRequest,
   Network,
@@ -96,6 +97,12 @@ const pages = [
     detail: "Play with a classifier",
   },
   { href: "/memes", label: "Meme lab", icon: Laugh, detail: "Read the room" },
+  {
+    href: "/chess",
+    label: "Jev attempts chess",
+    icon: Crown,
+    detail: "A known limitation, on purpose",
+  },
   {
     href: "/microduck",
     label: "MicroDuck arena",

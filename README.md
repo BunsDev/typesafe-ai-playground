@@ -1,6 +1,6 @@
 # TypeSafe AI Playground
 
-A community playground for **Jev**: run small classification experiments, route conversations, apply decision rules, extract document fields, review code changes, verify logic, test memes, and drive a robot duck.
+A community playground for **Jev**: run small classification experiments, route conversations, apply decision rules, extract document fields, review code changes, verify logic, test memes, drive a robot duck, and watch a fast decision model lose at chess.
 
 **Shout-out to [@nickthompson480](https://github.com/nickthompson480) for the [original TypeSafe AI playground](https://github.com/nickthompson480/typesafe-ai-playground).** This fork builds on that project's example library and Python foundation with a Next.js interface and new interactive prototypes. This is an independent community project, not an official TypeSafe AI product.
 
@@ -25,7 +25,7 @@ Open the address printed by Next.js, normally http://localhost:3000. To choose a
 
 `TYPESAFE_API_KEY` is read only by the server. Do not prefix it with `NEXT_PUBLIC_`, hardcode it in a component, or commit `.env.local`. You can browse and edit examples without a key; Live Jev actions require one. Mock governance/PR demos and exact Z3 checks do not.
 
-## Fourteen workspaces
+## Fifteen workspaces
 
 | Workspace                             | What it does                                                                                                                       |
 | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
@@ -43,6 +43,7 @@ Open the address printed by Next.js, normally http://localhost:3000. To choose a
 | **Jev plays Doom** `/doom`            | Play an original browser maze shooter, hand control to Jev, and compare against a seeded random baseline.                           |
 | **Meme lab** `/memes`                 | Test humor style, audience fit, tone, and likely confusion using captions or reviewed text from an image URL.                       |
 | **MicroDuck arena** `/microduck`      | Drive a grid robot one tick at a time: nine sensor fields in, one of seven actions out, against a random baseline.                  |
+| **Jev attempts chess** `/chess`       | A known limitation, on purpose: pick one legal move per turn with no lookahead, and get marked by the minimax that beats it.        |
 
 The supplied TypeSafe [banner](https://pbs.twimg.com/profile_banners/2014504062797152256/1789084216/1500x500) and [profile mark](https://pbs.twimg.com/profile_images/2100293691227447296/bVoZ2u00_400x400.jpg) are stored locally in public/brand. The social images use IBM Plex Sans, distributed with its [SIL Open Font License](public/brand/OFL.txt). This remains an unofficial community playground.
 
@@ -184,14 +185,14 @@ python3 -m unittest discover -s tests -v
 
 CI tests the production build. To reproduce locally without stopping the dev preview, run E2E_PRODUCTION=1 E2E_PORT=3002 npm run test:e2e after building.
 
-Browser coverage includes desktop/mobile flows, theme persistence, saved drafts, extraction, meme failures, workflow decisions, question triage and its human fallback, arena ticks and their withheld-sensor re-ask, and responsive boundaries from 320px to 2560px, including short landscape screens. `npm start` runs the built production app.
+Browser coverage includes desktop/mobile flows, theme persistence, saved drafts, extraction, meme failures, workflow decisions, question triage and its human fallback, arena ticks and their withheld-sensor re-ask, chess move legality and its blunder marking, and responsive boundaries from 320px to 2560px, including short landscape screens. `npm start` runs the built production app.
 
 | Path                                                       | Responsibility                                                                                                  |
 | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | `app/`                                                     | Next.js routes, server API handlers, global styling, and social metadata                                        |
 | `components/`                                              | Shared shell and React workspace interfaces                                                                     |
-| `lib/`                                                     | Request contracts, question triage, the arena simulation and its driver, image fetching, OCR, and client utilities |
-| `types/`                                                   | Shared closed-set contracts, including the triage outcomes and the arena's sensor and action types              |
+| `lib/`                                                     | Request contracts, question triage, the arena and chess simulations and their drivers, image fetching, OCR, and client utilities |
+| `types/`                                                   | Shared closed-set contracts, including the triage outcomes, the arena's sensor and action types, and the chess move contract |
 | `src/extraction/`                                          | Candidate extraction and Jev ranking                                                                            |
 | `web/catalog.json`                                         | Shared example catalog                                                                                          |
 | `web/library.js`, `web/conversation.js`, `web/workflow.js` | Tested logic shared with the legacy UI                                                                          |
