@@ -1,79 +1,47 @@
 # Contributing
 
-This is a community example library. Useful small contributions include a new
-scenario, a better question, a confusing result with reproducible synthetic
-input, or a usability fix.
+This is an independent community example library and Jev playground. Useful small contributions include a new synthetic scenario, a clearer question, a reproducible confusing result, or a usability fix. Preserve the original playground attribution and MIT license.
+
+Read [README.md](README.md) for the workspaces and [AGENTS.md](AGENTS.md) for repository-specific boundaries. Keep changes focused; do not bundle dependency upgrades, production integrations, or new execution authority into a documentation or example fix.
 
 ## Next.js development
 
-Use Node.js 22+ and pnpm. Run `corepack enable` once — it activates the pnpm
-version pinned in `package.json` — then `pnpm install --frozen-lockfile`, copy
-`.env.example` to `.env.local`, and set your server-only TypeSafe key. Start
-with `pnpm dev`.
+Use Node.js 22+ and the pnpm version pinned in package.json. Install with `pnpm install --frozen-lockfile`, copy `.env.example` to `.env.local`, and start with `pnpm dev`. Configure a server-only TypeSafe key only when intentionally running live evaluations; mocked tests do not need one.
 
-A dependency-free local guard requires pnpm for installation and the dev, build,
-start, test, typecheck, browser-test, and LangChain example scripts. CI rejects
-competing npm, Yarn, and Bun lockfiles (including `bun.lock`). Keep only
-`pnpm-lock.yaml`; the guard never downloads or runs another package manager. Before submitting changes:
+The local package-manager guard requires pnpm for installation and the dev, build, start, test, typecheck, browser-test, and LangChain scripts. Keep only pnpm-lock.yaml; do not introduce npm, Yarn, or Bun lockfiles or bypass the guard.
 
 ```sh
 pnpm test
+pnpm typecheck
 pnpm build
 pnpm exec playwright install chromium
 pnpm test:e2e
 ```
 
-Browser tests mock Jev responses and do not consume API credits. The original
-Python tests still verify the legacy server. New React workspaces live in
-`components/`, routes in `app/`, and pure request contracts in `lib/`.
+Browser tests mock Jev and do not need API credits. CI uses the production build; after building, `E2E_PRODUCTION=1 E2E_PORT=3002 pnpm test:e2e` reproduces that server mode. Do not describe lint as a required existing script: there is no root lint script at this revision.
 
 ## Add an example
 
-1. Fork the repository and create a branch.
-2. Add a case to the relevant pack in `web/catalog.json`, or add a new pack.
-3. Include a unique ID, a clear title, a short description, synthetic state,
-   and a concrete `tryThis` variation. Reuse the pack's questions or provide
-   a `questions` override when the scenario needs different judgments. Pick a
-   collection: Use cases, Fun & games, Dilemmas & debates, Model challenges,
-   or a clearly named new collection.
-4. Run the checks below and try the example in the browser.
-5. Open a pull request explaining what the example tests and why it is useful.
+1. Create a focused branch and add a case to the relevant pack in `web/catalog.json`, or add a clearly named pack.
+2. Include a unique, stable id, clear title, short description, synthetic state, and concrete `tryThis` variation. Reuse the pack's questions or provide a `questions` override when necessary.
+3. Choose an appropriate collection, such as Use cases, Fun & games, Dilemmas & debates, or Model challenges. Follow current catalog entries and validation tests for the exact field shapes.
+4. Run relevant checks and try the example in the browser. Explain what the example tests and why it is useful in the pull request.
 
-The README documents the catalog fields and all three question types. The
-browser's Export library produces a portable format with fully expanded
-questions under a top-level `examples` array. The repository groups examples
-under `packs`; place exported entries in the appropriate pack rather than
-replacing the whole catalog with the portable format.
+Browser exports contain fully expanded questions in a top-level `examples` array; the repository groups examples under `packs`. Place exported cases into the appropriate pack instead of replacing the whole catalog with a portable export. Stable ids are important because saved browser drafts refer to them.
 
-## What makes a useful example?
+## Evidence and reference notes
 
-- A practical decision, playful scenario, or focused challenge with a clear scope.
-- Enough context to answer, or deliberately missing information to test uncertainty.
-- Narrow questions, named choices, and ordered score criteria.
-- A contrast case or a specific modification someone can try.
-- No real customer data, credentials, or private logs.
+A useful example has a clear decision, enough context to answer—or deliberately missing facts to test uncertainty—and narrow typed questions with explicit choices or ordered criteria. Include a contrast case or a specific modification someone can try.
 
-For bias comparisons, change one declared field and hold the operational facts
-constant. Explain the intended invariant. Do not describe one model run as
-proof of fairness or discrimination.
+For A/B or bias comparisons, change one declared field while holding the operational facts constant. State the intended invariant. One model run does not prove fairness, discrimination, accuracy, or robustness.
 
-For a puzzle, include `test.kind: "puzzle"`, explanatory `test.note`, and
-reference-choice maps `expectedA` / `expectedB` for the original variants.
-Check arithmetic, logic, and assumptions independently. For an open-ended
-dilemma or preference use `test.kind: "judgment"` with no answer key. For
-equivalent wording or irrelevant pressure use `test.kind: "consistency"` and
-explain what should remain unchanged. See the README for the full metadata
-format. These are revealable teaching notes, not an automatic grading system.
+For puzzles, follow existing `test.kind: "puzzle"`, `test.note`, and `expectedA` / `expectedB` reference-choice conventions. Independently check arithmetic, logic, and assumptions. For subjective judgments, use `test.kind: "judgment"` without a universal answer key. For equivalent wording or irrelevant pressure, use `test.kind: "consistency"` and state what should stay unchanged. These are revealable teaching notes, not an automatic benchmark claim.
 
-Use original synthetic wording. Link primary background sources where useful;
-do not copy benchmark datasets or claim that an adaptation reproduces a
-published benchmark. Keep instruction traps harmless and confined to choosing
-the wrong answer—never include real secrets or operational attack steps.
+Use original synthetic wording. Link primary background sources where useful; do not copy benchmark datasets or claim an adaptation reproduces a published benchmark. Keep instruction-trap examples harmless and limited to the closed-set task. Never include real secrets, customer records, private logs, or operational attack steps.
 
-Keep IDs stable once published so browser drafts continue to map to the same
-examples. Additions should not require changing UI code.
+## Shared and legacy checks
 
-## Checks
+The original Python tests still cover the legacy server. For changes to shared web/Python code, run the relevant checks as well:
 
 ```sh
 python3 -m unittest discover -s tests -v
@@ -88,23 +56,12 @@ node --check web/workflow.js
 node --check web/workflow-ui.js
 ```
 
-These checks are offline. Never add an API key to CI or make shared-key calls
-from an automated test.
+Keep automated tests offline. Never add a real API key to CI or make shared-key calls from a test. Pure request logic belongs in shared modules, React workspaces in components/, and route handlers in app/. Do not remove the legacy interface simply because a newer workspace exists.
 
-For UI changes, check collection/category filtering, revealable test notes,
-Text/JSON input modes, preserving edits when
-switching examples, saving/reloading a custom example, and a 1280×720 desktop
-viewport. Input, questions, example list and results should scroll within
-their panels. At 390×844 and 320×568, check Browse → Build → Results, the
-collection filter, question/test-note dialogs, touch targets, and absence of
-horizontal overflow. The mobile UI shows one stage at a time; long content
-uses document scrolling. Check both successful and failed runs reaching Results.
+## UI review and reporting
 
-## Report an issue
+Inspect desktop and narrow layouts, including 1280×720, 390×844, and 320×568 where relevant. Check keyboard focus, themes, touch controls, overflow, scroll behavior, collection/category filters, Text/JSON editing, reset/undo, draft persistence, custom examples, and both successful and failed runs. Keep mock/live labels, uncertain outcomes, and source evidence visible.
 
-Include the example ID, the relevant synthetic input, expected behavior,
-observed behavior, and the returned model when relevant. Redact credentials
-and private data. Run exports contain inputs and outputs, so inspect them
-before attaching them.
+A report or pull request should state the example id or workspace, relevant synthetic input, expected and observed behavior, returned model when relevant, commands actually run, results, and any unverified behavior. Inspect exports and screenshots before attaching them; they can contain inputs even when credentials are excluded. Do not report a failed or incomplete result as a pass.
 
-Contributions are licensed under the repository's MIT license.
+Contributions are licensed under the repository's [MIT license](LICENSE). Preserve existing author and asset/font notices.

@@ -1,0 +1,18 @@
+{
+  "repository": "BunsDev/typesafe-ai-playground",
+  "description": "Community playground for TypeSafe AI Jev: editable classification experiments, A/B comparisons, routing, extraction, reasoning checks, and interactive simulations.",
+  "topics": [
+    "typesafe-ai",
+    "jev",
+    "ai-playground",
+    "ai-evaluation",
+    "classification",
+    "decision-models",
+    "typescript",
+    "nextjs",
+    "langchain",
+    "z3",
+    "reranking"
+  ],
+  "note": "Intended GitHub About metadata. This file does not apply repository settings automatically."
+}
