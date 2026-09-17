@@ -19,6 +19,17 @@ const answer = (head: string, choice: string, confidence = 0.95) => ({
   },
 });
 export function scriptedPolicy(payload: any, mode: "solve" | "always-done") {
+  if (payload.questions.field_text) {
+    const value =
+      payload.state.field.label === "Departure date"
+        ? "September 20 2026"
+        : values[payload.state.field.label];
+    const choice =
+      Object.entries(payload.questions.field_text.criteria).find(
+        ([, text]) => text === value,
+      )?.[0] || "none";
+    return { answers: answer("field_text", choice) };
+  }
   const rows = parse(payload.state.element_table);
   const text: string = payload.state.page.text;
   const recent: { outcome: string }[] = payload.state.recent_actions;

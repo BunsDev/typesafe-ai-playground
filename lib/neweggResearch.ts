@@ -13,7 +13,7 @@ export const PART_SEARCHES = {
 } as const;
 export type PartCategory = keyof typeof PART_SEARCHES;
 export type PartCandidate = { id: string; category: PartCategory; title: string; priceCents: number; shipping: "free" | "unknown"; url: string };
-export type Build = { summary: string; parts: (PartCandidate & { reason: string })[]; totalCents: number; remainingCents: number; warnings: string[] };
+export type Build = { selectionMethod?: "jev" | "local-budget-baseline"; summary: string; parts: (PartCandidate & { reason: string })[]; totalCents: number; remainingCents: number; warnings: string[] };
 const ranges: Record<PartCategory, [number, number]> = { gpu: [450, 1200], cpu: [180, 550], motherboard: [110, 280], memory: [50, 600], storage: [60, 300], psu: [60, 200], case: [50, 180], cooler: [20, 140] };
 const patterns: Record<PartCategory, RegExp> = { gpu: /graphics card/i, cpu: /ryzen.*(?:processor|cpu)|(?:processor|cpu).*ryzen/i, motherboard: /motherboard/i, memory: /DDR5/i, storage: /SSD|solid state/i, psu: /power supply|PSU/i, case: /case|chassis/i, cooler: /cooler/i };
 export function parseNeweggProducts(html: string, category: PartCategory): PartCandidate[] {

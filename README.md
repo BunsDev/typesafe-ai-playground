@@ -42,7 +42,7 @@ Open the address printed by Next.js, normally http://localhost:3000. To choose a
 | **SMT solver** `/smt-solver`          | Compare closed-set Jev predictions with real Z3 checks, independent-group decomposition, and measured benchmarks.                   |
 | **Tool router** `/tool-router`        | Follow a LangGraph-style mock workflow with closed-set node selection, policy blocks, approval gates and a step log.                |
 | **LangChain** `/langchain`            | Invoke a real LangChain routing tool with live or mocked Jev predictions; inspect typed policy-gated output.                        |
-| **Browser agent** `/jev-browser-agent` | Drive a synthetic flight search from an indexed element table: one operation and target per Jev request, text from a small LLM only for TYPE_TEXT, and an independent check of the result. |
+| **Browser agent** `/jev-browser-agent` | Research a Newegg PC build in a local browser-use session with Jev closed choices, or run the synthetic flight demo. No text-generation model required. |
 | **Vector reranker** /reranker         | Compare vector order, batched Jev relevance, and an explicit lexical mock baseline. Inspect rank disagreements and source snippets. |
 | **Jev plays Doom** `/doom` | Play an original first-person 3D browser shooter, hand control to Jev, and compare against a seeded random baseline. |
 | **Meme lab** `/memes`                 | Test humor style, audience fit, tone, and likely confusion using captions or reviewed text from an image URL.                       |
@@ -134,7 +134,9 @@ A real `@langchain/core` tool validates input with Zod, routes through the share
 
 ### Jev-powered browser agent
 
-A port of [browser-use/jev-ultrafast](https://github.com/browser-use/jev-ultrafast). Each cycle reads the sandbox page once into an indexed element table (`[3] combobox  Where to? · empty`), asks Jev for the operation and every compatible target head in one request, and executes only the head that matches. The operations are `CLICK`, `TYPE_TEXT`, `SELECT`, `SCROLL_UP`, `SCROLL_DOWN`, `WAIT`, `DONE` and `BLOCKED`. A small LLM writes field text only for `TYPE_TEXT`, through `/api/text-helper`, and its output must parse as `{"text": "…"}` before anything is typed; without `TEXT_MODEL_API_KEY`, Jev picks a span of the goal instead. Before executing, the loop rechecks page freshness and click occlusion; `DONE` is verified independently against the resulting DOM. The sandbox is a fictional flight site in an iframe with an optional covering popover and slow results. See [the browser agent guide](docs/jev-browser-agent.md).
+The browser fills the workspace, with a goal composer at the bottom and diagnostics in Inspector. The default Newegg task uses a local, isolated [browser-use](https://github.com/browser-use/browser-use) session to read rendered listings and product pages. Jev ranks observed candidate IDs; code selects eight parts within $2,500 and rechecks price and stock. Install uv and Chromium (`pnpm exec playwright install chromium`), configure `TYPESAFE_API_KEY`, and run the app on localhost. No `TEXT_MODEL_API_KEY` is used by this workflow.
+
+The optional flight sandbox ports [browser-use/jev-ultrafast](https://github.com/browser-use/jev-ultrafast): each request chooses an operation and compatible targets from an indexed element table. Text comes from Jev-selected spans of the goal. A `BLOCKED` response gets an independent completion check and one fresh retry; speculative targets never override it. PC tasks never use flight checks. See [setup, evidence, and limits](docs/jev-browser-agent.md).
 
 ### Meme lab: text, images, and a meta meme
 

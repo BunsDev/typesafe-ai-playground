@@ -1,0 +1,508 @@
+/* The browser is the workspace; controls stay on the perimeter. */
+.dashboard-shell.app-shell:has(.browser-studio) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.dashboard-shell:has(.browser-studio) > .sidebar,
+.dashboard-shell:has(.browser-studio) .app-footer,
+.dashboard-shell:has(.browser-studio) .mobile-menu {
+  display: none;
+}
+.dashboard-shell:has(.browser-studio) .app-body {
+  background: var(--bg);
+}
+.dashboard-shell:has(.browser-studio) main {
+  padding: 0;
+  overflow: hidden;
+}
+.dashboard-shell:has(.browser-studio) .workspace-topbar {
+  min-height: 42px;
+  height: 42px;
+  padding: 0 20px;
+}
+.browser-studio {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0 16px 12px;
+  color: var(--ink);
+}
+.browser-toolbar {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.browser-identity {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+.browser-identity h1 {
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+}
+.browser-address {
+  margin: 0 auto;
+  flex: 0 1 500px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 8px 16px;
+  color: var(--muted);
+  font: 11px var(--font-mono);
+}
+.browser-address span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.browser-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex-shrink: 0;
+}
+.browser-status-dot[data-busy="true"] {
+  background: var(--success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 12%, transparent);
+}
+.browser-toolbar .button {
+  min-height: 36px;
+  border-radius: 8px;
+  background: transparent;
+}
+.browser-toolbar .button[aria-pressed="true"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.browser-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow:
+    0 2px 5px #00000005,
+    0 12px 32px #00000006;
+}
+.browser-stage .agent-workspace {
+  height: 100%;
+  padding: 0;
+  min-height: 0;
+}
+.browser-stage .agent-sandbox-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.browser-stage .agent-sandbox {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  min-height: 0;
+  border: 0;
+}
+.browser-page-caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--muted);
+}
+.browser-page-caption .tag {
+  font-size: 9px;
+  background: var(--soft);
+  border: 0;
+}
+.browser-sidepanel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(460px, 100%);
+  padding: 16px;
+  background: var(--panel);
+  border-left: 1px solid var(--line);
+  box-shadow: -12px 0 28px #00000008;
+  overflow: auto;
+  z-index: 3;
+}
+.browser-sidepanel .lab-columns {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0 0 16px;
+}
+.browser-sidepanel .lab-panel {
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+}
+.browser-sidepanel .panel-heading {
+  padding: 0 0 12px;
+  margin: 0;
+  background: none;
+}
+.browser-sidepanel .panel-heading h2 {
+  font-size: 13px;
+}
+.browser-sidepanel .empty {
+  min-height: auto;
+  padding: 24px 12px;
+}
+.browser-sidepanel .empty-icon {
+  display: none;
+}
+.browser-sidepanel .agent-status {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.browser-sidepanel .agent-status dd {
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+.browser-sidepanel .agent-inspector > section {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.browser-sidepanel .agent-table {
+  max-height: 260px;
+}
+.browser-sidepanel .router-step-log {
+  margin-top: 20px;
+}
+.browser-sidepanel label {
+  display: block;
+  margin-bottom: 8px;
+}
+.browser-sidepanel input,
+.browser-sidepanel select,
+.browser-sidepanel textarea {
+  width: 100%;
+}
+.browser-sidepanel input[type="checkbox"] {
+  width: auto;
+}
+.browser-sidepanel [aria-label="Run diagnostics"] {
+  margin-top: 18px;
+}
+.browser-sidepanel [aria-label="Run diagnostics"] h3 {
+  margin-bottom: 8px;
+}
+.browser-composer {
+  width: 100%;
+  align-self: center;
+  padding: 12px 6px 0;
+  flex-shrink: 0;
+}
+.browser-composer-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 6px 8px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.browser-preset {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.browser-preset select {
+  padding: 4px 26px 4px 8px;
+  font-size: 11px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  max-width: 220px;
+}
+.browser-input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 3px 10px #00000004;
+}
+.browser-input-row:focus-within {
+  border-color: color-mix(in srgb, var(--accent) 65%, var(--line));
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.browser-input-row textarea {
+  flex: 1;
+  min-width: 0;
+  resize: none;
+  height: 52px;
+  max-height: 120px;
+  padding: 2px 4px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+.browser-run-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.browser-run-controls .button {
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 10px;
+}
+.browser-run-controls .primary {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--panel);
+}
+.browser-run-controls .run-actions {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+}
+.browser-composer-foot {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 6px 0;
+  font-size: 10px;
+  color: var(--muted);
+}
+.browser-start {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+}
+.browser-start h2 {
+  font-size: 24px;
+  letter-spacing: -0.8px;
+  color: var(--ink);
+}
+.browser-start p {
+  max-width: 470px;
+  line-height: 1.65;
+}
+.browser-research-stage {
+  height: 100%;
+  overflow: hidden;
+}
+.local-browser-workspace {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.local-browser-view {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: var(--soft);
+}
+.local-browser-view img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: top center;
+}
+.local-browser-error {
+  flex-shrink: 0;
+  padding: 0 16px;
+}
+.local-browser-error:empty {
+  display: none;
+}
+.local-browser-result {
+  padding: 10px 16px;
+  font-size: 12px;
+  border-top: 1px solid var(--line);
+}
+.browser-page-caption > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.browser-sidepanel[hidden] {
+  display: none;
+}
+.browser-help {
+  width: min(820px, calc(100% - 32px));
+  max-height: 85dvh;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+  color: var(--ink);
+  overflow: auto;
+}
+.browser-help::backdrop {
+  background: #10101980;
+  backdrop-filter: blur(5px);
+}
+.browser-help-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.browser-help .agent-guide {
+  max-width: 100%;
+}
+.browser-studio button:active:not(:disabled) {
+  transform: scale(0.96);
+}
+.browser-studio [aria-label="Debug report text"] {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  font: 11px/1.5 var(--font-mono);
+}
+@media (max-width: 700px) {
+  .browser-studio {
+    padding: 0 8px max(8px, env(safe-area-inset-bottom));
+  }
+  .browser-toolbar {
+    min-height: 50px;
+    gap: 6px;
+  }
+  .browser-identity h1 {
+    font-size: 12px;
+    max-width: 115px;
+    white-space: normal;
+  }
+  .browser-identity > svg,
+  .browser-address {
+    display: none;
+  }
+  .browser-identity {
+    margin-right: auto;
+  }
+  .browser-toolbar .button {
+    padding: 0 8px;
+  }
+  .browser-stage {
+    border-radius: 10px;
+  }
+  .browser-composer {
+    padding-top: 8px;
+  }
+  .browser-composer-meta {
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 7px;
+  }
+  .browser-composer-meta p {
+    font-size: 9px;
+  }
+  .browser-input-row {
+    gap: 6px;
+    padding: 9px;
+    border-radius: 13px;
+  }
+  .browser-input-row textarea {
+    font-size: 16px;
+    height: 68px;
+    line-height: 1.4;
+  }
+  .browser-run-controls .button {
+    min-height: 42px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+  .browser-composer-foot span:last-child {
+    display: none;
+  }
+  .browser-sidepanel {
+    width: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .browser-studio button {
+    transition: none;
+  }
+  .browser-studio button:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+.browser-onboarding {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  padding: 0;
+  list-style: none;
+  max-width: 960px;
+  text-align: left;
+}
+.browser-onboarding li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.browser-onboarding li > span {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  font: 11px var(--font-mono);
+}
+.browser-onboarding strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+.browser-onboarding p {
+  margin-top: 6px;
+  font-size: 12px;
+}
+.local-browser-view .browser-start {
+  min-height: min-content;
+}
+@media (max-width: 700px) {
+  .browser-onboarding {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .local-browser-view .browser-start {
+    height: auto;
+    padding: 22px 18px;
+    gap: 14px;
+  }
+  .local-browser-view .browser-start > p:first-of-type {
+    display: none;
+  }
+  .browser-start h2 {
+    font-size: 20px;
+  }
+}
