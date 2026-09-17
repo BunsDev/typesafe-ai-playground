@@ -26,7 +26,7 @@ Reference: `/jev-browser-agent`. Scope: every page and example, including the lo
 | Medium | Narrow headers | An initial polish rule hid boundary pills. | Independent review caught this; labels now wrap and remain visible. |
 | High | Mobile workspace after closing a guide | An inherited 850px heading rule let controls overflow; native focus restoration shifted the workspace sideways and clipped content. | Scope heading action widths correctly and assert nested workspace overflow and scroll offsets across every route. |
 | Medium | Workflow onboarding | The empty conversation scrolled to the bottom on initial render, clipping its welcome content on short screens. | Start empty conversations at the top; retain scrolling for active conversations and respect reduced motion. |
-| Low | Home test | Hardcoded 16-card expectation omitted the already-present Clean Room card. | Derive the expected count from the canonical navigation catalog. |
+| Low | Home test | The card-count expectation was hardcoded and could drift from the navigation catalog. The current base includes 17 cards. | Derive the expected count from the canonical navigation catalog while retaining Home bento and Clean Room assertions. |
 
 ## Coverage
 

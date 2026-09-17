@@ -43,6 +43,12 @@ test("router continues from the decision and distinguishes completion from a nex
     });
   });
   await page.goto("/tool-router");
+  await expect(
+    page.getByRole("heading", {
+      name: "See the decision, then follow the path",
+    }),
+  ).toBeVisible();
+  await expect(page.locator(".router-step-log")).toHaveCount(0);
   await page
     .getByRole("button", { name: "Run Routing Step", exact: true })
     .click();

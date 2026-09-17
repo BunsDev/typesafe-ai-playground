@@ -2,6 +2,7 @@ import type { RoutingLogEntry } from "../types/workflow";
 import { nodeById } from "../lib/workflowGraph";
 import { percent } from "../lib/client";
 export function StepLog({ entries }: { entries: RoutingLogEntry[] }) {
+  // RoutingResult owns onboarding; the path appears after the first decision.
   if (!entries.length) return null;
   return (
     <section className="router-step-log">
@@ -52,9 +53,6 @@ export function StepLog({ entries }: { entries: RoutingLogEntry[] }) {
           </li>
         ))}
       </ol>
-      {!entries.length && (
-        <p className="field-hint">Your first decision will appear here.</p>
-      )}
     </section>
   );
 }
