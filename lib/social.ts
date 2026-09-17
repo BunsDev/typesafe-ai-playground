@@ -128,6 +128,14 @@ export const SOCIAL_PAGES = {
     steps: ["Sense the grid", "Choose one action", "Compare to a baseline"],
     result: "Sensors → next move",
   },
+  chess: {
+    path: "/chess",
+    title: "Jev attempts chess",
+    description: "The wrong tool for the job, on purpose.",
+    category: "KNOWN LIMITATION",
+    steps: ["Generate legal moves", "Pick one with Jev", "Watch it lose"],
+    result: "One decision → no plan",
+  },
   "smt-solver": {
     path: "/smt-solver",
     title: "SMT solver lab",

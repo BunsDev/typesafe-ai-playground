@@ -13,6 +13,7 @@ test("all workspaces fit the viewport and navigate without runtime errors", asyn
     "/",
     "/conversation",
     "/gate",
+    "/chess",
     "/workflow",
     "/extraction",
     "/memes",
@@ -235,6 +236,7 @@ for (const [width, height] of [
         "/",
         "/conversation",
         "/gate",
+        "/chess",
         "/workflow",
         "/extraction",
         "/memes",
@@ -268,27 +270,29 @@ for (const [width, height] of [
                 ? "Pick a recipient"
                 : route === "/gate"
                   ? "Run triage"
-                  : route === "/workflow"
-                    ? "Send message"
-                    : route === "/extraction"
-                      ? "Run extraction"
-                      : route === "/microduck"
-                        ? "Step"
-                        : route === "/pr-review"
-                          ? "Review PR"
-                          : route === "/ast-governance"
-                            ? "Analyze changes"
-                            : route === "/smt-solver"
-                              ? "Run Check"
-                              : route === "/tool-router"
-                                ? "Run Routing Step"
-                                : route === "/langchain"
-                                  ? "Invoke LangChain tool"
-                                  : route === "/reranker"
-                                    ? "Compare both"
-                                    : route === "/doom"
-                                      ? "Start arena"
-                                      : "Test meme",
+                  : route === "/chess"
+                    ? "One move"
+                    : route === "/workflow"
+                      ? "Send message"
+                      : route === "/extraction"
+                        ? "Run extraction"
+                        : route === "/microduck"
+                          ? "Step"
+                          : route === "/pr-review"
+                            ? "Review PR"
+                            : route === "/ast-governance"
+                              ? "Analyze changes"
+                              : route === "/smt-solver"
+                                ? "Run Check"
+                                : route === "/tool-router"
+                                  ? "Run Routing Step"
+                                  : route === "/langchain"
+                                    ? "Invoke LangChain tool"
+                                    : route === "/reranker"
+                                      ? "Compare both"
+                                      : route === "/doom"
+                                        ? "Start arena"
+                                        : "Test meme",
           exact: true,
         });
         await action.scrollIntoViewIfNeeded();
@@ -830,6 +834,7 @@ test("every workspace has a distinct branded OG and matching Twitter preview", a
     "/",
     "/conversation",
     "/gate",
+    "/chess",
     "/workflow",
     "/extraction",
     "/memes",
@@ -1185,4 +1190,128 @@ test("microduck drives from the closed action set and stops when it cannot", asy
     "Rate limit reached",
   );
   await expect(page.locator(".scoreboard")).toContainText("Failed calls");
+});
+
+test("chess sends only legal moves and marks the blunders it plays", async ({
+  page,
+}) => {
+  // The mock always answers with the first legal candidate the page offered,
+  // which is exactly the "no lookahead" behaviour the workspace is about.
+  const asked: { state: Record<string, unknown>; moves: string[] }[] = [];
+  let reply: "first" | "illegal" | "empty" | "fail" = "first";
+  await page.route("**/api/run", async (route) => {
+    const payload = route.request().postDataJSON();
+    expect(Object.keys(payload.questions)).toEqual(["move"]);
+    expect(payload.questions.move.type).toBe("choice");
+    const moves = Object.keys(payload.questions.move.criteria);
+    asked.push({ state: payload.state, moves });
+    // The board itself is never sent — only the nine-field summary.
+    expect(Object.keys(payload.state).sort()).toEqual([
+      "captures_available",
+      "checks_available",
+      "in_check",
+      "last_opponent_move",
+      "legal_move_count",
+      "material_balance",
+      "move_number",
+      "phase",
+      "side_to_move",
+    ]);
+    if (reply === "fail")
+      return route.fulfill({
+        status: 429,
+        json: { error: "Rate limit reached. Try again." },
+      });
+    const choice =
+      reply === "illegal" ? "Qxz9#" : reply === "empty" ? "" : moves[0];
+    await route.fulfill({
+      json: {
+        answers: {
+          move:
+            reply === "empty"
+              ? { type: "choice" }
+              : {
+                  type: "choice",
+                  choice,
+                  probabilities: { [moves[0]]: 0.71, [moves[1]]: 0.09 },
+                },
+        },
+      },
+    });
+  });
+  await page.goto("/chess");
+  await expect(
+    page.getByText("This is the wrong tool for this job"),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "One move", exact: true }).click();
+  // 20 legal openings for White, and every candidate key is a real move.
+  await expect.poll(() => asked.length).toBe(1);
+  expect(asked[0].moves).toHaveLength(20);
+  expect(asked[0].moves).toContain("e4");
+  expect(asked[0].state.side_to_move).toBe("white");
+  await expect(page.locator(".chess-verdict")).toContainText("71.0%");
+  await expect(page.locator(".chess-log")).toContainText("1");
+
+  // The opponent replied, so the next ask names Black's last move.
+  await page.getByRole("button", { name: "One move", exact: true }).click();
+  await expect.poll(() => asked.length).toBe(2);
+  expect(asked[1].state.last_opponent_move).not.toBe("none");
+  expect(asked[1].state.move_number).toBe(2);
+
+  // An answer outside the legal list falls back to the best-scoring legal move
+  // rather than playing something illegal.
+  reply = "illegal";
+  await page.getByRole("button", { name: "One move", exact: true }).click();
+  await expect.poll(() => asked.length).toBe(3);
+  await expect(page.locator(".chess-verdict")).toContainText(
+    "outside the legal list",
+  );
+
+  // Nothing usable still produces a legal move rather than hanging the game.
+  reply = "empty";
+  await page.getByRole("button", { name: "One move", exact: true }).click();
+  await expect.poll(() => asked.length).toBe(4);
+  await expect(page.locator(".chess-verdict")).toContainText(
+    "returned nothing usable",
+  );
+
+  // A failed request surfaces and plays no move at all.
+  reply = "fail";
+  const before = await page.locator(".chess-log tbody tr").count();
+  await page.getByRole("button", { name: "One move", exact: true }).click();
+  await expect(page.locator(".error-note")).toContainText("Rate limit reached");
+  expect(await page.locator(".chess-log tbody tr").count()).toBe(before);
+});
+
+test("chess re-marks blunders locally when the threshold moves", async ({
+  page,
+}) => {
+  let calls = 0;
+  await page.route("**/api/run", async (route) => {
+    calls++;
+    const moves = Object.keys(
+      route.request().postDataJSON().questions.move.criteria,
+    );
+    await route.fulfill({
+      json: {
+        answers: {
+          move: {
+            type: "choice",
+            choice: moves[0],
+            probabilities: { [moves[0]]: 0.5 },
+          },
+        },
+      },
+    });
+  });
+  await page.goto("/chess");
+  await page.getByLabel("Mode", { exact: true }).selectOption("jev_random");
+  await page.getByRole("button", { name: "One move", exact: true }).click();
+  await expect(page.locator(".chess-verdict")).toBeVisible();
+  const seen = calls;
+  // Dragging the threshold re-judges the moves already played, with no new
+  // request: the referee is local.
+  await page.getByRole("slider", { name: /Blunder threshold/ }).fill("50");
+  await expect(page.locator(".chess-verdict")).toBeVisible();
+  expect(calls).toBe(seen);
 });
