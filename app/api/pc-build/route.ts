@@ -1,6 +1,7 @@
 import { ResearchMeter, researchPricing } from "../../../lib/researchMetrics";
 import { readBoundedBody } from "../../../lib/api";
 import { buildCandidatePayload, collectParts, PART_SEARCHES, validateBuild, verifySelectedParts } from "../../../lib/neweggResearch";
+import { resolveBrowserContext } from "../../../lib/browserTaskContext";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -12,7 +13,21 @@ export async function POST(request: Request) {
   const origin = request.headers.get("origin");
   if ((origin && origin !== new URL(request.url).origin) || request.headers.get("sec-fetch-site") === "cross-site")
     return respond({ error: "Cross-origin requests are not allowed." }, { status: 403, headers });
-  // No user-controlled URLs or free-form instructions enter the fetching pipeline.
+  if (!request.headers.get("content-type")?.includes("application/json"))
+    return respond({ error: "Use application/json." }, { status: 415, headers });
+  // The goal only selects the fixed Newegg workflow. It never enters the fetching pipeline,
+  // so no user-controlled URLs or free-form instructions reach it.
+  let goal: string;
+  try {
+    const body = JSON.parse(await readBoundedBody(request.body, 4096));
+    if (!body || typeof body.goal !== "string" || Object.keys(body).some((k) => k !== "goal")) throw Error("Send a goal.");
+    goal = body.goal;
+  } catch {
+    return respond({ error: "Send { goal } as JSON." }, { status: 400, headers });
+  }
+  const task = resolveBrowserContext(goal);
+  if (task.kind !== "newegg")
+    return respond({ error: task.kind === "unsupported" ? task.reason : "This endpoint only runs the Newegg PC research workflow.", context: task }, { status: 400, headers });
   const signal = AbortSignal.any([request.signal, AbortSignal.timeout(110000)]);
   let collection: Awaited<ReturnType<typeof collectParts>>;
   try { collection = await collectParts(signal, meter.read); }
