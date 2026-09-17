@@ -35,6 +35,9 @@
   padding: var(--card-padding);
   min-width: 0;
 }
+.dashboard-shell .workspace .question-row.excluded {
+  background: transparent;
+}
 .dashboard-shell .workspace .ranked-message.is-unavailable {
   border-style: dashed;
 }
@@ -249,6 +252,15 @@
 }
 /* Native disclosures share a padded card header and a separated content area.
    Keep the in-game minimap's own dark HUD surface and compact dimensions. */
+/* Preserve the compact minimap header while keeping its existing chevron. */
+.dashboard-shell .workspace details > summary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  list-style: none;
+  min-height: 38px;
+  line-height: 1.5;
+}
 .dashboard-shell .workspace details:not(.doom-minimap) {
   min-width: 0;
   padding: var(--card-padding);
@@ -319,6 +331,7 @@
 }
 /* Question rows already provide the card around their checkbox and disclosure. */
 .dashboard-shell .workspace .question-row .question-edit {
+  border-radius: 0 var(--card-radius) var(--card-radius) 0;
   background: transparent;
   border: 0;
   box-shadow: none;
@@ -326,17 +339,48 @@
   padding: 0;
 }
 .dashboard-shell .workspace .question-row .question-edit > summary {
+  border-radius: 0 calc(var(--card-radius) - 1px) calc(var(--card-radius) - 1px)
+    0;
   padding: 8px;
   margin: 0;
   min-height: 54px;
 }
 .dashboard-shell .workspace .question-row .question-edit[open] > summary {
+  border-radius: 0 calc(var(--card-radius) - 1px) 0 0;
   margin-bottom: 12px;
+}
+.dashboard-shell .workspace .question-edit > .rule-edit {
+  border-top: 0;
 }
 .dashboard-shell .workspace .rule > .rule-edit {
   padding: 0;
   border: 0;
   background: transparent;
+}
+/* Evidence inside an existing card stays compact; the outer card owns its surface. */
+.dashboard-shell .workspace :is(.router-step-log li, .compact-finding) details {
+  padding: 0;
+  margin: 12px 0 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.dashboard-shell
+  .workspace
+  :is(.router-step-log li, .compact-finding)
+  details
+  > summary {
+  padding: 8px;
+  margin: 0;
+  min-height: 36px;
+  border-radius: 6px;
+}
+.dashboard-shell
+  .workspace
+  :is(.router-step-log li, .compact-finding)
+  details[open]
+  > summary {
+  margin-bottom: 12px;
 }
 /* Keep risk cues alongside the shared surface. */
 .dashboard-shell .workspace .hunk-card.risk-high {
