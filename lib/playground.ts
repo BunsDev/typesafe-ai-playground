@@ -179,6 +179,37 @@ export const playgroundGroups = [
     ],
   },
 ];
+/**
+ * Bento spans over a six-column set. Every set opens with a wide lead tile,
+ * and the rows that follow always fill exactly, so a filtered set never
+ * leaves a ragged hole where a tile used to be.
+ */
+export function bentoSpans(total: number): number[] {
+  if (total < 1) return [];
+  if (total === 1) return [6];
+  const spans = [4, 2];
+  for (let rest = total - 2; rest > 0;) {
+    if (rest >= 3) {
+      spans.push(2, 2, 2);
+      rest -= 3;
+    } else if (rest === 2) {
+      spans.push(3, 3);
+      rest -= 2;
+    } else {
+      spans.push(6);
+      rest -= 1;
+    }
+  }
+  return spans;
+}
+/** Every flow reads "in → out", the two ends a typed judgment connects. */
+export function flowEnds(flow: string): { input: string; output: string } {
+  const [input, output] = flow.split("→");
+  return {
+    input: (input ?? flow).trim(),
+    output: (output ?? "").trim(),
+  };
+}
 export const homePage = { href: "/", label: "Home", icon: House };
 export const playgroundPages = [
   homePage,
