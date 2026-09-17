@@ -2,6 +2,14 @@ import type { NextConfig } from "next";
 const config: NextConfig = {
   serverExternalPackages: ["z3-solver"],
   outputFileTracingIncludes: {
+    "/api/native-browser": [
+      "./scripts/local-browser.py",
+      "./lib/nativeBrowser/dom-runtime.js",
+    ],
+    "/api/native-browser/run": [
+      "./scripts/local-browser.py",
+      "./lib/nativeBrowser/dom-runtime.js",
+    ],
     "/api/solve": [
       "./node_modules/z3-solver/build/**/*",
       "./node_modules/async-mutex/**/*",
