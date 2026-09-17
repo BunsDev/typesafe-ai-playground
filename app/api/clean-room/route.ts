@@ -69,7 +69,7 @@ export async function DELETE(request: Request) {
     const job = getDemoJob(new URL(request.url).searchParams.get("id") || "");
     if (job.status === "running")
       throw Error("Wait for verification to finish before closing this run.");
-    job.close?.();
+    await job.close?.();
     return Response.json(publicJob(job));
   } catch (e) {
     return Response.json(

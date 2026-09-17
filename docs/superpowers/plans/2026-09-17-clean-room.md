@@ -13,7 +13,7 @@ Tech stack: existing pnpm/tsx, Zod, Playwright, TypeSafe transport, Node HTTP se
 5. `src/clean-room/emit.ts`, `runtime.js`, `server.mjs`: export DOM component modules and deterministic bindings with query/path/body mapping, render responses, refresh reads after mutations, and server-side API proxy.
 6. `src/clean-room/verify.ts`: fresh browser comparisons of target/rebuild text, elements, screenshots, errors and request/response traces. Uncovered endpoints and interactions remain explicit gaps.
 7. `src/clean-room/run.ts`, `scripts/clean-room.ts`: stage artifacts, failure persistence, live adapters, CLI and local reference demo. Add pnpm scripts and documentation.
-8. `tests/clean-room-integration.test.ts`: actual local HTTP target and standalone rebuilt app, with simulated Jev choices explicitly marked mock and the same deterministic component emitter as live runs. Verify both successful behavior and deliberately broken wiring.
+8. `tests/e2e/clean-room-integration.spec.ts`: actual local HTTP target and standalone rebuilt app, with simulated Jev choices explicitly marked mock and the same deterministic component emitter as live runs. Verify both successful behavior and deliberately broken wiring.
 9. Run focused tests, full `pnpm test`, `pnpm typecheck`, `pnpm build`, and the live CLI if credentials and target are available. Inspect artifacts against all six requirements. No automatic commit or publish.
 
 External target URL/docs are pending. A local reference proves the mechanism, not fidelity to an unspecified target.

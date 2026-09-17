@@ -14,6 +14,14 @@ test("home discovers examples by type and query and opens the existing builder",
   );
   await expect(page.locator(".home-example-card")).toHaveCount(exampleCount);
   await expect(page.locator(".home-section")).toHaveCount(4);
+  await expect(
+    page.getByRole("link", { name: "Open Clean-room rebuild", exact: true }),
+  ).toHaveAttribute("href", "/clean-room");
+  // Each tile closes on the two ends of its flow, as real definition pairs.
+  const lead = page.locator(".home-example-card").first();
+  await expect(lead.locator("dl > div")).toHaveCount(2);
+  await expect(lead.locator("dt").first()).toHaveText("in");
+  await expect(lead.locator("dd").first()).toHaveText("Context");
   await page.locator(".playground-home").hover();
   await page.mouse.wheel(0, 10000);
   await expect(page.locator(".home-note")).toBeInViewport();

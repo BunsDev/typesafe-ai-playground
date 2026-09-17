@@ -88,7 +88,7 @@ Default output is `.clean-room/<demo-or-custom>-<timestamp>/`:
 
 Verification uses a fresh Chromium context for every screen/scenario and compares visible text, semantic elements/current values, every observed API request method/path/variables, response status/body, runtime errors, and full-page screenshots. Pixel differences above 2% fail by default. The UI captures at the current viewport; CLI runs use the configured viewport. A passing report proves that viewport, not all responsive breakpoints. Jev's completion claim is not consulted. An uncovered endpoint, unexercised named control, absent interaction scenario, or failed comparison yields `review-required` and a nonzero CLI exit. A report only covers the configured observations; it never claims all unobserved behavior works.
 
-OpenAPI discovery resolves local references and inherited parameters. External references must be bundled first. Browser discovery captures same-origin JSON fetch/XHR traffic. The current runtime supports JSON requests, query/path variables, forms, response text, repeated list templates, navigation to captured routes, and refreshes read bindings after mutations. Cross-origin APIs, uploads, nested repeaters, canvas content, custom widgets, externally loaded assets/fonts, and authentication flows may require adapters; discrepancies remain visible. Configure `CLEAN_ROOM_TARGET_TOKEN` for a server-side bearer token on the generated proxy. This does not authenticate original browser capture.
+OpenAPI discovery resolves local references and inherited parameters. External references must be bundled first. Browser discovery captures same-origin JSON fetch/XHR traffic. The current runtime supports JSON requests, query/path variables, forms, response text, repeated list templates, navigation to captured routes, and refreshes read bindings after mutations. Only the initial screen structure is emitted; scenario observations are verification evidence. Cross-origin APIs, uploads, nested repeaters, canvas content, custom widgets, post-action dialogs or other newly introduced controls, externally loaded assets/fonts, and authentication flows may require adapters; discrepancies remain visible. Configure `CLEAN_ROOM_TARGET_TOKEN` for a server-side bearer token on the generated proxy. This does not authenticate original browser capture.
 
 ## Costs
 
@@ -106,8 +106,8 @@ The Jev input default matches the playground's existing input-only estimate. Uns
 ## Verification commands
 
 ```sh
-pnpm exec tsx --test tests/clean-room.test.ts tests/clean-room-isolation.test.ts tests/clean-room-integration.test.ts
-E2E_PRODUCTION=1 E2E_PORT=3108 pnpm test:e2e tests/e2e/clean-room.spec.ts --workers=1
+pnpm exec tsx --test tests/clean-room.test.ts
+E2E_PRODUCTION=1 E2E_PORT=3108 pnpm test:e2e tests/e2e/clean-room*.spec.ts --workers=1
 pnpm test
 pnpm typecheck
 pnpm build

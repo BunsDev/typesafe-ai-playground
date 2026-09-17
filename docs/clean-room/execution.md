@@ -19,13 +19,13 @@ Objective: implement all six stages in the supplied clean-room pipeline brief, p
 
 ## Current evidence
 
-- `pnpm test`: 36 JavaScript tests + 202 TypeScript tests passed (238 total).
+- `pnpm test`: 36 JavaScript tests + 203 TypeScript tests passed (239 total), including the current main branch home-layout tests.
 - `pnpm typecheck`: passed.
 - `pnpm build`: passed. The existing unrelated local-browser subprocess tracing warning remains.
-- `E2E_PRODUCTION=1 E2E_PORT=3112 pnpm test:e2e tests/e2e/clean-room.spec.ts --workers=1`: 6 passed, desktop and mobile, 58.1 seconds.
+- `E2E_PRODUCTION=1 E2E_PORT=3113 pnpm test:e2e tests/e2e/clean-room*.spec.ts --workers=1`: 18 passed across desktop/mobile UI flows plus pipeline and isolation regressions. Browser-dependent tests run in the Playwright suite after CI installs Chromium.
 - A deliberately unwired search is rejected by independent verification despite the app rendering.
 - Generated top-level API calls and CSS custom-property resource indirection are rejected without reaching the target.
-- UI and CLI runs write app, JSON, and screenshot evidence under ignored `.clean-room/<run>/`. Use the UI or `--serve` to keep the demo API and rebuilt app alive for interactive previews.
+- CLI runs write app, JSON, and screenshot evidence under ignored `.clean-room/<run>/`; UI runs use a temporary directory and expose artifact downloads. Use the UI or `--serve` to keep the demo API and rebuilt app alive for interactive previews.
 
 ## Remaining live evidence
 
@@ -33,10 +33,10 @@ Objective: implement all six stages in the supplied clean-room pipeline brief, p
 - No generation-provider setup or credentials are needed. The external generator has been removed, and both demo and live modes use the same local emitter.
 - An external target was not supplied. The three supplied local targets are fully configured functional demos.
 
-No commit, push, or deployment was performed.
-
 ## Jev-only correction
 
 The model adapter exposes only Jev classification. The component emitter uses a trusted local template, never a model request, and does not consume the Jev call budget. Audit records identify deterministic emission with zero model tokens; cost reports count local component emissions separately and report zero generation-model calls.
 
 A regression rejects any network fetch during live-mode emission and verifies identical output in demo mode. Existing independent browser tests exercise the emitter, standalone runtime, API wiring, downloaded evidence, and fresh interactions in all three demos.
+
+Review follow-up: normalize target origins, reserve concurrent job slots before asynchronous setup, make close idempotent for successful and failed jobs, remove evicted run directories and temporary download archives, and close test jobs in finally blocks. Regression coverage includes trailing-slash origins and concurrent starts/repeated shutdown.

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { mkdtemp, readFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -20,7 +20,7 @@ export type DemoJob = {
   error?: string;
   report?: Awaited<ReturnType<typeof runPipeline>>["report"];
   cost?: Awaited<ReturnType<typeof runPipeline>>["cost"];
-  close?: () => void;
+  close?: () => Promise<void>;
 };
 const globalStore = globalThis as typeof globalThis & {
   cleanRoomJobs?: Map<string, DemoJob>;
@@ -33,22 +33,43 @@ export async function startDemoJob(
 ) {
   if ([...jobs.values()].filter((j) => j.status === "running").length >= 2)
     throw Error("Two rebuilds are already running. Wait for one to finish.");
-  for (const [id, job] of jobs)
-    if (jobs.size >= 6 && job.status !== "running") {
-      job.close?.();
-      jobs.delete(id);
-    }
   const job: DemoJob = {
     id: randomUUID(),
     demo,
     mode,
     stage: "starting",
     status: "running",
-    output: await mkdtemp(path.join(os.tmpdir(), "clean-room-")),
+    output: "",
   };
+  // Reserve synchronously before filesystem work yields to another POST.
   jobs.set(job.id, job);
+  try {
+    for (const [id, old] of jobs)
+      if (jobs.size > 6 && old.status !== "running") {
+        jobs.delete(id);
+        await old.close?.();
+        if (old.output) await rm(old.output, { recursive: true, force: true });
+      }
+    job.output = await mkdtemp(path.join(os.tmpdir(), "clean-room-"));
+  } catch (error) {
+    jobs.delete(job.id);
+    throw error;
+  }
+  let target: Awaited<ReturnType<typeof startDemoTarget>> | undefined;
+  let app: Awaited<ReturnType<typeof runPipeline>> | undefined;
+  let expiry: ReturnType<typeof setTimeout> | undefined;
+  let closing: Promise<void> | undefined;
+  job.close = () => {
+    if (expiry) clearTimeout(expiry);
+    job.status = "closed";
+    job.url = undefined;
+    job.targetUrl = undefined;
+    return (closing ??= (async () => {
+      app?.close();
+      await target?.close();
+    })());
+  };
   void (async () => {
-    let target: Awaited<ReturnType<typeof startDemoTarget>> | undefined;
     try {
       target = await startDemoTarget();
       job.targetUrl = target.url + "/" + demo;
@@ -67,22 +88,24 @@ export async function startDemoJob(
           },
         },
       );
+      app = result;
       job.url = result.url + "/" + demo;
       job.report = result.report;
       job.cost = result.cost;
       job.status = result.report.status as DemoJob["status"];
       job.stage = "complete";
-      job.close = () => {
-        result.close();
-        void target?.close();
-        job.status = "closed";
-        job.url = undefined;
-        job.targetUrl = undefined;
-      };
-      const expiry = setTimeout(() => job.close?.(), 20 * 60 * 1000);
+      expiry = setTimeout(
+        () => {
+          void job.close?.().catch((error) => {
+            job.status = "failed";
+            job.error = error instanceof Error ? error.message : "Close failed";
+          });
+        },
+        20 * 60 * 1000,
+      );
       expiry.unref();
     } catch (e) {
-      await target?.close();
+      await job.close?.();
       job.status = "failed";
       job.error = e instanceof Error ? e.message : "Rebuild failed";
     }
@@ -113,13 +136,18 @@ export async function artifact(id: string, name: string) {
   if (name === "bundle") {
     if (job.status === "running")
       throw Error("Wait for the run before exporting.");
-    const dest = path.join(os.tmpdir(), `clean-room-${job.id}.tar.gz`);
-    await promisify(execFile)("tar", ["-czf", dest, "-C", job.output, "."]);
-    return {
-      body: await readFile(dest),
-      type: "application/gzip",
-      name: `clean-room-${job.demo}.tar.gz`,
-    };
+    const temp = await mkdtemp(path.join(os.tmpdir(), "clean-room-download-"));
+    try {
+      const dest = path.join(temp, "bundle.tar.gz");
+      await promisify(execFile)("tar", ["-czf", dest, "-C", job.output, "."]);
+      return {
+        body: await readFile(dest),
+        type: "application/gzip",
+        name: `clean-room-${job.demo}.tar.gz`,
+      };
+    } finally {
+      await rm(temp, { recursive: true, force: true });
+    }
   }
   if (!allowed.includes(name)) throw Error("Unknown artifact.");
   return {

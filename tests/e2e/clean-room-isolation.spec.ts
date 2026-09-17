@@ -1,10 +1,9 @@
-import { test } from "node:test";
 import assert from "node:assert/strict";
-import { chromium } from "@playwright/test";
+import { chromium, test } from "@playwright/test";
 import { createServer } from "node:http";
-import { compileComponents } from "../src/clean-room/compile";
-import { snapshot } from "../src/clean-room/browser";
-import { flatten } from "../src/clean-room/contracts";
+import { compileComponents } from "../../src/clean-room/compile";
+import { snapshot } from "../../src/clean-room/browser";
+import { flatten } from "../../src/clean-room/contracts";
 const node = () => ({
   id: "n1",
   tag: "li",
