@@ -110,7 +110,9 @@ export async function executeAction(
   };
   if (action.kind === "select") {
     const select = element as HTMLSelectElement;
-    select.value = action.value ?? "";
+    if (action.optionIndex === undefined)
+      throw Error("No observed option index; nothing selected.");
+    select.selectedIndex = action.optionIndex;
     select.dispatchEvent(new Event("input", { bubbles: true }));
     select.dispatchEvent(new Event("change", { bubbles: true }));
     return `selected “${action.label}”`;

@@ -455,7 +455,7 @@ test("a Newegg goal runs PC research with PC diagnostics and no flight calls", a
   await expect(
     page.getByRole("button", { name: "Run agent", exact: true }),
   ).toHaveCount(0);
-  await page.getByRole("button", { name: "Find PC parts" }).click();
+  await page.getByLabel("Goal", { exact: true }).press("Control+Enter");
   await expect(
     page.getByText("No verified GPU listings.", { exact: true }).first(),
   ).toBeVisible();
@@ -580,4 +580,115 @@ test("PC billing fallback remains usable and skips a blocked provider on the nex
   ).toBeEnabled();
   await page.getByRole("button", { name: "Find PC parts" }).click();
   await expect.poll(() => modes).toEqual(["jev", "local"]);
+});
+
+test("a covered native select is rejected without changing its value", async ({
+  page,
+}) => {
+  await page.route("**/api/run", (route) => mockModels(route, "solve", []));
+  await page.goto("/jev-browser-agent");
+  await page.getByLabel("Task preset", { exact: true }).selectOption("flight");
+  await page.getByRole("button", { name: "Inspector", exact: true }).click();
+  const frame = page.frameLocator("iframe.agent-sandbox");
+  await expect(
+    frame.getByRole("combobox", { name: "Trip type" }),
+  ).toBeVisible();
+  await frame.locator("body").evaluate((body) => {
+    const overlay = body.ownerDocument.createElement("div");
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-label", "Cover");
+    overlay.style.cssText =
+      "position:fixed;inset:0;z-index:99999;background:transparent";
+    body.append(overlay);
+  });
+  await page.getByRole("button", { name: "One cycle" }).click();
+  await expect(page.locator(".router-step-log")).toContainText(
+    "Covered by dialog",
+  );
+  await expect(frame.getByRole("combobox", { name: "Trip type" })).toHaveValue(
+    "round",
+  );
+});
+
+test("WAIT is discarded when content height changes during the decision", async ({
+  page,
+}) => {
+  await page.route("**/api/run", async (route) => {
+    await page
+      .frameLocator("iframe.agent-sandbox")
+      .locator("body")
+      .evaluate((body) => {
+        const extra = body.ownerDocument.createElement("div");
+        extra.style.height = "3000px";
+        body.append(extra);
+      });
+    return route.fulfill({
+      json: { answers: { operation: { type: "choice", choice: "WAIT" } } },
+    });
+  });
+  await page.goto("/jev-browser-agent");
+  await page.getByLabel("Task preset", { exact: true }).selectOption("flight");
+  await page.getByRole("button", { name: "Inspector", exact: true }).click();
+  await page.getByRole("button", { name: "One cycle" }).click();
+  await expect(page.locator(".router-step-log")).toContainText(
+    "Page changed since this decision",
+  );
+});
+
+test("SELECT keeps the chosen option index when values are duplicated", async ({
+  page,
+}) => {
+  await page.route("**/api/run", (route) => mockModels(route, "solve", []));
+  await page.goto("/jev-browser-agent");
+  await page.getByLabel("Task preset", { exact: true }).selectOption("flight");
+  await page.getByRole("button", { name: "Inspector", exact: true }).click();
+  const select = page
+    .frameLocator("iframe.agent-sandbox")
+    .getByRole("combobox", { name: "Trip type" });
+  await select.evaluate((node: HTMLSelectElement) => {
+    node.options[1].value = node.options[0].value;
+  });
+  await page.getByRole("button", { name: "One cycle" }).click();
+  await expect
+    .poll(() =>
+      select.evaluate((node: HTMLSelectElement) => node.selectedIndex),
+    )
+    .toBe(1);
+});
+
+test("enlarged welcome cards fit large screens without clipping", async ({
+  page,
+}, info) => {
+  test.skip(info.project.name !== "desktop", "Wide viewport matrix runs once.");
+  for (const [width, height] of [
+    [1440, 1000],
+    [1920, 1080],
+    [2560, 1440],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await page.goto("/jev-browser-agent");
+    await expect(page.locator(".pc-hero-row")).toBeVisible();
+    const layout = await page.evaluate(() => {
+      const view = document.querySelector(".local-browser-view")!;
+      return {
+        pageWidth: document.documentElement.scrollWidth,
+        contentWidth: document
+          .querySelector(".pc-landing-content")!
+          .getBoundingClientRect().width,
+        height: view.clientHeight,
+        scrollHeight: view.scrollHeight,
+      };
+    });
+    expect(layout.pageWidth).toBeLessThanOrEqual(width);
+    expect(layout.contentWidth).toBeGreaterThanOrEqual(
+      width >= 1800 ? 1500 : 1300,
+    );
+    expect(layout.scrollHeight).toBeLessThanOrEqual(layout.height + 1);
+    await expect(
+      page.getByLabel("How this browser agent works"),
+    ).toBeInViewport();
+    await expect(
+      page.getByRole("button", { name: "Find PC parts" }),
+    ).toBeInViewport();
+  }
 });

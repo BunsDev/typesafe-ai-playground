@@ -66,8 +66,15 @@ export async function POST(request: Request) {
   } catch (error) {
     return respond({ error: String(error) }, 400);
   }
-  if (session.busy)
-    return respond({ error: "This browser is already running a task." }, 409);
+  if (session.busy || session.used)
+    return respond(
+      {
+        error:
+          "Each local browser session supports one research run. Start a new session.",
+      },
+      409,
+    );
+  session.used = true;
   session.busy = true;
   session.phase = "Reading listings";
   session.completedReads = 0;

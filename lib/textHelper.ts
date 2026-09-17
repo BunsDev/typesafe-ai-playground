@@ -163,7 +163,9 @@ async function spanText(
     string
   >;
   const choice =
-    typeof answer?.choice === "string" && Object.hasOwn(criteria, answer.choice)
+    answer?.type === "choice" &&
+    typeof answer.choice === "string" &&
+    Object.hasOwn(criteria, answer.choice)
       ? answer.choice
       : null;
   if (!choice) throw Error("Jev did not choose a goal span; nothing typed.");

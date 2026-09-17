@@ -11,7 +11,7 @@ pnpm exec playwright install chromium
 pnpm dev
 ```
 
-Configure `TYPESAFE_API_KEY` on the server. The first run resolves Python 3.12 and `browser-use==0.13.10` through uv. Set `UV_EXECUTABLE` if uv is outside the server PATH, or `LOCAL_BROWSER_EXECUTABLE` to select a Chromium binary. On macOS the bridge discovers Playwright's installed Chromium. Browser-use can discover a local browser on other platforms. Sessions use isolated temporary profiles, disable telemetry and default extensions, and expire after ten minutes. Stop or leaving the workspace closes the session. Hosted deployments cannot launch a browser on the visitor's computer.
+Configure `TYPESAFE_API_KEY` on the server. The first run resolves Python 3.12 and `browser-use==0.13.10` through uv. Set `UV_EXECUTABLE` if uv is outside the server PATH, or `LOCAL_BROWSER_EXECUTABLE` to select a Chromium binary. On macOS the bridge discovers Playwright's installed Chromium. Browser-use can discover a local browser on other platforms. Sessions use isolated temporary profiles, disable telemetry and default extensions, and expire after ten minutes. Each session permits one research run; the server allows at most three session starts per minute and three active sessions. Stop or leaving the workspace closes the session. Hosted deployments cannot launch a browser on the visitor's computer.
 
 The supported goal is a $2,500 USD tower for 1440p gaming on Newegg. Other budgets or task types fail before research rather than inheriting the flight verifier. The focused search covers AM5/DDR5, 32GB dual-channel RAM, 2TB NVMe storage, an 850W PSU, ATX airflow cases, and AM5 air coolers. It is not a general web agent or an exhaustive market search.
 
@@ -52,6 +52,8 @@ The iframe hosts a fictional site, Skyline, written in plain HTML and JavaScript
 - **Slow results** — results take about 2.6 s, so the policy has to `WAIT`.
 
 Nothing is real: airports, airlines, prices and schedules are synthetic, and the Select buttons only mark a card as selected, which the verifier treats as a failure.
+
+The former public `/api/text-helper` and `/api/browser-research` synthesis endpoints return 410 and cannot spend text-model credits. The browser presets use Jev choices or the labeled local baseline.
 
 ## Logging and export
 

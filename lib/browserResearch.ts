@@ -135,6 +135,7 @@ export type ResearchAnswer = z.infer<typeof answerSchema>;
 export function validateResearchAnswer(value: unknown, task: ResearchTask, sources: ResearchSource[]): ResearchAnswer {
   const answer = answerSchema.parse(value);
   if (task === "typesafe" && answer.items.length !== 10) throw Error("The answer must contain exactly ten use cases.");
+  if (task === "github" && (answer.items.length < 4 || answer.items.length > 6)) throw Error("The GitHub summary must contain four to six items.");
   if (new Set(answer.items.map((i) => clean(i.title).toLowerCase())).size !== answer.items.length)
     throw Error("Answer items must be distinct.");
   for (const item of answer.items) for (const evidence of item.evidence) {

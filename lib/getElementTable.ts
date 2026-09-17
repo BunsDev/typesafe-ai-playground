@@ -304,6 +304,7 @@ export function getElementTable(doc: Document, win: Window): PageSnapshot {
           index: option.index,
           kind: "select",
           value: o.value,
+          optionIndex: o.index,
           currentValue: current,
           label: `${label} → ${o.label}`,
         });
@@ -360,6 +361,7 @@ export function getElementTable(doc: Document, win: Window): PageSnapshot {
     win.scrollY,
     win.innerWidth,
     win.innerHeight,
+    height,
     doc.title,
     text,
     actions,

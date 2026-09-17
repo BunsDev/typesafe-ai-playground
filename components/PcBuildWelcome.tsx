@@ -294,10 +294,6 @@ export function PcBuildWelcome({ busy }: { busy: boolean }) {
                 </div>
               </li>
             </ol>
-            <p className="pc-landing-note">
-              No cart changes. No text model. If Jev is unavailable, we show a
-              local price-only baseline.
-            </p>
           </>
         )}
       </div>

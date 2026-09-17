@@ -61,6 +61,7 @@ class LocalBrowser {
   url = "";
   error: string | null = null;
   busy = false;
+  used = false;
   phase = "Ready";
   completedReads = 0;
   constructor(viewport: { width: number; height: number }) {
@@ -151,11 +152,20 @@ class LocalBrowser {
 }
 const globalStore = globalThis as typeof globalThis & {
   localBrowsers?: Map<string, LocalBrowser>;
+  localBrowserStarts?: number[];
 };
 const sessions = (globalStore.localBrowsers ??= new Map());
 export function createLocalBrowser(viewport = { width: 1440, height: 900 }) {
+  const now = Date.now();
+  const starts = (globalStore.localBrowserStarts ?? []).filter(
+    (time) => now - time < 60_000,
+  );
+  if (starts.length >= 3)
+    throw Error("Local browser start limit reached. Try again in a minute.");
+  globalStore.localBrowserStarts = starts;
   if (sessions.size >= 3)
     throw Error("Close an existing local browser before starting another.");
+  starts.push(now);
   const id = randomUUID();
   sessions.set(id, new LocalBrowser(viewport));
   const expiry = setTimeout(() => {

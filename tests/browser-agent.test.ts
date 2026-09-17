@@ -431,3 +431,11 @@ test("the pasteable report carries source evidence and explicit single-run limit
   assert.deepEqual(evidence.run.log[0].response, entry.response);
   assert.equal(evidence.schemaVersion, 1);
 });
+
+test("decision probabilities outside [0,1] and non-choice answers cannot drive actions", () => {
+  const request = buildDecisionPayload(page(), "Goal", [], "jev-latest");
+  const decision = resolveDecision({ answers: { operation: { type: "choice", probabilities: { WAIT: 2, DONE: .4, BLOCKED: -1 } } } }, request, 1);
+  assert.equal(decision.operation, "DONE");
+  assert.deepEqual(decision.operationProbabilities, { DONE: .4 });
+  assert.throws(() => resolveDecision({ answers: { operation: { type: "score", choice: "DONE" } } } as any, request, 1), /operation/);
+});

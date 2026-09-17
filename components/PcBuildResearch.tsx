@@ -93,14 +93,14 @@ export function PcBuildResearch({
       } catch {
         /* Next poll retries transient display failures. */
       }
-      if (!c.signal.aborted) timer = setTimeout(poll, 1500);
+      if (!c.signal.aborted && busy) timer = setTimeout(poll, 1500);
     };
     void poll();
     return () => {
       c.abort();
       clearTimeout(timer);
     };
-  }, [sessionId]);
+  }, [sessionId, busy]);
   useEffect(() => {
     onBusyChange?.(busy);
     return () => onBusyChange?.(false);

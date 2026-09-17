@@ -66,6 +66,7 @@ export interface ActionCandidate {
   role?: ElementRole;
   value?: string;
   currentValue?: string;
+  optionIndex?: number;
   checked?: string;
   selected?: string;
   expanded?: string;
@@ -140,7 +141,17 @@ export interface CycleLog {
   elapsedMs: number;
   elementTable: string[];
   visibleText: string;
-  observation: Pick<PageSnapshot, "url" | "title" | "width" | "height" | "scroll" | "marker" | "pageKey" | "omitted">;
+  observation: Pick<
+    PageSnapshot,
+    | "url"
+    | "title"
+    | "width"
+    | "height"
+    | "scroll"
+    | "marker"
+    | "pageKey"
+    | "omitted"
+  >;
   request: RunPayload | null;
   response: unknown;
   usage: Decision["usage"];

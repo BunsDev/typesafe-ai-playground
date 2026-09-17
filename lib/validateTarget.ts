@@ -112,21 +112,21 @@ export function resolveTarget(
       detail: "The element's centre is outside the viewport.",
     };
   if (action.kind === "select") {
+    const option =
+      isSelect(element) && typeof action.optionIndex === "number"
+        ? element.options[action.optionIndex]
+        : null;
     if (
-      !isSelect(element) ||
-      !Array.from(element.options).some(
-        (o) =>
-          o.value === action.value &&
-          !o.disabled &&
-          !o.closest("optgroup[disabled]"),
-      )
+      !option ||
+      option.value !== action.value ||
+      option.disabled ||
+      option.closest("optgroup[disabled]")
     )
       return {
         ok: false,
         reason: "invalid_option",
         detail: "The observed option is no longer offered.",
       };
-    return { ok: true, x, y, element };
   }
   const hit = doc.elementFromPoint(x, y);
   if (!hit || !element.contains(hit))

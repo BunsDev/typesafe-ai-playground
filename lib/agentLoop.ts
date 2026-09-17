@@ -114,9 +114,10 @@ export async function agentCycle(
   entry.textMode = deps.textMode;
   const decide =
     deps.decide ??
-    ((p, g, h, m, s) => decideWithJev(p, g, h, m, s, deps.transport, (exchange) => {
-      entry = { ...entry, ...exchange };
-    }));
+    ((p, g, h, m, s) =>
+      decideWithJev(p, g, h, m, s, deps.transport, (exchange) => {
+        entry = { ...entry, ...exchange };
+      }));
   let decision: Decision;
   try {
     decision = await decide(
@@ -332,12 +333,9 @@ export async function agentCycle(
     entry = { ...entry, text };
   }
   let point = null;
+  if (!isFresh(deps.doc, deps.win, page, action))
+    return reject("stale", "Page changed since this decision. Observe again.");
   if (action.kind !== "wait" && action.kind !== "scroll") {
-    if (!isFresh(deps.doc, deps.win, page, action))
-      return reject(
-        "stale",
-        "Page changed since this decision. Observe again.",
-      );
     const resolved = resolveTarget(deps.doc, deps.win, action);
     if (!resolved.ok) return reject("rejected", resolved.detail);
     point = resolved;

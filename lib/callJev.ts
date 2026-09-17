@@ -124,7 +124,9 @@ const cleanProbabilities = (value: unknown, ids: string[]) =>
           ([id, score]) =>
             ids.includes(id) &&
             typeof score === "number" &&
-            Number.isFinite(score),
+            Number.isFinite(score) &&
+            score >= 0 &&
+            score <= 1,
         ),
       )
     : {};
@@ -132,6 +134,8 @@ const number = (value: unknown) =>
   typeof value === "number" && Number.isFinite(value) ? value : null;
 function pick(response: JevResponse | undefined, head: string, ids: string[]) {
   const answer = response?.answers?.[head];
+  if (answer?.type !== "choice")
+    return { choice: null, probabilities: {}, confidence: null };
   const probabilities = cleanProbabilities(
     answer?.probabilities,
     ids,
@@ -227,7 +231,9 @@ export async function decideWithJev(
   model: string,
   signal?: AbortSignal,
   transport: JevTransport = runJev as JevTransport,
-  onExchange?: (exchange: Pick<CycleLog, "request" | "response" | "jevLatencyMs" | "usage">) => void,
+  onExchange?: (
+    exchange: Pick<CycleLog, "request" | "response" | "jevLatencyMs" | "usage">,
+  ) => void,
 ): Promise<Decision> {
   const request = buildDecisionPayload(page, goal, history, model);
   const started = performance.now();
@@ -236,10 +242,23 @@ export async function decideWithJev(
   try {
     response = await transport(request.payload, signal);
     usage = response?._playgroundUsage
-      ? { inputTokens: response._playgroundUsage.inputTokens ?? null, outputTokens: response._playgroundUsage.outputTokens ?? null }
+      ? {
+          inputTokens: response._playgroundUsage.inputTokens ?? null,
+          outputTokens: response._playgroundUsage.outputTokens ?? null,
+        }
       : null;
-    return resolveDecision(response ?? undefined, request, performance.now() - started, usage);
+    return resolveDecision(
+      response ?? undefined,
+      request,
+      performance.now() - started,
+      usage,
+    );
   } finally {
-    onExchange?.({ request: request.payload, response, usage, jevLatencyMs: Math.round(performance.now() - started) });
+    onExchange?.({
+      request: request.payload,
+      response,
+      usage,
+      jevLatencyMs: Math.round(performance.now() - started),
+    });
   }
 }

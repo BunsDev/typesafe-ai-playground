@@ -39,3 +39,14 @@ test("local browser refuses hosted and cross-origin access", () => {
     ),
   );
 });
+
+test("retired public research routes cannot spend text-model credits", async () => {
+  const helper = await import("../app/api/text-helper/route");
+  const research = await import("../app/api/browser-research/route");
+  assert.equal(helper.POST().status, 410);
+  assert.equal(research.POST().status, 410);
+  assert.deepEqual(await helper.GET().json(), {
+    configured: false,
+    model: null,
+  });
+});

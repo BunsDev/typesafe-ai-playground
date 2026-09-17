@@ -37,7 +37,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!mobileOpen) return;
     const previous = document.activeElement as HTMLElement | null;
-    sidebarRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
+    sidebarRef.current
+      ?.querySelector<HTMLButtonElement>(".sidebar-mobile-close")
+      ?.focus();
     const keyboard = (e: KeyboardEvent) => {
       if (e.key === "Escape") setMobileOpen(false);
       if (e.key !== "Tab") return;
@@ -121,39 +123,39 @@ export function Shell({ children }: { children: React.ReactNode }) {
         aria-label="Playground sidebar"
       >
         <div className="sidebar-title-row">
-        <Link
-          className="brand"
-          href="/"
-          aria-label="TypeSafe AI community playground"
-        >
-          <span className="brand-mark">
-            <img src="/brand/mark.jpg" width={32} height={32} alt="" />
-          </span>
-          <span>
-            TypeSafe AI<span className="brand-sub">COMMUNITY PLAYGROUND</span>
-          </span>
-        </Link>
-        <button
-          className="sidebar-toggle icon-button"
-          onClick={toggleSidebar}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          aria-expanded={!collapsed}
-          aria-controls="playground-navigation"
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {collapsed ? (
-            <PanelLeftOpen size={17} />
-          ) : (
-            <PanelLeftClose size={17} />
-          )}
-        </button>
-        <button
-          className="icon-button sidebar-mobile-close"
-          aria-label="Close navigation"
-          onClick={() => setMobileOpen(false)}
-        >
-          <X size={18} />
-        </button>
+          <Link
+            className="brand"
+            href="/"
+            aria-label="TypeSafe AI community playground"
+          >
+            <span className="brand-mark">
+              <img src="/brand/mark.jpg" width={32} height={32} alt="" />
+            </span>
+            <span>
+              TypeSafe AI<span className="brand-sub">COMMUNITY PLAYGROUND</span>
+            </span>
+          </Link>
+          <button
+            className="sidebar-toggle icon-button"
+            onClick={toggleSidebar}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-expanded={!collapsed}
+            aria-controls="playground-navigation"
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {collapsed ? (
+              <PanelLeftOpen size={17} />
+            ) : (
+              <PanelLeftClose size={17} />
+            )}
+          </button>
+          <button
+            className="icon-button sidebar-mobile-close"
+            aria-label="Close navigation"
+            onClick={() => setMobileOpen(false)}
+          >
+            <X size={18} />
+          </button>
         </div>
         <nav aria-label="Workspaces">
           <Link
@@ -211,7 +213,6 @@ export function Shell({ children }: { children: React.ReactNode }) {
             Docs <ArrowUpRight size={15} />
           </a>
         </div>
-
       </aside>
       <div className="app-body">
         <header className="workspace-topbar">

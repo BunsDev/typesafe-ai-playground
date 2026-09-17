@@ -1074,6 +1074,7 @@ body {
   .nav-collapsed .sidebar-title-row { justify-content: center; }
 }
 @media (max-width: 760px) {
+  .sidebar-title-row .sidebar-toggle { display: none; }
   .sidebar-title-row .sidebar-mobile-close { flex-shrink: 0; align-self: center; }
 }
 @media (prefers-reduced-motion: reduce) {
