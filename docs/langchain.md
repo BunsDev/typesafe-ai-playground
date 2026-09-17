@@ -7,14 +7,14 @@ Open `/langchain` to invoke a real `@langchain/core` structured tool. This is a 
 ## Run the example
 
 ```sh
-npm ci
-npm run example:langchain
+pnpm install --frozen-lockfile
+pnpm example:langchain
 ```
 
 This runs `scripts/langchain-example.ts`: a real LangChain tool inside a `RunnableLambda` chain, with mock predictions. To use Jev, set `TYPESAFE_API_KEY` in the server environment or ignored `.env.local`, then run:
 
 ```sh
-npm run example:langchain -- --live
+pnpm example:langchain --live
 ```
 
 The script loads `.env.local` only for live mode and only if the process does not already have a key. No key is printed, returned, or placed in browser code.

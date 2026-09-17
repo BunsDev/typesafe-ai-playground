@@ -10,18 +10,21 @@ A community playground for **Jev**: run small classification experiments, route 
 
 ## Run locally
 
-Requires **Node.js 22 or newer**. A TypeSafe API key is needed for live Jev evaluations.
+Requires **Node.js 22 or newer**. This project uses **pnpm**, and only pnpm — `npm install` and `yarn` are refused, because a second lockfile silently installs a different dependency tree than the one CI tests. `corepack` ships with Node and will fetch the exact pnpm version pinned in `package.json`, so there is nothing to install by hand.
+
+A TypeSafe API key is needed for live Jev evaluations.
 
 ```sh
 git clone https://github.com/BunsDev/typesafe-ai-playground.git
 cd typesafe-ai-playground
-npm ci
+corepack enable
+pnpm install --frozen-lockfile
 cp .env.example .env.local
 # Edit .env.local and set TYPESAFE_API_KEY.
-npm run dev
+pnpm dev
 ```
 
-Open the address printed by Next.js, normally http://localhost:3000. To choose another port, use `npm run dev -- --port 3001`.
+Open the address printed by Next.js, normally http://localhost:3000. To choose another port, use `pnpm dev --port 3001`.
 
 `TYPESAFE_API_KEY` is read only by the server. Do not prefix it with `NEXT_PUBLIC_`, hardcode it in a component, or commit `.env.local`. You can browse and edit examples without a key; Live Jev actions require one. Mock governance/PR demos and exact Z3 checks do not.
 
@@ -126,7 +129,7 @@ Top-10 overlap, rank correlation, measured latency, configurable cost estimates,
 
 ### Jev × LangChain
 
-A real `@langchain/core` tool validates input with Zod, routes through the shared Jev/policy logic, and returns structured data without executing downstream actions. Use **Invoke LangChain tool** for live Jev or **Try mock invocation** for seeded predictions. `npm run example:langchain` runs the tool in a RunnableLambda chain; add `-- --live` to use your configured key. This is a local integration example, not a published plugin. See [setup and adapter usage](docs/langchain.md).
+A real `@langchain/core` tool validates input with Zod, routes through the shared Jev/policy logic, and returns structured data without executing downstream actions. Use **Invoke LangChain tool** for live Jev or **Try mock invocation** for seeded predictions. `pnpm example:langchain` runs the tool in a RunnableLambda chain; add `--live` to use your configured key. This is a local integration example, not a published plugin. See [setup and adapter usage](docs/langchain.md).
 
 ### Meme lab: text, images, and a meta meme
 
@@ -178,7 +181,7 @@ vercel env add TYPESAFE_API_KEY production --sensitive
 vercel --prod
 ```
 
-Vercel detects Next.js and runs `npm run build`. Set the same variable in Preview if you want live calls in preview deployments. The production URL is [typesafe-ai-playground.vercel.app](https://typesafe-ai-playground.vercel.app).
+Vercel detects Next.js and runs `pnpm build`. Set the same variable in Preview if you want live calls in preview deployments. The production URL is [typesafe-ai-playground.vercel.app](https://typesafe-ai-playground.vercel.app).
 
 The shared-key demo must have request limits. Configure the Vercel Firewall rules documented in [deployment notes](docs/deployment.md) before exposing it publicly. Rate limits control request bursts; they are not authentication or a global spending cap. Use a restricted provider key and provider-side spending limits for your deployment.
 
@@ -187,17 +190,17 @@ The server validates requests, bounds payload sizes, and keeps credentials out o
 ## Development and checks
 
 ```sh
-npm test                    # Pure contracts, extraction, and API tests
-npm run typecheck
-npm run build
-npx playwright install chromium
-npm run test:e2e             # Mocked API calls; no TypeSafe credits used
+pnpm test                    # Pure contracts, extraction, and API tests
+pnpm typecheck
+pnpm build
+pnpm exec playwright install chromium
+pnpm test:e2e             # Mocked API calls; no TypeSafe credits used
 python3 -m unittest discover -s tests -v
 ```
 
-CI tests the production build. To reproduce locally without stopping the dev preview, run E2E_PRODUCTION=1 E2E_PORT=3002 npm run test:e2e after building.
+CI tests the production build. To reproduce locally without stopping the dev preview, run E2E_PRODUCTION=1 E2E_PORT=3002 pnpm test:e2e after building.
 
-Browser coverage includes desktop/mobile flows, theme persistence, saved drafts, extraction, meme failures, workflow decisions, question triage and its human fallback, arena ticks and their withheld-sensor re-ask, chess move legality and its blunder marking, and responsive boundaries from 320px to 2560px, including short landscape screens. `npm start` runs the built production app.
+Browser coverage includes desktop/mobile flows, theme persistence, saved drafts, extraction, meme failures, workflow decisions, question triage and its human fallback, arena ticks and their withheld-sensor re-ask, chess move legality and its blunder marking, and responsive boundaries from 320px to 2560px, including short landscape screens. `pnpm start` runs the built production app.
 
 | Path                                                       | Responsibility                                                                                                  |
 | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |

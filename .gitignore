@@ -24,3 +24,9 @@ next-env.d.ts
 
 playwright-report/
 test-results/
+
+# pnpm-only: these would install a different tree than pnpm-lock.yaml describes.
+package-lock.json
+npm-shrinkwrap.json
+yarn.lock
+bun.lockb

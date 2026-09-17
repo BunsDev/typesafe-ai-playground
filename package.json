@@ -1,7 +1,9 @@
 {
   "name": "typesafe-ai-playground",
   "private": true,
+  "packageManager": "pnpm@10.34.5",
   "scripts": {
+    "preinstall": "npx -y only-allow pnpm",
     "dev": "next dev",
     "example:langchain": "tsx scripts/langchain-example.ts",
     "build": "next build",
@@ -35,6 +37,7 @@
     "zod": "4.6.5"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=22.0.0",
+    "pnpm": ">=10.0.0"
   }
 }

@@ -1,0 +1,9 @@
+# pnpm 10 reads build-script policy from here rather than from package.json.
+# Nothing in this tree needs a postinstall: esbuild and tesseract.js ship
+# prebuilt binaries, and the full suite passes without either script running.
+# Listing them as ignored records that as a decision, so `pnpm install` stays
+# quiet and reproducible instead of prompting each clone to approve builds.
+onlyBuiltDependencies: []
+ignoredBuiltDependencies:
+  - esbuild
+  - tesseract.js
