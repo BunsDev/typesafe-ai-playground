@@ -24,6 +24,7 @@ test("all workspaces fit the viewport and navigate without runtime errors", asyn
     "/smt-solver",
     "/tool-router",
     "/langchain",
+    "/jev-browser-agent",
     "/reranker",
     "/doom",
   ]) {
@@ -248,6 +249,7 @@ for (const [width, height] of [
         "/smt-solver",
         "/tool-router",
         "/langchain",
+        "/jev-browser-agent",
         "/reranker",
         "/doom",
       ]) {
@@ -291,11 +293,13 @@ for (const [width, height] of [
                                   ? "Run Routing Step"
                                   : route === "/langchain"
                                     ? "Invoke LangChain tool"
-                                    : route === "/reranker"
-                                      ? "Compare both"
-                                      : route === "/doom"
-                                        ? "Start arena"
-                                        : "Test meme",
+                                    : route === "/jev-browser-agent"
+                                      ? "Find PC parts"
+                                      : route === "/reranker"
+                                        ? "Compare both"
+                                        : route === "/doom"
+                                          ? "Start arena"
+                                          : "Test meme",
           exact: true,
         });
         await action.scrollIntoViewIfNeeded();
@@ -848,6 +852,7 @@ test("every workspace has a distinct branded OG and matching Twitter preview", a
     "/smt-solver",
     "/tool-router",
     "/langchain",
+    "/jev-browser-agent",
     "/reranker",
     "/doom",
   ]) {

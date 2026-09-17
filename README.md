@@ -46,6 +46,7 @@ The home page groups the prototypes into Language & data, Agents & workflows, Co
 | **Tool router** `/tool-router` | Inspect closed-set routing with simulated tools, policy blocks, and mock approval gates. |
 | **LangChain** `/langchain` | Invoke a real LangChain tool adapter with mocked or live Jev predictions. |
 | **Vector reranker** `/reranker` | Compare vector order, batched Jev relevance, and a labeled lexical mock baseline. |
+| **Browser agent** `/jev-browser-agent` | Research a Newegg PC build in a local browser-use session with Jev closed choices, or run the synthetic flight demo. No text-generation model required. |
 | **Jev plays Doom** `/doom` | Try an original browser shooter with human, Jev, and seeded random control. |
 | **Meme lab** `/memes` | Classify reviewed captions and visual descriptions for tone, audience fit, and possible confusion. |
 | **MicroDuck arena** `/microduck` | Compare bounded robot actions in a local 3D simulation. |
@@ -95,6 +96,10 @@ pnpm example:langchain
 ```
 
 The [reranker](docs/reranker.md) compares supplied vector order, Jev relevance, and an explicit lexical mock. It batches candidates and leaves unknown or failed classifications unscored, suppressing aggregate metrics when appropriate. Overlap, rank correlation, timing, and configurable cost estimates help inspect disagreements; the lexical baseline is not a neural reranker or quality ground truth.
+
+### Browser agent
+
+The [browser agent](docs/jev-browser-agent.md) fills the workspace with a browser, a goal composer at the bottom, and diagnostics in Inspector. The default Newegg task uses a local, isolated [browser-use](https://github.com/browser-use/browser-use) session, and Jev selects parts from a closed candidate set; nothing is purchased. The optional flight sandbox ports [browser-use/jev-ultrafast](https://github.com/browser-use/jev-ultrafast): each request chooses an operation and compatible targets from an indexed element table, actions are checked for freshness before they run, and an independent verifier decides whether the goal was met.
 
 ### Meme lab and image handling
 

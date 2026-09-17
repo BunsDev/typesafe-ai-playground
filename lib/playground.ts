@@ -15,6 +15,7 @@ import {
   Crown,
   Bird,
   House,
+  MousePointerClick,
 } from "lucide-react";
 
 /** One catalog keeps the home screen, navigation and breadcrumbs in sync. */
@@ -103,6 +104,14 @@ export const playgroundGroups = [
         detail:
           "Try a typed routing tool with live classification or a mocked response.",
         flow: "Tool call → governed route",
+      },
+      {
+        href: "/jev-browser-agent",
+        label: "Browser agent",
+        icon: MousePointerClick,
+        detail:
+          "Drive a synthetic flight search from an indexed element table, one operation and target per request.",
+        flow: "Element table → operation + target",
       },
     ],
   },
