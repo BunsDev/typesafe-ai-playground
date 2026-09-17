@@ -19,7 +19,7 @@ Objective: implement all six stages in the supplied clean-room pipeline brief, p
 
 ## Current evidence
 
-- `pnpm test`: 36 JavaScript tests + 197 TypeScript tests passed (233 total).
+- `pnpm test`: 36 JavaScript tests + 202 TypeScript tests passed (238 total), including the current main branch home-layout tests.
 - `pnpm typecheck`: passed.
 - `pnpm build`: passed. The existing unrelated local-browser subprocess tracing warning remains.
 - `E2E_PRODUCTION=1 E2E_PORT=3113 pnpm test:e2e tests/e2e/clean-room*.spec.ts --workers=1`: 16 passed across desktop/mobile UI flows plus pipeline and isolation regressions. Browser-dependent tests run in the Playwright suite after CI installs Chromium.
