@@ -1,5 +1,17 @@
 import type { Metadata } from "next";
 export const SOCIAL_PAGES = {
+  "clean-room": {
+    path: "/clean-room",
+    title: "Clean-room rebuild",
+    description: "Observed screens. Rebuilt apps. Independent proof.",
+    category: "AGENTIC REBUILD",
+    steps: [
+      "Observe endpoints and screens",
+      "Classify and generate",
+      "Verify behavior",
+    ],
+    result: "Target → working rebuild",
+  },
   doom: {
     path: "/doom",
     title: "JevDoom",

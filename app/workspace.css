@@ -1,0 +1,594 @@
+/* Shared workspace finish. Domain layouts and execution state stay in their labs. */
+.dashboard-shell .workspace {
+  padding: 28px 28px 0;
+  gap: 24px;
+}
+.dashboard-shell .workspace .page-heading {
+  gap: 24px;
+  align-items: center;
+}
+.dashboard-shell .page-heading > div:first-child {
+  min-width: 0;
+}
+.dashboard-shell .page-heading .eyebrow {
+  display: block;
+  color: var(--muted);
+  font: 500 10px/1.4 var(--font-mono);
+  letter-spacing: 1.1px;
+  margin-bottom: 9px;
+}
+.dashboard-shell .page-heading h1 {
+  font-size: clamp(25px, 2.2vw, 32px);
+  font-weight: 650;
+  letter-spacing: -1.1px;
+  text-wrap: balance;
+}
+.dashboard-shell .page-heading p {
+  font-size: 13px;
+  max-width: 680px;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+.dashboard-shell .page-heading > .heading-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  min-width: 0;
+  max-width: 38%;
+}
+.heading-actions .pill {
+  max-width: 100%;
+}
+.dashboard-shell .workspace .panel {
+  border-radius: 16px;
+  box-shadow:
+    0 2px 4px #00000003,
+    0 12px 32px #00000003;
+}
+.dashboard-shell .workspace .panel-heading {
+  min-height: 56px;
+  height: auto;
+  padding: 14px 20px;
+  background: transparent;
+  flex-shrink: 0;
+}
+.dashboard-shell .workspace .panel-heading h2 {
+  font-size: 13px;
+  font-weight: 650;
+}
+.dashboard-shell .workspace .panel-content {
+  padding: 20px;
+}
+.dashboard-shell .workspace .panel-bottom {
+  padding: 14px 20px;
+}
+.dashboard-shell .compact-lab .lab-panel {
+  padding: 20px;
+}
+.dashboard-shell .compact-lab .lab-panel > .panel-heading {
+  margin: -20px -20px 20px;
+  border-radius: 16px 16px 0 0;
+}
+.dashboard-shell .workspace .button {
+  min-height: 38px;
+  border-radius: 9px;
+  font-size: 12px;
+  line-height: 1.35;
+  padding: 9px 13px;
+  gap: 7px;
+  transition:
+    background-color 120ms ease-out,
+    border-color 120ms ease-out,
+    transform 120ms ease-out;
+}
+.dashboard-shell .workspace .button.quiet {
+  min-height: 32px;
+  padding: 6px 9px;
+  border-color: transparent;
+  background: transparent;
+}
+.dashboard-shell .workspace .button.quiet:hover:not(:disabled) {
+  background: var(--soft);
+}
+.dashboard-shell .workspace .button:active:not(:disabled) {
+  transform: scale(0.96);
+}
+.dashboard-shell .workspace input:not([type="checkbox"]):not([type="range"]),
+.dashboard-shell .workspace textarea,
+.dashboard-shell .workspace select {
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg) 42%, var(--panel));
+  line-height: 1.6;
+}
+.dashboard-shell .workspace label {
+  font-weight: 500;
+}
+.dashboard-shell .workspace :is(.tag, .pill, .type-badge, .count) {
+  border-radius: 6px;
+  line-height: 1.4;
+}
+.dashboard-shell
+  .workspace
+  :is(
+    .compact-verdict,
+    .winner-card,
+    .ranked-message,
+    .hunk-card,
+    .rule,
+    .recommendation,
+    .scenario-card,
+    .smt-scenario,
+    .routing-facts,
+    .message-preview,
+    .classification,
+    .sample-picker
+  ) {
+  border-radius: 11px;
+  box-shadow: none;
+}
+.dashboard-shell .workspace :is(.winner-card, .rank-column:nth-child(2)) {
+  box-shadow: none;
+}
+.dashboard-shell .workspace .compact-verdict {
+  padding: 22px;
+}
+.dashboard-shell .workspace .compact-verdict h2 {
+  font-size: 25px;
+  letter-spacing: -0.7px;
+  line-height: 1.25;
+  margin: 12px 0 8px;
+}
+.dashboard-shell .workspace .compact-verdict p {
+  font-size: 13px;
+}
+.dashboard-shell .workspace .empty {
+  min-height: 300px;
+  padding: 36px 20px;
+  gap: 0;
+}
+.dashboard-shell .workspace .empty h3 {
+  font-size: 19px;
+  letter-spacing: -0.4px;
+  line-height: 1.35;
+  margin-top: 22px;
+}
+.dashboard-shell .workspace .empty p {
+  font-size: 13px;
+  max-width: 350px;
+  line-height: 1.7;
+  margin-top: 10px;
+  text-wrap: pretty;
+}
+.decision-preview {
+  display: grid;
+  justify-items: center;
+  gap: 23px;
+  width: 100%;
+}
+.decision-preview-icon {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 22px;
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
+  background: radial-gradient(
+    circle at 25% 15%,
+    var(--accent-soft),
+    var(--panel)
+  );
+  box-shadow:
+    0 8px 28px color-mix(in srgb, var(--accent) 7%, transparent),
+    inset 0 1px 0 #ffffff08;
+}
+.decision-preview-flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.decision-preview-flow > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.decision-preview-flow > span > span {
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+/* Give disclosures a consistent trailing chevron, including the compact labs. */
+.dashboard-shell .workspace details > summary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  list-style: none;
+  min-height: 38px;
+  line-height: 1.5;
+}
+.dashboard-shell .workspace details > summary::after {
+  content: "";
+  display: block;
+  width: 6px;
+  height: 6px;
+  border: solid var(--muted);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(-45deg);
+  margin: 0 5px 0 auto;
+  flex: 0 0 6px;
+}
+.dashboard-shell .workspace details[open] > summary::after {
+  transform: rotate(45deg);
+}
+.dashboard-shell .workspace .field-hint {
+  font-size: 11px;
+  line-height: 1.7;
+}
+.dashboard-shell .workspace .error-note {
+  border-radius: 10px;
+  line-height: 1.6;
+}
+.dashboard-shell .workspace :is(pre, .table-wrap, .table-scroll) {
+  overscroll-behavior-inline: contain;
+}
+.workspace-guide-dialog {
+  width: min(560px, calc(100% - 32px));
+  max-height: calc(100dvh - 40px);
+  padding: 28px;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: 0 24px 80px #0003;
+  overflow: auto;
+  text-align: left;
+}
+.workspace-guide-dialog::backdrop {
+  background: #10101980;
+  backdrop-filter: blur(5px);
+}
+.workspace-guide-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.workspace-guide-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 14px;
+}
+.workspace-guide-dialog h2 {
+  font-size: 28px;
+  letter-spacing: -0.8px;
+  line-height: 1.2;
+}
+.workspace-guide-dialog ol {
+  list-style: none;
+  padding: 0;
+  margin: 24px 0;
+  display: grid;
+  gap: 22px;
+}
+.workspace-guide-dialog li {
+  display: flex;
+  gap: 15px;
+}
+.workspace-guide-dialog li > span {
+  color: var(--accent);
+  font: 11px/1.8 var(--font-mono);
+  padding-top: 2px;
+}
+.workspace-guide-dialog h3 {
+  font-size: 14px;
+  margin: 0 0 5px;
+}
+.dashboard-shell .workspace-guide-dialog p {
+  font-size: 13px;
+  line-height: 1.7;
+  margin: 0;
+  color: var(--muted);
+}
+.dashboard-shell .workspace-guide-dialog .workspace-boundary {
+  padding: 16px;
+  background: var(--soft);
+  border-radius: 11px;
+  margin-bottom: 24px;
+}
+/* Router: request -> visible decision -> evidence on demand. */
+.router-journey {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 20px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--muted);
+}
+.router-journey > span {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+}
+.router-journey strong {
+  font-weight: 500;
+  color: var(--ink);
+}
+.router-journey small {
+  margin-left: auto;
+  font-size: 11px;
+}
+.router-journey-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+  margin: 0 5px;
+}
+.dashboard-shell .router-workspace .lab-columns {
+  grid-template-columns: minmax(300px, 0.7fr) minmax(0, 1.3fr);
+  gap: 20px;
+}
+.dashboard-shell .router-workspace .lab-fields {
+  gap: 18px;
+}
+.dashboard-shell .router-workspace textarea {
+  min-height: 140px;
+  font-size: 14px;
+}
+.dashboard-shell .router-workspace .lab-actions {
+  margin: 20px 0 12px;
+}
+.router-workspace .router-inspector {
+  margin-top: 24px;
+}
+.router-workspace .router-policy {
+  border-bottom: 0;
+}
+.dashboard-shell .router-workspace .router-output {
+  padding: 18px 20px;
+  border: 0;
+  border-radius: 11px;
+}
+.dashboard-shell .router-workspace .router-next-action {
+  padding: 8px 0;
+  flex-wrap: wrap;
+}
+.router-next-action > p {
+  flex: 1 1 200px;
+}
+.dashboard-shell .router-workspace .router-step-log {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.router-workspace .router-step-log li {
+  border: 0;
+  padding: 12px 0;
+}
+.router-workspace .step-number {
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  background: var(--soft);
+  color: var(--muted);
+}
+.router-workspace .router-candidates {
+  grid-template-columns: 1fr;
+}
+.router-workspace .router-candidates .compact-finding {
+  border: 0;
+  border-left: 2px solid var(--line);
+  border-radius: 0;
+  padding: 4px 12px;
+}
+.router-workspace .router-candidates code {
+  color: var(--muted);
+}
+.router-workspace .compact-router-tree {
+  grid-template-columns: 1fr;
+}
+.router-workspace .routing-facts {
+  margin: 12px 0;
+}
+/* Keep the catalog's editor, question list, and result rail intact. */
+.dashboard-shell .experiment-panel .panel-heading {
+  flex-wrap: wrap;
+}
+.dashboard-shell .setup-draft-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.dashboard-shell .workspace .question-row {
+  border-radius: 10px;
+}
+.dashboard-shell .workspace .example-item {
+  border-radius: 9px;
+  margin-block: 3px;
+}
+.dashboard-shell .workspace .example-item.selected {
+  background: var(--accent-soft);
+}
+.dashboard-shell .workspace .example-item strong {
+  line-height: 1.5;
+}
+.dashboard-shell .workspace .setup-step > span {
+  border-radius: 6px;
+}
+.dashboard-shell .workspace .rank-column {
+  border-radius: 14px;
+  overflow: hidden;
+}
+.dashboard-shell .workspace .rank-column-heading {
+  background: var(--panel);
+}
+.dashboard-shell .workspace .rank-column-heading h2 {
+  font-family: inherit;
+}
+.dashboard-shell .workspace .governance-steps {
+  border-radius: 12px;
+}
+@media (max-width: 1100px) {
+  .dashboard-shell .page-heading > .heading-actions {
+    max-width: 100%;
+  }
+  .router-journey {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .router-journey small {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+  .dashboard-shell .router-workspace .lab-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 760px) {
+  .dashboard-shell .workspace {
+    padding: 20px 12px 0;
+    gap: 20px;
+  }
+  .dashboard-shell .workspace .page-heading {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .dashboard-shell .page-heading > .heading-actions {
+    max-width: 100%;
+    justify-content: flex-start;
+  }
+  .dashboard-shell .workspace .page-heading p {
+    font-size: 13px;
+  }
+  .dashboard-shell .workspace .panel-heading {
+    padding: 12px 16px;
+  }
+  .dashboard-shell .workspace .panel-content {
+    padding: 16px;
+  }
+  .dashboard-shell .workspace .panel-bottom {
+    padding: 12px 16px;
+  }
+  .dashboard-shell .compact-lab .lab-panel {
+    padding: 16px;
+  }
+  .dashboard-shell .compact-lab .lab-panel > .panel-heading {
+    margin: -16px -16px 16px;
+  }
+  .dashboard-shell .workspace .button {
+    min-height: 44px;
+  }
+  .dashboard-shell .workspace .button.quiet {
+    min-height: 36px;
+  }
+  .dashboard-shell .workspace .empty {
+    min-height: 260px;
+    padding: 28px 12px;
+  }
+  .dashboard-shell .workspace .empty h3 {
+    font-size: 18px;
+  }
+  .router-journey {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 14px;
+    gap: 10px;
+  }
+  .router-journey > span {
+    font-size: 11px;
+  }
+  .router-journey > svg {
+    display: none;
+  }
+  .router-journey > span {
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.4;
+  }
+  .router-journey small {
+    grid-column: 1 / -1;
+  }
+  .workspace-guide-dialog {
+    padding: 22px;
+  }
+  .decision-preview-flow {
+    gap: 5px;
+  }
+  .decision-preview-flow > span {
+    gap: 5px;
+  }
+  .decision-preview-flow > span > span {
+    padding: 5px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-shell .workspace .button {
+    transition: none;
+  }
+  .dashboard-shell .workspace .button:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+.router-workspace .router-step-log ol {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+}
+.router-workspace .router-step-log li {
+  align-items: flex-start;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  gap: 10px;
+}
+.router-step-from {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+  margin-bottom: 5px;
+}
+.router-workspace .router-step-log .step-badges {
+  margin: 8px 0 0;
+}
+.router-workspace .router-step-log details {
+  margin-top: 5px;
+}
+@media (max-width: 440px) {
+  .router-workspace .router-step-log ol {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* A landscape phone should scroll a usable editor, not compress it to one line. */
+@media (min-width: 651px) and (max-height: 600px) {
+  .dashboard-shell main:has(> .workspace > .split) {
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .dashboard-shell .workspace:has(> .split) {
+    height: auto;
+    min-height: 100%;
+    padding-bottom: 20px;
+  }
+  .dashboard-shell .workspace > .split {
+    height: 560px;
+    flex: none;
+  }
+}
