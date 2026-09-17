@@ -657,6 +657,37 @@ test("SELECT keeps the chosen option index when values are duplicated", async ({
     .toBe(1);
 });
 
+test("short mobile viewports retain fields and pending autocomplete suggestions", async ({
+  page,
+}, info) => {
+  test.skip(
+    info.project.name !== "mobile",
+    "Short viewport matrix runs on mobile.",
+  );
+  await page.route("**/api/run", (route) => mockModels(route, "solve", []));
+  for (const height of [620, 700]) {
+    await page.setViewportSize({ width: 390, height });
+    await page.goto("/jev-browser-agent");
+    await page
+      .getByLabel("Task preset", { exact: true })
+      .selectOption("flight");
+    await expect(
+      page
+        .frameLocator("iframe.agent-sandbox")
+        .getByRole("button", { name: "Search flights" }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Run agent", exact: true }).click();
+    await expect(page.locator(".agent-workspace")).toHaveAttribute(
+      "data-status",
+      "done",
+    );
+    await page.getByRole("button", { name: "Inspector", exact: true }).click();
+    await expect(page.locator(".agent-checks li[data-ok='false']")).toHaveCount(
+      0,
+    );
+  }
+});
+
 test("enlarged welcome cards fit large screens without clipping", async ({
   page,
 }, info) => {

@@ -368,19 +368,24 @@ export function getElementTable(doc: Document, win: Window): PageSnapshot {
     key,
   ]);
   const scrollable = win.scrollY + win.innerHeight < height - 2;
+  // Keep adjacent observations overlapping, including short embedded viewports.
+  const scrollDelta = Math.min(
+    SCROLL_DELTA,
+    Math.max(1, Math.floor(win.innerHeight * 0.75)),
+  );
   if (scrollable)
     actions.push({
       id: "scroll_down",
       kind: "scroll",
       label: "Scroll down",
-      delta: SCROLL_DELTA,
+      delta: scrollDelta,
     });
   if (win.scrollY > 0)
     actions.push({
       id: "scroll_up",
       kind: "scroll",
       label: "Scroll up",
-      delta: -SCROLL_DELTA,
+      delta: -scrollDelta,
     });
   actions.push({
     id: "wait",

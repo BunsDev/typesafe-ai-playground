@@ -44,7 +44,7 @@ export const operationDescriptions: Record<Operation, string> = {
   CLICK:
     "Click an element, button, menu option, autocomplete suggestion, or calendar day.",
   TYPE_TEXT:
-    "Enter or replace text in an editable field. A small LLM will supply the value from the goal.",
+    "Enter or replace text in an editable field using a span selected from the goal.",
   SELECT: "Select an observed dropdown value.",
   SCROLL_DOWN: "Scroll down to reveal more of the page.",
   SCROLL_UP: "Scroll up.",

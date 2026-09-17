@@ -54,6 +54,15 @@ export function scriptedPolicy(payload: any, mode: "solve" | "always-done") {
         ...answer("operation", "CLICK"),
         ...answer("click_target", option.index),
       };
+    // Do not blur an unfinished autocomplete just because its options are
+    // below the fold. Reveal the pending suggestion before filling another field.
+    if (
+      payload.state.element_table.some((row: string) =>
+        row.includes("expanded=true"),
+      ) &&
+      payload.questions.operation.criteria.SCROLL_DOWN
+    )
+      return answer("operation", "SCROLL_DOWN");
     if (find("combobox", "Trip type")?.value === "Round trip" && oneWay)
       return {
         ...answer("operation", "SELECT"),
