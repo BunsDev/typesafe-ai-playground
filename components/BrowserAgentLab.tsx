@@ -14,7 +14,6 @@ import {
   ArrowLeft,
   PanelRight,
   Globe2,
-  X,
 } from "lucide-react";
 import { useUsage, usageBlocked } from "../lib/logUsageEntry";
 import { errorMessage, percent } from "../lib/client";
