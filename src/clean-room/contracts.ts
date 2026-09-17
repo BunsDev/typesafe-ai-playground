@@ -35,17 +35,20 @@ export const actionSchema = z.discriminatedUnion("kind", [
 ]);
 export const configSchema = z
   .object({
-    target: z.url().refine((v) => {
-      const u = new URL(v);
-      return (
-        ["http:", "https:"].includes(u.protocol) &&
-        !u.username &&
-        !u.password &&
-        u.pathname === "/" &&
-        !u.search &&
-        !u.hash
-      );
-    }, "Target must be an HTTP(S) origin without credentials."),
+    target: z
+      .url()
+      .refine((v) => {
+        const u = new URL(v);
+        return (
+          ["http:", "https:"].includes(u.protocol) &&
+          !u.username &&
+          !u.password &&
+          u.pathname === "/" &&
+          !u.search &&
+          !u.hash
+        );
+      }, "Target must be an HTTP(S) origin without credentials.")
+      .transform((value) => new URL(value).origin),
     openapi: pathSchema.optional(),
     screens: z
       .array(

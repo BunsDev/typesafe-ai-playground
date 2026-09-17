@@ -20,7 +20,7 @@ for (const demo of ["catalog", "contacts", "support"] as const)
     const output = await mkdtemp(path.join(os.tmpdir(), "clean-room-"));
     try {
       const result = await runPipeline(
-        { ...demos[demo].config, target: target.url },
+        { ...demos[demo].config, target: target.url + "/" },
         { output, adapters: demoAdapters(), keepAlive: false },
       );
       assert.equal(

@@ -553,3 +553,16 @@ test("exported navigation stays in the clone without rewriting external links or
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test("target origins canonicalize trailing slashes, host case, and default ports", () => {
+  const screens = [{ id: "home", path: "/" }];
+  for (const target of [
+    "http://EXAMPLE.test:80/",
+    "http://example.test",
+    "http://example.test/",
+  ])
+    assert.equal(
+      configSchema.parse({ target, screens }).target,
+      "http://example.test",
+    );
+});

@@ -20,6 +20,7 @@ export async function snapshot(page: Page, maxNodes: number) {
   };
 }
 export function watch(page: Page, origin: string) {
+  const targetOrigin = new URL(origin).origin;
   const network: Trace[] = [],
     errors: string[] = [],
     pending: Promise<void>[] = [];
@@ -28,7 +29,7 @@ export function watch(page: Page, origin: string) {
     const request = response.request();
     if (!["fetch", "xhr"].includes(request.resourceType())) return;
     const url = new URL(response.url());
-    if (url.origin !== origin) {
+    if (url.origin !== targetOrigin) {
       errors.push(`Uncaptured cross-origin API: ${url.origin}${url.pathname}`);
       return;
     }
