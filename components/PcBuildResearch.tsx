@@ -5,19 +5,8 @@ import type { SelectionExchange } from "../lib/pcSelection";
 import { ResearchMetrics } from "./ResearchMetrics";
 import type { ResearchMetrics as Metrics } from "../lib/researchMetrics";
 import { useEffect, useRef, useState } from "react";
-import {
-  Cpu,
-  CircuitBoard,
-  MemoryStick,
-  HardDrive,
-  Zap,
-  Box,
-  Wind,
-  Monitor,
-  ArrowUpRight,
-  Globe2,
-  Check,
-} from "lucide-react";
+import { ArrowUpRight, Check } from "lucide-react";
+import { PcBuildWelcome } from "./PcBuildWelcome";
 import { createPortal } from "react-dom";
 import type {
   Build,
@@ -203,102 +192,7 @@ export function PcBuildResearch({
             alt="Current page in the local browser-use session"
           />
         ) : (
-          <div className="browser-start pc-welcome">
-            <div className="pc-welcome-icon">
-              <Globe2 size={24} />
-              <span>NEWEGG / PC BUILDER</span>
-            </div>
-            <h2>
-              {busy
-                ? "Finding your next build."
-                : "Your next build starts here."}
-            </h2>
-            <p>
-              {busy
-                ? "Opening Newegg in an isolated browser-use session…"
-                : "Eight parts. One budget. Every source linked. Let your browser do the research for your next gaming PC."}
-            </p>
-            {!busy && (
-              <div className="pc-brief">
-                <span>
-                  <strong>$2,500</strong> USD budget
-                </span>
-                <i />
-                <span>
-                  <strong>1440p</strong> gaming
-                </span>
-                <i />
-                <span>
-                  <strong>Tower</strong> only
-                </span>
-              </div>
-            )}
-            {!busy && (
-              <div
-                className="pc-component-strip"
-                aria-label="Eight component categories"
-              >
-                {[
-                  [Monitor, "GPU"],
-                  [Cpu, "CPU"],
-                  [CircuitBoard, "Board"],
-                  [MemoryStick, "Memory"],
-                  [HardDrive, "Storage"],
-                  [Zap, "Power"],
-                  [Box, "Case"],
-                  [Wind, "Cooling"],
-                ].map(([Icon, label]) => {
-                  const Component = Icon as typeof Cpu;
-                  return (
-                    <div key={String(label)}>
-                      <Component size={19} strokeWidth={1.5} />
-                      <span>{String(label)}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-            {!busy && (
-              <ol
-                className="browser-onboarding"
-                aria-label="How this browser agent works"
-              >
-                <li>
-                  <span>01</span>
-                  <div>
-                    <strong>Give it a goal</strong>
-                    <p>Use the PC preset or edit the request below.</p>
-                  </div>
-                </li>
-                <li>
-                  <span>02</span>
-                  <div>
-                    <strong>Watch it browse</strong>
-                    <p>
-                      The browser reads listings. Jev ranks parts. Code checks
-                      the budget.
-                    </p>
-                  </div>
-                </li>
-                <li>
-                  <span>03</span>
-                  <div>
-                    <strong>Review before buying</strong>
-                    <p>
-                      Inspect the parts, check the sources, and copy the full
-                      debug report.
-                    </p>
-                  </div>
-                </li>
-              </ol>
-            )}
-            {!busy && (
-              <p className="field-hint">
-                If Jev is unavailable, a local price-only baseline keeps
-                research moving. Nothing is added to your cart.
-              </p>
-            )}
-          </div>
+          <PcBuildWelcome busy={busy} />
         )}
       </div>
       {busy && (

@@ -571,7 +571,7 @@ test("PC billing fallback remains usable and skips a blocked provider on the nex
   await page.goto("/jev-browser-agent");
   await expect(page.getByLabel("How this browser agent works")).toBeVisible();
   await page.getByRole("button", { name: "Find PC parts" }).click();
-  await page.getByRole("button", { name: "Inspector", exact: true }).click();
+  await page.getByRole("button", { name: "Review build", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: /Local budget baseline/ }),
   ).toBeVisible();

@@ -294,7 +294,7 @@ for (const [width, height] of [
                                   : route === "/langchain"
                                     ? "Invoke LangChain tool"
                                     : route === "/jev-browser-agent"
-                                      ? "Run agent"
+                                      ? "Find PC parts"
                                       : route === "/reranker"
                                         ? "Compare both"
                                         : route === "/doom"

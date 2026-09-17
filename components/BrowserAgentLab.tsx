@@ -177,7 +177,22 @@ export function BrowserAgentLab() {
           </div>
         )}
       </div>
-      <section className="browser-composer" aria-label="Browser task composer">
+      <section
+        className="browser-composer"
+        aria-label="Browser task composer"
+        onKeyDown={(event) => {
+          if (
+            event.key === "Enter" &&
+            (event.metaKey || event.ctrlKey) &&
+            !busy
+          ) {
+            event.preventDefault();
+            controlsHost
+              ?.querySelector<HTMLButtonElement>("button:not([disabled])")
+              ?.click();
+          }
+        }}
+      >
         <div className="browser-composer-meta">
           <label className="browser-preset">
             Task preset
@@ -227,7 +242,10 @@ export function BrowserAgentLab() {
               ? "Working in the browser…"
               : "Your goal stays attached to every step."}
           </span>
-          <span>Inspect · verify · export</span>
+          <span>
+            <kbd>⌘ / Ctrl</kbd> + <kbd>Enter</kbd> to run · Inspector for
+            details
+          </span>
         </div>
       </section>
       <dialog ref={help} className="browser-help">
