@@ -11,9 +11,10 @@ version pinned in `package.json` — then `pnpm install --frozen-lockfile`, copy
 `.env.example` to `.env.local`, and set your server-only TypeSafe key. Start
 with `pnpm dev`.
 
-`npm install` and `yarn` are refused by a `preinstall` guard, and CI fails if a
-`package-lock.json` or `yarn.lock` is committed: two lockfiles drift apart
-without anything noticing. Before submitting changes:
+A dependency-free local guard requires pnpm for installation and the dev, build,
+start, test, typecheck, browser-test, and LangChain example scripts. CI rejects
+competing npm, Yarn, and Bun lockfiles (including `bun.lock`). Keep only
+`pnpm-lock.yaml`; the guard never downloads or runs another package manager. Before submitting changes:
 
 ```sh
 pnpm test
