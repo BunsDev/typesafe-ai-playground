@@ -1,4 +1,47 @@
 /* Shared workspace finish. Domain layouts and execution state stay in their labs. */
+.dashboard-shell {
+  --card-bg: color-mix(in srgb, var(--soft) 64%, var(--panel));
+  --card-hover: var(--soft);
+  --card-radius: 12px;
+  --card-padding: 16px;
+}
+/* One surface treatment for evidence, metrics, choices, and result cards.
+   Verdicts and selected choices keep their semantic state colors. */
+.dashboard-shell
+  .workspace
+  :is(
+    .compact-finding,
+    .evidence-card,
+    .answer-card,
+    .ranked-message,
+    .routing-facts,
+    .message-preview,
+    .question-row,
+    .router-journey,
+    .router-step-log li,
+    .solver-scenario:not(.selected),
+    .scenario-card,
+    .sample-picker,
+    .workspace-guide-breakdown,
+    .workspace-guide-steps li
+  ) {
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--card-radius);
+}
+.dashboard-shell
+  .workspace
+  :is(.compact-finding, .evidence-card, .answer-card, .message-preview) {
+  padding: var(--card-padding);
+  min-width: 0;
+}
+.dashboard-shell .workspace .ranked-message.is-unavailable {
+  border-style: dashed;
+}
+.dashboard-shell .workspace .workspace-guide-steps li {
+  padding: var(--card-padding);
+}
+
 .dashboard-shell .workspace {
   padding: 28px 28px 0;
   gap: 24px;
@@ -126,7 +169,7 @@
     .classification,
     .sample-picker
   ) {
-  border-radius: 11px;
+  border-radius: var(--card-radius);
   box-shadow: none;
 }
 .dashboard-shell .workspace :is(.winner-card, .rank-column:nth-child(2)) {
@@ -204,14 +247,49 @@
   border: 1px solid var(--line);
   border-radius: 6px;
 }
-/* Give disclosures a consistent trailing chevron, including the compact labs. */
-.dashboard-shell .workspace details > summary {
+/* Native disclosures share a padded card header and a separated content area.
+   Keep the in-game minimap's own dark HUD surface and compact dimensions. */
+.dashboard-shell .workspace details:not(.doom-minimap) {
+  min-width: 0;
+  padding: var(--card-padding);
+  margin-block: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--card-radius);
+  background: var(--card-bg);
+  box-shadow: 0 1px 2px #00000004;
+}
+.dashboard-shell .workspace details:not(.doom-minimap) > summary {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   list-style: none;
-  min-height: 38px;
-  line-height: 1.5;
+  min-height: 52px;
+  padding: 14px var(--card-padding);
+  margin: calc(-1 * var(--card-padding));
+  border-radius: calc(var(--card-radius) - 1px);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.6;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+  transition: background-color 120ms ease-out;
+}
+.dashboard-shell .workspace details:not(.doom-minimap) > summary:hover {
+  background: var(--card-hover);
+}
+.dashboard-shell .workspace details:not(.doom-minimap) > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -3px;
+}
+.dashboard-shell .workspace details:not(.doom-minimap)[open] > summary {
+  margin-bottom: var(--card-padding);
+  border-bottom: 1px solid var(--line);
+  border-radius: calc(var(--card-radius) - 1px) calc(var(--card-radius) - 1px) 0
+    0;
+}
+.dashboard-shell .workspace details > summary::-webkit-details-marker {
+  display: none;
 }
 .dashboard-shell .workspace details > summary::after {
   content: "";
@@ -221,11 +299,104 @@
   border: solid var(--muted);
   border-width: 0 1.5px 1.5px 0;
   transform: rotate(-45deg);
-  margin: 0 5px 0 auto;
+  margin: 0 3px 0 auto;
   flex: 0 0 6px;
 }
 .dashboard-shell .workspace details[open] > summary::after {
   transform: rotate(45deg);
+}
+.dashboard-shell .workspace details > :last-child:not(summary) {
+  margin-bottom: 0;
+}
+.dashboard-shell .workspace details > pre {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  line-height: 1.7;
+  max-width: 100%;
+  overflow: auto;
+}
+/* Question rows already provide the card around their checkbox and disclosure. */
+.dashboard-shell .workspace .question-row .question-edit {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  margin: 0;
+  padding: 0;
+}
+.dashboard-shell .workspace .question-row .question-edit > summary {
+  padding: 8px;
+  margin: 0;
+  min-height: 54px;
+}
+.dashboard-shell .workspace .question-row .question-edit[open] > summary {
+  margin-bottom: 12px;
+}
+.dashboard-shell .workspace .rule > .rule-edit {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+/* Keep risk cues alongside the shared surface. */
+.dashboard-shell .workspace .hunk-card.risk-high {
+  border-left: 3px solid #ad626d;
+}
+.dashboard-shell .workspace .hunk-card.risk-low {
+  border-left: 3px solid #609c88;
+}
+/* These summaries include their own multi-line layout / toggle. */
+.dashboard-shell .workspace .hunk-card > summary {
+  flex-wrap: wrap;
+}
+.dashboard-shell .workspace .rerank-guide > summary::after {
+  display: none;
+}
+.dashboard-shell .workspace .rerank-guide-body {
+  padding: 0;
+}
+.dashboard-shell .workspace .solver-groups {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+.dashboard-shell .workspace .solver-groups > details {
+  margin: 0;
+}
+.solver-group-title {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.solver-group-title strong {
+  font-size: 13px;
+  font-weight: 650;
+}
+.solver-group-title small,
+.solver-group-prediction small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+.solver-group-prediction {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  margin-left: auto;
+  text-align: right;
+}
+.solver-group-prediction .tag {
+  white-space: normal;
+}
+.dashboard-shell .workspace .solver-group > summary::after {
+  margin-left: 6px;
+}
+.solver-group-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
 }
 .dashboard-shell .workspace .field-hint {
   font-size: 11px;
@@ -613,10 +784,7 @@
   grid-template-columns: 1fr;
 }
 .router-workspace .router-candidates .compact-finding {
-  border: 0;
-  border-left: 2px solid var(--line);
-  border-radius: 0;
-  padding: 4px 12px;
+  margin: 0;
 }
 .router-workspace .router-candidates code {
   color: var(--muted);
@@ -635,9 +803,7 @@
   flex-wrap: wrap;
   justify-content: flex-end;
 }
-.dashboard-shell .workspace .question-row {
-  border-radius: 10px;
-}
+
 .dashboard-shell .workspace .example-item {
   border-radius: 9px;
   margin-block: 3px;
