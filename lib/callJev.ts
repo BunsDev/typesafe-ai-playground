@@ -131,12 +131,15 @@ const number = (value: unknown) =>
   typeof value === "number" && Number.isFinite(value) ? value : null;
 function pick(response: JevResponse | undefined, head: string, ids: string[]) {
   const answer = response?.answers?.[head];
+  const isChoice = answer?.type === "choice";
   const probabilities = cleanProbabilities(
-    answer?.probabilities,
+    isChoice ? answer?.probabilities : undefined,
     ids,
   ) as Record<string, number>;
   let choice =
-    typeof answer?.choice === "string" && ids.includes(answer.choice)
+    isChoice &&
+    typeof answer?.choice === "string" &&
+    ids.includes(answer.choice)
       ? answer.choice
       : null;
   if (!choice) {
