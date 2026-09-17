@@ -131,4 +131,23 @@ test("provider failure remains failed with unknown tokens and an exportable repo
   );
   expect(saved.entries).toHaveLength(1);
   expect(saved.block.kind).toBe("billing");
+  await page
+    .getByRole("button", { name: "API key settings", exact: true })
+    .click();
+  const keyDialog = page.getByRole("dialog", { name: "Your TypeSafe API key" });
+  await keyDialog
+    .getByLabel("API key", { exact: true })
+    .fill("synthetic-native-test-key");
+  await keyDialog.getByRole("button", { name: "Save key" }).click();
+  const refreshed = await page.evaluate(() =>
+    JSON.parse(sessionStorage.getItem("typesafe-session-usage-v1") || "{}"),
+  );
+  expect(refreshed.block).toBeNull();
+  const retried = page.waitForRequest((request) =>
+    request.url().endsWith("/api/native-browser/run"),
+  );
+  await page.getByRole("button", { name: "Run with Jev" }).click();
+  expect((await retried).headers()["x-typesafe-api-key"]).toBe(
+    "synthetic-native-test-key",
+  );
 });

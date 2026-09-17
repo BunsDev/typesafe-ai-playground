@@ -295,3 +295,51 @@ test("lost batch acknowledgements preserve planned commands and report an unknow
   assert.match(result.traces[0].executionError!, /disconnected/);
   assert.equal(result.traces[0].executed, 0);
 });
+
+test("failed completion reopens applied fields so Jev can correct an earlier wrong value", async () => {
+  const page = { ...initial(), nodes: initial().nodes.slice(0, 1) };
+  let calls = 0;
+  const result = await runNativeBrowser(
+    {
+      observe: async () => page,
+      execute: async (actions) => {
+        page.nodes[0].value = actions[0].text!;
+        return actions.map((action) => ({
+          action,
+          status: "executed",
+          detail: "Applied",
+          elapsedMs: 1,
+        }));
+      },
+      verify: async () => ({
+        passed: page.nodes[0].value === "Ada",
+        summary:
+          page.nodes[0].value === "Ada" ? "Name verified" : "Unverified: Name",
+      }),
+    },
+    {
+      goal: 'Set Name to "Ada"',
+      model: "jev-latest",
+      signal: new AbortController().signal,
+      transport: async (request) => {
+        calls++;
+        if (calls === 3)
+          assert.ok(
+            request.questions.action_1.criteria &&
+              "T1" in request.questions.action_1.criteria,
+          );
+        return {
+          answers: {
+            action_1: {
+              type: "choice",
+              choice: calls === 1 ? "T2" : calls === 3 ? "T1" : "DONE",
+            },
+          },
+        };
+      },
+    },
+  );
+  assert.equal(result.status, "done");
+  assert.equal(calls, 4);
+  assert.equal(page.nodes[0].value, "Ada");
+});

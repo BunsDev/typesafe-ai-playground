@@ -180,6 +180,10 @@ export async function runNativeBrowser(
           report.reason = `Completion not verified: ${report.verification.summary}`;
           break;
         }
+        // A command being applied is not proof that it satisfied the goal.
+        // Reopen previously filled fields so Jev can repair a rejected result.
+        completed.clear();
+        offset = 0;
         previousResults = [
           {
             action: chosen[0],

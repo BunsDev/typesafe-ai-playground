@@ -91,8 +91,11 @@ async function main() {
               if (!choice)
                 choice =
                   head === "action_1"
-                    ? (Object.entries(criteria).find(
-                        ([, text]) => text === "CLICK button Save draft",
+                    ? (Object.entries(criteria).find(([, text]) =>
+                        [
+                          "CLICK button Continue",
+                          "CLICK button Save draft",
+                        ].includes(text),
                       )?.[0] ?? "SKIP")
                     : "SKIP";
               return [
@@ -144,6 +147,7 @@ async function main() {
             live && report.status === "done" && metrics.outputTokens !== null;
         const run = {
           task: key,
+          benchmarkVersion: spec.version,
           policySource: live ? "live-jev" : "scripted",
           synthetic: true,
           expectedActions: spec.requiredActions,

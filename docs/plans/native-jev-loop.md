@@ -43,9 +43,9 @@ Checks above describe protocol/executor implementation verified with scripted re
 | Jev-only execution | One transport request per decision; exact goal spans/supplied values; no text-model call or fallback policy in native mode | Implemented and tested offline |
 | Structural checks | DOM tests cover changed field, document, option, form context, occlusion and stable target outside unrelated updates; mutation-region counters avoid full rereads | Implemented and tested offline |
 | Pacing/cancellation | Repeated target waits, challenge early-stop, bounded waits; cancellation test observes SIGTERM while RPC remains pending; unacknowledged batches remain uncertain | Implemented and tested offline; no detection-bypass claim |
-| Metrics and targets | Scripted PC: 12 actions / 5 decisions; profile: 10 / 5. Actual model calls = 0 in scripted mode; tokens = null. Live attempt: HTTP 402 before first action | Target measurement incomplete |
+| Metrics and targets | Staged v2 PC and profile: 12 actions / 7 decisions each. Actual model calls = 0 in scripted mode; tokens = null. Live attempt: HTTP 402 before first action | Target measurement incomplete |
 | App/docs | `/jev-browser-agent/native`, guide link, explicit synthetic/live context, copyable exact trace; tests for failure accounting, overflow and short-screen composer | Implemented and tested offline |
-| Delivery | Isolated `feat/native-jev-loop`; main remains unchanged by this task | Checkpoint verified; draft PR and live benchmark pending |
+| Delivery | Isolated `feat/native-jev-loop`; main remains unchanged by this task | Draft PR #19 pushed; initial 98300e5 CI passed; staged benchmark follow-up and live measurement pending |
 
 ## Verification receipts
 
@@ -60,7 +60,7 @@ Checks above describe protocol/executor implementation verified with scripted re
 
 ## Remaining work
 
-1. Finish checkpoint verification, commit/push, and open a draft PR for CI.
+1. Verify and push the staged-benchmark / field-correction follow-up to draft PR #19, then inspect its exact-commit CI.
 2. Restore quota or update the local TypeSafe key (requested asynchronously); rerun both live benchmarks. Do not repeatedly retry HTTP 402 or treat scripted decisions as live measurement.
 3. Inspect real Jev choices, provider token coverage and achieved outcomes against the original targets; fix any live-only failures.
 4. Re-audit requirements, obtain terminal exact-commit CI, and merge main as already authorized.
@@ -69,3 +69,14 @@ Checks above describe protocol/executor implementation verified with scripted re
 
 - `/tmp/typesafe-native-scripted-verified.json` — SHA-256 `fb3a9457362f4f6f772e05fdcd3c75f45c0982d5af3b0fe802e62c0d898f28c6`.
 - `/tmp/typesafe-native-live.json` — SHA-256 `a7ce27ae702ce980c1c8d9612aea2ea2642f9a9ccd31cac8b5b7586d7774de37`.
+
+## Staged benchmark follow-up
+
+- The initial one-page form scenarios were too narrow to establish multi-step browser control. Version 2 uses three sections, Continue/back navigation, persistent values, a saved review, and an Edit draft path. Both tasks require 12 actions and completed with scripted decisions in seven calls. These are still synthetic correctness checks, not live Jev performance.
+- Same-menu request character reduction is 7.3% (PC) / 9.0% (profile) for the staged workflows. Earlier 34% / 24% figures applied only to the superseded one-page fixtures.
+- The independent verifier can reject a wrong applied field and reopen it for correction; a focused loop regression now proves recovery instead of permanently hiding that field.
+- Four staged-browser tests passed across desktop/mobile at the benchmark's explicit 1440×900 viewport. App layout responsiveness is checked separately.
+- Initial commit `98300e5349c169e05b928bfeca991eeea79f4251` passed all four GitHub Actions checks and Vercel; those checks do not cover this follow-up until it is pushed.
+- Current staged v2 raw report: `/tmp/typesafe-native-staged-v2.json`. Earlier local artifacts above remain historical evidence, not the current benchmark comparison.
+
+- Follow-up verification: `pnpm test` passed 201 TypeScript tests plus legacy JavaScript checks; typecheck/build passed. Production native executor, staged benchmark, native UI and shared key-settings suites passed all 32 cases. Native key replacement clears the old billing block and sends the replacement header; dialog IDs are unique across the shell and native toolbar.

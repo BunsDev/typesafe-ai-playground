@@ -4,14 +4,14 @@ Open `/jev-browser-agent/native` on localhost. Jev chooses commands for an isola
 
 ## Run locally
 
-Use the repository's pinned pnpm version, `uv`, and Chromium. Set `TYPESAFE_API_KEY` in `.env.local`, install Chromium with `pnpm exec playwright install chromium`, then run `pnpm dev`. `LOCAL_BROWSER_EXECUTABLE` can select another Chromium executable. The first session downloads pinned browser-use 0.13.10 through uv. Hosted deployments cannot launch a browser on your computer.
+Use the repository's pinned pnpm version, `uv`, and Chromium. Set `TYPESAFE_API_KEY` in `.env.local` or use the API-key icon in the native toolbar, install Chromium with `pnpm exec playwright install chromium`, then run `pnpm dev`. `LOCAL_BROWSER_EXECUTABLE` can select another Chromium executable. The first session downloads pinned browser-use 0.13.10 through uv. Hosted deployments cannot launch a browser on your computer.
 
 The browser guide links to the native workspace. Choose one of these tasks:
 
 | Task              | Execution                                                                                          | Completion check                                                          |
 | ----------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| PC configuration  | Synthetic form, eight component selections, three input fields and Save draft; 12 required actions | All eleven exact values and the saved confirmation                        |
-| Account setup     | Synthetic form, eight input fields, one plan selection and Save draft; 10 required actions         | All nine exact values and the saved confirmation                          |
+| PC configuration  | Three sections: eight component selections, one name field, two Continue actions and Save draft; 12 required actions | All nine exact values and the saved confirmation                        |
+| Account setup     | Three sections: eight input fields, one plan selection, two Continue actions and Save draft; 12 required actions         | All nine exact values and the saved confirmation                          |
 | Newegg navigation | Real Newegg pages with a custom goal                                                               | User-supplied confirmation text; the API also supports exact field checks |
 
 These forms are controlled execution benchmarks, not market research or real account creation. Newegg confirmation text establishes only that the text appears in the document. It does not establish price, compatibility, budget optimization, or a complete PC build. Specify a check that distinguishes the destination from the initial page.
@@ -23,7 +23,7 @@ These forms are controlled execution benchmarks, not market research or real acc
 3. **Send the change.** The first update is a compressed baseline. Subsequent updates contain added, changed and removed nodes/text, current scroll position and revision. Navigation invalidates old handles. The delta encoder retains only the immediately previous compressed view; it never replays old DOM snapshots or prior exchanges.
 4. **Choose a batch.** One request contains up to four closed-choice heads. Each choice binds an operation, observed target and exact value. Independent text fields, selects and checkbox toggles can execute together. A primary non-checkbox CLICK, SCROLL, WAIT, DONE or BLOCKED ends the batch and discards speculative field answers. Jev receives the current menus and last batch outcome because the API is stateless; these are not a replay of page history.
 5. **Check and act.** Before each command, check document/revision, node identity, current value and structure, option identity, containing form/section revision, visibility and center-point occlusion. Unrelated changes outside that region do not invalidate a stable target before the batch starts. These checks inspect the target, not a fresh DOM table. A dependency change rejects the next command and marks remaining actions skipped. Other clicks and scrolling require another observation.
-6. **Verify separately.** DONE and BLOCKED invoke a local completion contract. An unverified claim gets one fresh observation; a second unverified claim pauses the run. Duplicate field labels cannot pass an exact field check.
+6. **Verify separately.** DONE and BLOCKED invoke a local completion contract. An unverified claim reopens previously applied fields for correction and gets one fresh observation; a second consecutive unverified claim pauses the run. Duplicate field labels cannot pass an exact field check.
 
 TYPE_TEXT uses exact supplied values or bounded, literal spans from the goal. Quote multiword values to make them reliable candidates. The local step does not invent missing input, generate selectors, execute model code, or call another model. SELECT maps to the observed option's index and value.
 
@@ -57,12 +57,12 @@ This runs real local browser-use sessions with a deterministic test policy. It m
 pnpm exec node --env-file=.env.local --import tsx scripts/benchmark-native-browser.ts --live --output=/tmp/native-live.json
 ```
 
-Use `--task=pc` or `--task=profile` to run one scenario and `--model=jev-latest` to select a model. The script requires exactly one of `--live` or `--scripted`, saves its report even on a run failure, and stops after a failed live scenario instead of repeatedly spending credits. Automated tests use mocked responses only.
+The current fixtures are version 2: three sections plus a saved review and an Edit draft path. Use `--task=pc` or `--task=profile` to run one scenario and `--model=jev-latest` to select a model. The script requires exactly one of `--live` or `--scripted`, saves its report even on a run failure, and stops after a failed live scenario instead of repeatedly spending credits. Automated tests use mocked responses only.
 
 The comparison targets are the user's reported BetterWrite figures: approximately 2,400 output tokens for 12 actions and 1,500 for a setup/configuration task. These fixtures differ from those reported tasks. Even a passing single run establishes only this task/model/environment result; it does not establish equal retail coverage, general reliability or a BetterWrite reproduction.
 
 ## Evidence so far
 
-On 2026-09-17, the scripted real-browser PC and profile runs completed in five decision calls each, with 12 and 10 executed actions respectively. Their serialized requests were approximately 34% and 24% smaller than the same-menu fresh-baseline counterfactual. No token performance claim follows from scripted decisions.
+On 2026-09-17, the scripted real-browser staged PC and profile runs completed in seven decision calls each, with 12 executed actions each. Their serialized requests were approximately 7.3% and 9.0% smaller than the same-menu fresh-baseline counterfactual. No token performance claim follows from scripted decisions.
 
 The live Jev benchmark returned HTTP 402 on its first call, before any action. Output-token targets and live policy success are **not verified**. Restore provider quota and rerun the live command before claiming either target is met.

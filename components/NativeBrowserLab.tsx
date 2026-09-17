@@ -15,6 +15,7 @@ import type {
   NativeVerification,
 } from "../lib/nativeBrowser/types";
 import { CopyDebugReport } from "./CopyDebugReport";
+import { ApiKeySettings } from "./ApiKeySettings";
 
 type Task = "pc" | "profile" | "newegg";
 type View = {
@@ -208,6 +209,7 @@ export function NativeBrowserLab() {
         <strong>
           <Globe2 size={18} /> Native Jev browser
         </strong>
+        <ApiKeySettings />
         <span>
           {task === "newegg"
             ? "Live Newegg navigation"
@@ -379,7 +381,7 @@ export function NativeBrowserLab() {
             }}
           >
             <option value="pc">PC configuration · 12-action benchmark</option>
-            <option value="profile">Account setup · 10-action benchmark</option>
+            <option value="profile">Account setup · 12-action benchmark</option>
             <option value="newegg">Newegg · native navigation</option>
           </select>
         </label>
