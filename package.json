@@ -17,7 +17,9 @@
     "pretest": "node scripts/require-pnpm.cjs",
     "pretypecheck": "node scripts/require-pnpm.cjs",
     "pretest:e2e": "node scripts/require-pnpm.cjs",
-    "preexample:langchain": "node scripts/require-pnpm.cjs"
+    "preexample:langchain": "node scripts/require-pnpm.cjs",
+    "clean-room": "tsx scripts/clean-room.ts",
+    "preclean-room": "node scripts/require-pnpm.cjs"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",
