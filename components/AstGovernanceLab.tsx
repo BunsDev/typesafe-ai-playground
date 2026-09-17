@@ -1,4 +1,5 @@
 "use client";
+import { useUsage, usageBlocked } from "../lib/logUsageEntry";
 import { revealResults } from "../lib/scroll";
 import { useEffect, useRef, useState } from "react";
 import { Heading, ErrorNote, RunButton, Export } from "./ui";
@@ -22,6 +23,8 @@ const sample: GovernanceInput = {
   policy: "[]",
 };
 export function AstGovernanceLab() {
+  useUsage();
+  const quotaBlocked = usageBlocked();
   const [input, setInput] = useState(sample),
     [analysis, setAnalysis] = useState<GovernanceAnalysis | null>(null),
     [decisions, setDecisions] = useState<GovernanceDecision[]>([]),
@@ -199,6 +202,7 @@ export function AstGovernanceLab() {
           <ErrorNote message={error} />
           <div className="lab-actions">
             <RunButton
+              usesJev={false}
               busy={busy}
               onClick={() => inspect()}
               disabled={!input.diff.trim()}
@@ -209,6 +213,7 @@ export function AstGovernanceLab() {
               <button
                 className="button"
                 disabled={
+                  quotaBlocked ||
                   busy ||
                   analysis.checks.blocked ||
                   !buildGovernanceUnits(analysis).length

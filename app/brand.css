@@ -768,3 +768,557 @@ h1,
     font-size: 14px;
   }
 }
+
+/* Native fullscreen and a viewport-sized fallback for mobile browsers. */
+.doom-arena-panel.doom-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  width: 100%;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  border-radius: 0;
+  background: var(--panel);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.doom-fullscreen > .panel-heading {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.doom-fullscreen .doom-arena-content {
+  max-width: 1440px;
+  margin: auto;
+}
+.doom-fullscreen .doom-viewport svg {
+  height: max(160px, calc(100dvh - 390px));
+  width: 100%;
+  object-fit: contain;
+}
+.doom-fullscreen .doom-touch-controls {
+  max-width: 760px;
+  margin-inline: auto;
+}
+.api-key-dialog {
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  margin: auto;
+  padding: 20px;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--frame);
+  border-radius: 3px;
+  box-shadow: 5px 5px 0 #0004;
+}
+.api-key-dialog::backdrop {
+  background: #0008;
+}
+.api-key-heading,
+.api-key-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.api-key-heading h2 {
+  font-size: 18px;
+}
+.api-key-dialog p {
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 14px 0;
+}
+.api-key-dialog input {
+  width: 100%;
+  margin-top: 8px;
+}
+.api-key-actions {
+  justify-content: flex-start;
+}
+.doom-scene {
+  position: relative;
+  height: clamp(260px, 40vw, 510px);
+  background: #101624;
+  overflow: hidden;
+}
+.doom-scene canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+.doom-crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font: 22px monospace;
+  text-shadow: 0 1px 3px #000;
+  pointer-events: none;
+}
+.doom-view-label {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  color: #b9d8ef;
+  font: 9px var(--font-mono);
+  pointer-events: none;
+  background: #09111ca8;
+  padding: 6px;
+}
+.doom-hit::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 50px #ed4b7799;
+  pointer-events: none;
+}
+.doom-render-message {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  padding: 24px;
+  color: #d6e7fc;
+  text-align: center;
+  font-size: 13px;
+}
+.doom-minimap {
+  border-top: 1px solid #414558;
+  color: #c1d6ef;
+  background: #101624;
+}
+.doom-minimap > summary {
+  padding: 8px 12px;
+  font: 11px var(--font-mono);
+  cursor: pointer;
+}
+.doom-viewport .doom-minimap svg,
+.doom-fullscreen .doom-viewport .doom-minimap svg {
+  max-width: 360px;
+  height: auto;
+  margin: auto;
+}
+.doom-fullscreen .doom-scene {
+  height: max(200px, calc(100dvh - 340px));
+}
+@media (max-width: 650px) {
+  .doom-scene {
+    height: 300px;
+  }
+}
+/* JevDoom's immersive stage: game first, quiet controls around the edges. */
+.jevdoom-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff1fb;
+}
+.jevdoom-brand svg {
+  width: 45px;
+  height: 45px;
+  flex: none;
+  filter: drop-shadow(0 2px 6px #ed66b644);
+}
+.jevdoom-brand strong {
+  display: block;
+  font:
+    italic 900 30px/0.98 Arial,
+    sans-serif;
+  letter-spacing: -1.5px;
+  text-shadow: 2px 2px 0 #472043;
+}
+.jevdoom-brand strong span {
+  color: #ff9dd4;
+}
+.jevdoom-brand i {
+  font-size: 14px;
+  vertical-align: top;
+  margin-left: 4px;
+  color: #aff0ff;
+}
+.jevdoom-brand small {
+  display: block;
+  margin-top: 6px;
+  font: 8px var(--font-mono);
+  letter-spacing: 1.6px;
+  color: #cedded;
+}
+.doom-window-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.doom-capture-caption {
+  display: none;
+}
+.doom-arena-panel.doom-fullscreen {
+  overflow: hidden;
+  background: #101624;
+  padding: 0;
+}
+.workspace .doom-fullscreen > .panel-heading {
+  position: absolute;
+  inset: 0 0 auto;
+  border: 0;
+  background: linear-gradient(#080d1be6, transparent);
+  padding: max(20px, env(safe-area-inset-top)) 28px 28px;
+  z-index: 8;
+  align-items: flex-start;
+  pointer-events: none;
+}
+.doom-fullscreen .panel-heading button {
+  pointer-events: auto;
+  background: #121b2ddd;
+  border: 1px solid #a9bed044;
+  color: #edf4ff;
+  padding: 8px 12px;
+  min-height: 36px;
+  backdrop-filter: blur(8px);
+}
+.doom-fullscreen .jevdoom-brand svg {
+  width: 60px;
+  height: 60px;
+}
+.doom-fullscreen .jevdoom-brand strong {
+  font-size: 43px;
+}
+.doom-fullscreen .jevdoom-brand small {
+  font-size: 9px;
+}
+.doom-fullscreen .doom-arena-content {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+.doom-fullscreen .doom-viewport {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  border: 0;
+  outline-offset: -3px;
+}
+.doom-fullscreen .doom-scene {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+}
+.doom-fullscreen .doom-screen-top {
+  display: none;
+}
+.doom-fullscreen .doom-screen-hud {
+  position: absolute;
+  bottom: 26px;
+  left: 28px;
+  gap: 20px;
+  border: 1px solid #b1c9df33;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #0c1425da;
+  backdrop-filter: blur(10px);
+}
+.doom-fullscreen .doom-screen-hud strong {
+  font-size: 27px;
+}
+.doom-fullscreen .doom-minimap {
+  position: absolute;
+  right: 28px;
+  top: 105px;
+  width: 175px;
+  background: #101624c9;
+  border: 1px solid #c9d9ef33;
+  border-radius: 6px;
+  backdrop-filter: blur(10px);
+}
+.doom-fullscreen .doom-actions {
+  position: absolute;
+  bottom: 26px;
+  right: 28px;
+  margin: 0;
+  z-index: 5;
+  max-width: 310px;
+  justify-content: flex-end;
+}
+.doom-fullscreen .doom-actions > span {
+  width: 100%;
+  text-align: right;
+  color: #c3d5eb;
+  text-shadow: 0 1px 3px #000;
+}
+.doom-fullscreen .doom-touch-controls {
+  position: absolute;
+  bottom: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 360px;
+  z-index: 5;
+  margin: 0;
+}
+.doom-fullscreen .doom-touch-controls .button {
+  background: #142038d9;
+  color: #dfedff;
+  border-color: #b5cef244;
+  min-height: 34px;
+  backdrop-filter: blur(8px);
+}
+.doom-fullscreen .doom-options,
+.doom-fullscreen .doom-controls-hint {
+  display: none;
+}
+.doom-fullscreen .doom-mode {
+  position: absolute;
+  top: 110px;
+  left: 28px;
+  width: 380px;
+  z-index: 5;
+}
+.doom-fullscreen .doom-view-label {
+  bottom: 112px;
+  left: 28px;
+}
+.doom-fullscreen .doom-capture-caption {
+  display: block;
+  position: absolute;
+  bottom: 28px;
+  right: 28px;
+  z-index: 7;
+  color: #dbedff;
+  text-align: right;
+  font: 10px var(--font-mono);
+  letter-spacing: 1px;
+  pointer-events: none;
+  opacity: 0;
+}
+.doom-capture-caption span {
+  color: #ff99d0;
+}
+.doom-capture-caption small {
+  display: block;
+  margin-top: 9px;
+  color: #acbed4;
+  letter-spacing: 0.3px;
+}
+.doom-fullscreen.doom-capture .doom-capture-caption {
+  opacity: 1;
+}
+.doom-fullscreen.doom-capture .doom-mode,
+.doom-fullscreen.doom-capture .doom-actions,
+.doom-fullscreen.doom-capture .doom-touch-controls,
+.doom-fullscreen.doom-capture .doom-minimap,
+.doom-fullscreen.doom-capture .doom-view-label {
+  display: none;
+}
+.doom-fullscreen.doom-capture .doom-window-actions {
+  opacity: 0.15;
+  transition: opacity 0.2s;
+}
+.doom-fullscreen.doom-capture .doom-window-actions:hover,
+.doom-fullscreen.doom-capture .doom-window-actions:focus-within {
+  opacity: 1;
+}
+@media (max-width: 1100px) {
+  .doom-fullscreen .doom-touch-controls {
+    bottom: 95px;
+    width: min(450px, 90vw);
+  }
+  .doom-fullscreen .doom-view-label {
+    bottom: 185px;
+  }
+}
+@media (max-width: 650px) {
+  .workspace .doom-fullscreen > .panel-heading {
+    padding: max(12px, env(safe-area-inset-top)) 12px 24px;
+    gap: 8px;
+  }
+  .doom-fullscreen .jevdoom-brand {
+    gap: 5px;
+  }
+  .doom-fullscreen .jevdoom-brand svg {
+    width: 35px;
+    height: 35px;
+  }
+  .doom-fullscreen .jevdoom-brand strong {
+    font-size: 27px;
+  }
+  .doom-fullscreen .jevdoom-brand small {
+    font-size: 6px;
+    letter-spacing: 1px;
+  }
+  .doom-fullscreen .doom-window-actions {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  .doom-fullscreen .panel-heading button {
+    font-size: 9px;
+    padding: 6px;
+    min-height: 30px;
+  }
+  .doom-fullscreen .doom-mode {
+    top: 110px;
+    left: 12px;
+    width: calc(100% - 24px);
+  }
+  .doom-fullscreen .doom-minimap {
+    top: 180px;
+    right: 12px;
+    width: 130px;
+  }
+  .doom-fullscreen .doom-screen-hud {
+    bottom: max(18px, env(safe-area-inset-bottom));
+    left: 12px;
+    padding: 8px;
+    gap: 9px;
+    font-size: 8px;
+  }
+  .doom-fullscreen .doom-screen-hud strong {
+    font-size: 19px;
+    margin-left: 3px;
+  }
+  .doom-fullscreen .doom-actions {
+    bottom: max(18px, env(safe-area-inset-bottom));
+    right: 12px;
+    max-width: 130px;
+    gap: 3px;
+  }
+  .doom-fullscreen .doom-actions .button {
+    font-size: 9px;
+    min-height: 30px;
+    padding: 5px 8px;
+  }
+  .doom-fullscreen .doom-actions > span {
+    display: none;
+  }
+  .doom-fullscreen .doom-touch-controls {
+    bottom: 100px;
+    width: calc(100% - 24px);
+  }
+  .doom-fullscreen .doom-capture-caption {
+    bottom: 85px;
+    right: 12px;
+    font-size: 8px;
+  }
+}
+
+.doom-fullscreen .doom-mode {
+  border: 0;
+  margin: 0;
+  color: #d1e1f7;
+}
+.doom-fullscreen .doom-mode legend {
+  font: 9px var(--font-mono);
+  text-shadow: 0 1px 2px #000;
+}
+.doom-fullscreen .doom-mode button {
+  background: #101b30da;
+  color: #d3e7fa;
+  border-color: #b2c8e333;
+  backdrop-filter: blur(8px);
+}
+.doom-fullscreen .doom-mode button.selected {
+  background: #613551dd;
+  border-color: #ff9dd4;
+  color: #fff;
+}
+.doom-fullscreen [role="alert"] {
+  position: absolute;
+  left: 28px;
+  right: 28px;
+  bottom: 220px;
+  z-index: 9;
+  background: #321d2af2;
+  border: 1px solid #ff99b5;
+  padding: 12px;
+  color: #ffe2ee;
+}
+.workspace .doom-arena-panel > .panel-heading .jevdoom-brand {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+.workspace .doom-arena-panel > .panel-heading .doom-window-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.workspace .doom-fullscreen > .panel-heading .button {
+  min-height: 36px;
+  padding: 8px 12px;
+  font-size: 11px;
+}
+@media (max-width: 650px) {
+  .workspace .doom-fullscreen > .panel-heading .doom-window-actions {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .workspace .doom-fullscreen > .panel-heading .button {
+    min-height: 30px;
+    padding: 6px;
+    font-size: 9px;
+  }
+}
+.doom-fullscreen .doom-view-label {
+  display: none;
+}
+@media (max-width: 650px) {
+  .doom-fullscreen .doom-touch-controls .button {
+    min-height: 44px;
+  }
+}
+
+/* MicroDuck: a robotics test floor, with controls that travel into fullscreen. */
+.microduck-stage { color: #e3edf7; background: #080e1b; border: 1px solid #2a3c51; border-radius: 12px; overflow: hidden; isolation: isolate; }
+.microduck-stage-header { padding: 16px 18px; display: flex; justify-content: space-between; align-items: center; gap: 12px; background: #101b2b; border-bottom: 1px solid #29394d; }
+.microduck-kicker { font: 10px/1.4 var(--font-mono), monospace; letter-spacing: .14em; color: #8ea9bf; }
+.microduck-stage-header h2 { font-size: 24px; letter-spacing: -.06em; margin: 3px 0 0; color: #e8f2ff; }
+.microduck-stage-header h2 span { font-weight: 400; color: #7d99b3; }
+.microduck-stage-tools { display: flex; gap: 6px; }
+.microduck-stage .button { min-height: 40px; border-color: #35485f; color: #dce9f6; background: #18273a; border-radius: 6px; white-space: nowrap; }
+.microduck-stage .button.primary { color: #08212b; background: #8fe4ee; border-color: #8fe4ee; }
+.microduck-stage .button:hover:not(:disabled) { filter: brightness(1.15); }
+.microduck-scene-wrap { position: relative; height: clamp(310px, 40vw, 480px); min-height: 0; }
+.microduck-scene { position: absolute; inset: 0; }
+.microduck-scene canvas { width: 100%; height: 100%; display: block; touch-action: none; }
+.microduck-hud { position: absolute; inset: 16px 18px auto; display: flex; justify-content: space-between; pointer-events: none; font: 10px/1.4 var(--font-mono), monospace; letter-spacing: .1em; color: #a5b9ce; }
+.microduck-hud span { background: #080e1bd9; padding: 6px 8px; border-radius: 4px; }
+.microduck-hud b { color: #e4f1ff; font-size: 14px; }
+.microduck-hud i { display: inline-block; height: 6px; width: 6px; border-radius: 50%; background: #74899e; margin-right: 8px; }
+.microduck-hud i.active { background: #8affca; box-shadow: 0 0 8px #8affca88; }
+.microduck-scene-caption { position: absolute; inset: auto 12px 10px; text-align: center; pointer-events: none; font-size: 10px; color: #b9cada; text-shadow: 0 1px 3px #000; }
+.microduck-scene-status { position: absolute; top: 45%; width: 100%; text-align: center; color: #a6c4d9; }
+.microduck-fallback { position: absolute; inset: 44px 16px 32px; overflow: auto; }
+.microduck-fallback p { font-size: 12px; }
+.microduck-fallback .arena { max-height: 85%; }
+.microduck-fallback svg { max-height: 270px; }
+.microduck-console { background: #101b2b; padding: 14px 16px; border-top: 1px solid #29394d; }
+.microduck-crew { display: flex; gap: 6px; flex-wrap: wrap; }
+.microduck-robot { display: flex; align-items: center; gap: 8px; border: 1px solid #35485f; border-radius: 6px; padding: 8px 10px; background: transparent; color: #c3d4e5; min-height: 40px; cursor: pointer; font-size: 12px; }
+.microduck-robot[aria-pressed="true"] { border-color: #85ddea; background: #173140; color: #ecfaff; }
+.microduck-robot small { font: 10px var(--font-mono), monospace; color: #a0b6c8; }
+.microduck-dot { width: 7px; height: 7px; border-radius: 50%; background: #67e8f9; }
+.microduck-dot.duck-color-1 { background: #ff92cf; }.microduck-dot.duck-color-2 { background: #fbbf60; }.microduck-dot.duck-color-3 { background: #a5b4fc; }
+.microduck-status { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; font: 10px/1.5 var(--font-mono), monospace; color: #9fb4c8; margin: 12px 0; }
+.microduck-drive { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.microduck-drive select { width: auto; max-width: 100%; min-height: 40px; padding: 8px; border-color: #35485f; background: #18273a; color: #dce9f6; border-radius: 6px; }
+.microduck-stage.is-fullscreen { position: fixed; inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; z-index: 10000; border: 0; border-radius: 0; display: grid; grid-template-rows: auto minmax(100px, 1fr) auto; }
+.microduck-stage.is-fullscreen .microduck-scene-wrap { height: auto; }
+.microduck-stage.is-fullscreen .microduck-console { max-height: 44dvh; overflow-y: auto; padding-bottom: max(14px, env(safe-area-inset-bottom)); }
+.microduck-stage.is-fullscreen .microduck-stage-header { padding-top: max(12px, env(safe-area-inset-top)); }
+.microduck-stage:focus-visible, .microduck-stage button:focus-visible, .microduck-stage select:focus-visible { outline: 2px solid #8fe4ee; outline-offset: -3px; }
+@media (max-width: 600px) {
+  .microduck-stage-header { padding: 12px; gap: 6px; }
+  .microduck-stage-header h2 { font-size: 21px; }
+  .microduck-kicker { font-size: 8px; letter-spacing: .07em; }
+  .microduck-stage-tools .button { padding: 8px; }
+  .microduck-stage-tools .button span { display: none; }
+  .microduck-stage .button, .microduck-robot, .microduck-drive select { min-height: 44px; }
+  .microduck-console { padding: 12px; }
+  .microduck-scene-caption { font-size: 9px; }
+}

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 export const SOCIAL_PAGES = {
   doom: {
     path: "/doom",
-    title: "Jev plays Doom",
+    title: "JevDoom",
     description: "Ten actions. One tiny decision at a time.",
     category: "REACTIVE GAME CONTROL",
     steps: [

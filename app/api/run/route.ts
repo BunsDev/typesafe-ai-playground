@@ -28,17 +28,31 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     return Response.json(
-      { error: error instanceof Error ? error.message : "Invalid request." },
+      {
+        error: error instanceof Error ? error.message : "Invalid request.",
+        _playgroundUsage: { attempted: false },
+      },
       { status: 400 },
     );
   }
   try {
-    return Response.json(await serverJevTransport(payload, request.signal), {
-      headers: { "Cache-Control": "no-store" },
-    });
+    return Response.json(
+      await serverJevTransport(
+        payload,
+        request.signal,
+        request.headers.get("x-typesafe-api-key"),
+      ),
+      {
+        headers: { "Cache-Control": "no-store" },
+      },
+    );
   } catch (error) {
     return Response.json(
       {
+        _playgroundUsage:
+          error instanceof JevProviderError
+            ? (error.usage ?? { attempted: false })
+            : { attempted: false },
         error:
           error instanceof JevProviderError
             ? error.message

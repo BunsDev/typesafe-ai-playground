@@ -6,8 +6,19 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: 3,
-  use: { baseURL: "http://127.0.0.1:" + port, trace: "retain-on-failure" },
+  // Software WebGL shares CPU with the browser and Next server on CI runners.
+  workers: process.env.CI ? 1 : 3,
+  timeout: process.env.CI ? 60000 : 30000,
+  use: {
+    baseURL: "http://127.0.0.1:" + port,
+    trace: "retain-on-failure",
+    launchOptions: {
+      args:
+        process.env.CI || process.env.E2E_SOFTWARE_GL
+          ? ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"]
+          : [],
+    },
+  },
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
     {

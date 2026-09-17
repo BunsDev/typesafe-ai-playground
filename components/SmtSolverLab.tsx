@@ -1,4 +1,5 @@
 "use client";
+import { useUsage, usageBlocked } from "../lib/logUsageEntry";
 import { revealResults } from "../lib/scroll";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Heading, RunButton, ErrorNote, Export } from "./ui";
@@ -34,6 +35,8 @@ const scenarioDescriptions = [
 const scenarioIcons = [Braces, ToggleLeft, Equal, ArrowDownUp, CalendarDays];
 const ms = (n: number) => `${Math.round(n)} ms`;
 export function SmtSolverLab() {
+  useUsage();
+  const quotaBlocked = usageBlocked();
   const [text, setText] = useState(SOLVER_EXAMPLES[0].text),
     [type, setType] = useState<ConstraintType>("integer"),
     [decompose, setDecompose] = useState(true),
@@ -420,7 +423,11 @@ export function SmtSolverLab() {
               Five measured cases · API calls use your configured key
             </p>
           </div>
-          <button className="button" disabled={busy} onClick={() => run(true)}>
+          <button
+            className="button"
+            disabled={busy || quotaBlocked}
+            onClick={() => run(true)}
+          >
             Run benchmark
           </button>
         </div>

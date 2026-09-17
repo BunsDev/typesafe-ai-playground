@@ -34,7 +34,9 @@ test("Doom batches real frames, displays all probabilities and exposes chaos sta
     const p = route.request().postDataJSON();
     calls++;
     expect(p.state.frames).toHaveLength(4);
-    expect(p.state.frames.map((f: any) => f.tick)).toEqual([3, 4, 5, 6]);
+    const ticks = p.state.frames.map((f: any) => f.tick);
+    expect(ticks).toEqual([ticks[0], ticks[0] + 1, ticks[0] + 2, ticks[0] + 3]);
+    expect(ticks.at(-1) % 6).toBe(0);
     expect(Object.keys(p.questions.frame_0.criteria)).toEqual([
       ...DOOM_ACTIONS,
     ]);
@@ -67,7 +69,10 @@ test("Doom batches real frames, displays all probabilities and exposes chaos sta
     "97.0% confidence",
   );
   await page.getByRole("button", { name: "Pause arena", exact: true }).click();
-  expect(calls).toBe(1);
+  expect(calls).toBeGreaterThanOrEqual(1);
+  const stoppedCalls = calls;
+  await page.waitForTimeout(1300);
+  expect(calls).toBe(stoppedCalls);
   await expect(page.locator(".doom-probabilities > div")).toHaveCount(10);
   await page.locator(".doom-state > summary").click();
   await expect(page.locator(".doom-feature-grid")).toContainText("unknown");
@@ -226,4 +231,52 @@ test("Doom discards an in-flight decision when controls change", async ({
   await expect(page.locator(".doom-trace > summary")).toContainText(
     "0 batches",
   );
+});
+
+test("Doom fullscreen keeps controls reachable and exits without resetting", async ({
+  page,
+}) => {
+  await page.goto("/doom");
+  await page.getByRole("button", { name: "Fullscreen", exact: true }).click();
+  await expect(page.locator(".doom-arena-panel")).toHaveClass(
+    /doom-fullscreen/,
+  );
+  await page.getByRole("button", { name: "Start arena", exact: true }).click();
+  await page.getByRole("button", { name: "Shoot", exact: true }).click();
+  await expect(page.locator(".doom-screen-hud")).toContainText("31");
+  await page.getByRole("button", { name: "Pause arena", exact: true }).click();
+  const tick = await page.getByTestId("doom-tick").innerText();
+  await page
+    .getByRole("button", { name: "Exit fullscreen", exact: true })
+    .click();
+  await expect(page.locator(".doom-arena-panel")).not.toHaveClass(
+    /doom-fullscreen/,
+  );
+  await expect(page.getByTestId("doom-tick")).toHaveText(tick);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+});
+
+test("Doom fullscreen fallback supports Escape", async ({ page }) => {
+  await page.addInitScript(() =>
+    Object.defineProperty(document, "fullscreenEnabled", {
+      value: false,
+      configurable: true,
+    }),
+  );
+  await page.goto("/doom");
+  await page.getByRole("button", { name: "Fullscreen", exact: true }).click();
+  await expect(page.locator(".doom-arena-panel")).toHaveClass(
+    /doom-fullscreen/,
+  );
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".doom-arena-panel")).not.toHaveClass(
+    /doom-fullscreen/,
+  );
+  await expect(
+    page.getByRole("button", { name: "Fullscreen", exact: true }),
+  ).toBeFocused();
 });

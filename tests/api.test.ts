@@ -127,3 +127,49 @@ test("blank keys are unconfigured and invalid upstream shapes are rejected", asy
     else process.env.TYPESAFE_API_KEY = key;
   }
 });
+
+test("personal key overrides server default without entering model payload or response", async () => {
+  const original = globalThis.fetch;
+  const previous = process.env.TYPESAFE_API_KEY;
+  process.env.TYPESAFE_API_KEY = "default-test-key";
+  let calls = 0;
+  globalThis.fetch = async (_, init) => {
+    calls++;
+    assert.equal(
+      (init?.headers as Record<string, string>).Authorization,
+      "Bearer personal-test-key",
+    );
+    assert.ok(!String(init?.body).includes("personal-test-key"));
+    return Response.json({ answers: { reply: { type: "noul", noul: 0.9 } } });
+  };
+  try {
+    const response = await POST(
+      new Request("https://demo.test/api/run", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-typesafe-api-key": "personal-test-key",
+        },
+        body: JSON.stringify(payload),
+      }),
+    );
+    assert.equal(response.status, 200);
+    assert.ok(!(await response.text()).includes("personal-test-key"));
+    const invalid = await POST(
+      new Request("https://demo.test/api/run", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-typesafe-api-key": "bad key",
+        },
+        body: JSON.stringify(payload),
+      }),
+    );
+    assert.equal(invalid.status, 400);
+    assert.equal(calls, 1);
+  } finally {
+    globalThis.fetch = original;
+    if (previous === undefined) delete process.env.TYPESAFE_API_KEY;
+    else process.env.TYPESAFE_API_KEY = previous;
+  }
+});

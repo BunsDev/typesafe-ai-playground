@@ -40,7 +40,7 @@ Open the address printed by Next.js, normally http://localhost:3000. To choose a
 | **Tool router** `/tool-router`        | Follow a LangGraph-style mock workflow with closed-set node selection, policy blocks, approval gates and a step log.                |
 | **LangChain** `/langchain`            | Invoke a real LangChain routing tool with live or mocked Jev predictions; inspect typed policy-gated output.                        |
 | **Vector reranker** /reranker         | Compare vector order, batched Jev relevance, and an explicit lexical mock baseline. Inspect rank disagreements and source snippets. |
-| **Jev plays Doom** `/doom`            | Play an original browser maze shooter, hand control to Jev, and compare against a seeded random baseline.                           |
+| **Jev plays Doom** `/doom` | Play an original first-person 3D browser shooter, hand control to Jev, and compare against a seeded random baseline. |
 | **Meme lab** `/memes`                 | Test humor style, audience fit, tone, and likely confusion using captions or reviewed text from an image URL.                       |
 | **MicroDuck arena** `/microduck`      | Drive a grid robot one tick at a time: nine sensor fields in, one of seven actions out, against a random baseline.                  |
 | **Jev attempts chess** `/chess`       | A known limitation, on purpose: pick one legal move per turn with no lookahead, and get marked by the minimax that beats it.        |
@@ -142,9 +142,19 @@ English OCR runs in your browser using a lazily loaded Tesseract worker. It comp
 
 **Jev evaluates the reviewed text and visual description, not image pixels.** URLs are not a substitute for visual context. The output is a closed-set humor/tone classification, possible confusion, and an estimated probability the joke lands. This is subjective feedback, not measured audience engagement or a promise of virality.
 
+### Usage dashboard and navigation
+
+Every page shares a collapsible sidebar (preference saved locally) and a header usage badge showing tokens beside estimated session input cost. Open **Usage & budget** for per-call timestamps, example and endpoint, API-reported input/output tokens, session totals, and estimated input cost. Mock calls and LangChain policy stops are excluded. The latest 200 calls are retained in `sessionStorage`; totals cover the entire tab session. Keys and prompts are never stored in this ledger.
+
+TypeSafe’s [API reference](https://docs.typesafe.ai/api) documents per-response `usage.input_tokens` and `usage.output_tokens`, but no public account-quota resource as of September 16, 2026. `fetchAccountUsage()` explicitly reports that limitation; it does not probe guessed endpoints. Plan tier, daily caps, remaining budget, reset times and quota percentages stay unknown unless reported. The widget identifies community versus personal key configuration without claiming the account’s paid tier.
+
+Missing tokens on successful calls use a clearly marked characters ÷ 4 approximation. Failed/cancelled calls without usage remain unknown, not free. Cost is an **input-only estimate** using the [published list price](https://typesafe.ai/) of $42 per billion input tokens, not an invoice or a claim about your plan. Session totals may span multiple keys; the per-call list records key source.
+
+HTTP 429 immediately pauses live run controls across examples; provider `Retry-After` drives a countdown and re-enables calls at expiry. HTTP 402 gets a distinct billing/budget warning. Without a reset time, the widget offers an explicit retry after you resolve the issue. Switching API keys clears the old key’s block; in-flight replies from the previous key cannot block the replacement. Local/mock demos remain available.
+
 ### MicroDuck arena
 
-A deterministic top-down grid, inspired by [pollen-robotics/microduck](https://github.com/pollen-robotics/microduck). It is a stand-in for that simulator, not the simulator itself, and it runs entirely in your browser.
+A deterministic grid simulation with a Three.js 3D test floor, inspired by [pollen-robotics/microduck](https://github.com/pollen-robotics/microduck). It is a stand-in for that simulator, not the simulator itself, and it runs entirely in your browser.
 
 Each tick, every duck reports nine sensor fields — distance and direction to its goal, obstacles ahead and to each side, battery, whether cargo is aboard, whether it is standing on its goal, and its previous action. Jev answers with one of seven actions: forward, backward, turn left, turn right, stop, pick up, drop. The mission is to reach the cargo, carry it to the nest, and drop it there, which also recharges the duck.
 
@@ -210,7 +220,7 @@ Add synthetic scenarios to `web/catalog.json`, include stable IDs and clear ques
 
 Thanks again to **[@nickthompson480](https://github.com/nickthompson480)** for sharing the [original playground](https://github.com/nickthompson480/typesafe-ai-playground), and to TypeSafe AI for Jev. This fork retains the [MIT license](LICENSE).
 
-### Jev plays Doom
+### JevDoom · Jev plays Doom
 
 Open `/doom` and start the arena in Human, Jev, or Random mode. All modes use the same seeded maze, 200ms simulation clock, and 90-second limit. Focus the arena for W/S movement, A/D strafing, Q/E turning, Space firing, F doors, and R items; on-screen controls also support touch. Switching modes saves the current run in the session scoreboard and resets the arena.
 
@@ -218,4 +228,14 @@ The browser extracts deterministic visibility, distance, bearing, health, ammo, 
 
 Chaos mode hides enemy distance, allowing direct inspection of confidence changes without assuming confidence must decrease. The decision panel and export retain exact submitted features, probabilities, response timing, and acceptance status. Latency includes network time; decisions per second measures batched classification throughput, not game actions. The 200ms blink challenge is a demonstration target. No performance or game-playing superiority is promised.
 
-This is an original top-down mini-game, not the Doom engine, and uses no Doom assets. Simulation runs locally; only structured features go to Jev. No model-generated code is executed.
+This is an original WebGL first-person mini-game, not the Doom engine, and uses no Doom assets. Three.js renders procedural walls, doors, enemies, pickups, lighting and a weapon over the deterministic simulation. The camera and visibility features share a 90° horizontal field of view. Drag to turn or click/tap to shoot; these gestures enter the same fixed action queue. The tactical map remains available, including as a playable fallback when WebGL is unavailable. GPU resources are released on navigation; pixel density is capped and reduced-motion preferences disable interpolation/recoil. Simulation runs locally; only structured features go to Jev. No model-generated code is executed.
+
+### Personal API key override
+
+Use the key icon in the header to paste and save a personal TypeSafe key. The field is always masked; reopening settings never displays the saved value. It overrides the server default for all Jev labs, including extraction and LangChain. Remove the override to return to the server default.
+
+The key persists in this browser's local storage until removed or site data is cleared. It is not synchronized to other browsers and is not encrypted by the app. It is sent in a request header to this app's server, then used only for TypeSafe authorization; it is not added to model state, exports, or responses. The shared default key remains server-only. Saving a key does not validate billing or provider access.
+
+The Doom arena's Fullscreen button uses browser fullscreen when available and an expanded viewport otherwise. Exit fullscreen or press Escape to return without resetting the run.
+
+Fullscreen fills the display with the 3D arena and keeps the JevDoom robot mark visible. Screenshot mode pauses gameplay and hides secondary controls for a clean branded capture; Show controls restores the controls without resuming the game. A seeded all-controls playthrough verifies all five enemies can be defeated and a door opened before the time limit.
