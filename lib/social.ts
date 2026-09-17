@@ -149,6 +149,18 @@ export const SOCIAL_PAGES = {
     steps: ["Generate legal moves", "Pick one with Jev", "Watch it lose"],
     result: "One decision → no plan",
   },
+  "jev-browser-agent": {
+    path: "/jev-browser-agent",
+    title: "Jev-powered browser agent",
+    description: "One goal. One request per step.",
+    category: "DYNAMIC ACTION SPACE",
+    steps: [
+      "Read the element table",
+      "Pick operation + target",
+      "Verify the outcome",
+    ],
+    result: "Goal → verified page state",
+  },
   "smt-solver": {
     path: "/smt-solver",
     title: "SMT solver lab",

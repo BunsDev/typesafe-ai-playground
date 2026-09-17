@@ -9,7 +9,7 @@ test("home discovers examples by type and query and opens the existing builder",
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     "Many possibilities.",
   );
-  await expect(page.locator(".home-example-card")).toHaveCount(15);
+  await expect(page.locator(".home-example-card")).toHaveCount(16);
   await expect(page.locator(".home-section")).toHaveCount(4);
   await page.locator(".playground-home").hover();
   await page.mouse.wheel(0, 10000);
@@ -37,7 +37,7 @@ test("home discovers examples by type and query and opens the existing builder",
     page.getByRole("heading", { name: "No matching examples" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Show all examples" }).click();
-  await expect(page.locator(".home-example-card")).toHaveCount(15);
+  await expect(page.locator(".home-example-card")).toHaveCount(16);
   await page
     .getByRole("link", { name: "Open Example builder", exact: true })
     .click();
