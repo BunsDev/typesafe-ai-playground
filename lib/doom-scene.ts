@@ -1,3 +1,4 @@
+import { isSoftwareRenderer, renderPixelRatio } from "./render-quality";
 import * as THREE from "three";
 import type { GameState } from "../types/doom";
 import { angleDifference } from "./gameLoop";
@@ -10,7 +11,8 @@ export function createDoomScene(canvas: HTMLCanvasElement, initial: GameState) {
     antialias: true,
     powerPreference: "low-power",
   });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  const software = isSoftwareRenderer(renderer.getContext());
+  canvas.dataset.renderQuality = software ? "software-balanced" : "hardware";
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   const scene = new THREE.Scene();
   scene.background = new THREE.Color("#101624");
@@ -208,12 +210,17 @@ export function createDoomScene(canvas: HTMLCanvasElement, initial: GameState) {
   camera.position.set(initial.player.x, 0.82, initial.player.y);
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
   let disposed = false,
-    lastTime = 0;
+    lastTime = 0,
+    needsRender = true,
+    renderUntil = performance.now() + 350;
   const draw = (now: number) => {
-    if (disposed || document.hidden) return;
+    if (disposed || document.hidden || (!needsRender && now > renderUntil)) return;
+    if (software && now >= lastTime && now - lastTime < 1000 / 24) return;
     const delta = Math.min(0.05, (now - (lastTime || now)) / 1000);
     lastTime = now;
-    const mix = reduced.matches ? 1 : Math.min(1, delta * 22);
+    const settled = now >= renderUntil;
+    const mix = reduced.matches || settled ? 1 : Math.min(1, delta * 22);
+    needsRender = !settled;
     camera.position.x += (state.player.x - camera.position.x) * mix;
     camera.position.z += (state.player.y - camera.position.z) * mix;
     shownAngle += angleDifference(state.player.angle, shownAngle) * mix;
@@ -253,7 +260,12 @@ export function createDoomScene(canvas: HTMLCanvasElement, initial: GameState) {
   const resize = () => {
     const width = Math.max(1, canvas.clientWidth),
       height = Math.max(1, canvas.clientHeight);
+    renderer.setPixelRatio(
+      renderPixelRatio(width, height, window.devicePixelRatio, software),
+    );
     renderer.setSize(width, height, false);
+    renderUntil = performance.now() + 350;
+    needsRender = true;
     camera.aspect = width / height;
     camera.fov = verticalFieldOfView(camera.aspect);
     camera.updateProjectionMatrix();
@@ -264,6 +276,8 @@ export function createDoomScene(canvas: HTMLCanvasElement, initial: GameState) {
   renderer.setAnimationLoop(draw);
   return {
     update(next: GameState) {
+      needsRender = true;
+      renderUntil = performance.now() + 350;
       if (next.tick < state.tick) {
         camera.position.set(next.player.x, 0.82, next.player.y);
         shownAngle = next.player.angle;

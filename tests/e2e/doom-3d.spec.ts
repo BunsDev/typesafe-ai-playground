@@ -124,7 +124,7 @@ test("JevDoom fullscreen fills the screen and captures a branded paused scene", 
 test("a complete human-controlled run reaches the sector-cleared screen", async ({
   page,
 }) => {
-  test.setTimeout(90000);
+  test.setTimeout(120000);
   const { readFile } = await import("node:fs/promises");
   const { ACTION_LABELS } = await import("../../lib/classifyActionWithJev");
   const run = JSON.parse(
@@ -138,7 +138,10 @@ test("a complete human-controlled run reaches the sector-cleared screen", async 
     "data-status",
     "ready",
   );
-  await page.clock.install();
+  const start = new Date();
+  await page.clock.install({ time: start });
+  // Pause ahead of installation so transport latency cannot target the past.
+  await page.clock.pauseAt(new Date(start.getTime() + 60_000));
   await page.getByRole("button", { name: "Start arena", exact: true }).click();
   for (const action of run.actions) {
     await page

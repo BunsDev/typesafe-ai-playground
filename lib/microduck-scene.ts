@@ -1,3 +1,4 @@
+import { isSoftwareRenderer, renderPixelRatio } from "./render-quality";
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
@@ -12,8 +13,8 @@ export function createDuckScene(
   onSelect: (id: string) => void,
 ) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-  renderer.shadowMap.enabled = true;
+  const software = isSoftwareRenderer(renderer.getContext());
+  renderer.shadowMap.enabled = !software;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.15;
@@ -154,7 +155,11 @@ export function createDuckScene(
     geometries.forEach((g) => g.dispose());
     geometries.clear();
   }
+  let renderUntil = performance.now() + 350;
+  let needsRender = true;
   function home() {
+    needsRender = true;
+    renderUntil = performance.now() + 350;
     const radius = Math.hypot(world.width + 1, world.height + 1) / 2;
     const vertical = THREE.MathUtils.degToRad(camera.fov / 2);
     const horizontal = Math.atan(Math.tan(vertical) * camera.aspect);
@@ -322,6 +327,8 @@ export function createDuckScene(
     home();
   }
   function update(next: World, id: string) {
+    needsRender = true;
+    renderUntil = performance.now() + 350;
     world = next;
     selected = id;
     const key = JSON.stringify([
@@ -346,7 +353,8 @@ export function createDuckScene(
     const delta = Math.min((now - previous) / 1000, 0.1);
     previous = now;
     if (document.hidden) return;
-    const blend = reduced.matches ? 1 : 1 - Math.exp(-delta * 12);
+    const settled = now >= renderUntil;
+    const blend = reduced.matches || settled ? 1 : 1 - Math.exp(-delta * 12);
     world.ducks.forEach((duck) => {
       const robot = robots.get(duck.id)!;
       robot.root.position.x += (duck.x + 0.5 - robot.root.position.x) * blend;
@@ -366,7 +374,9 @@ export function createDuckScene(
         cargo.position.set(position.x + 0.5, 0.22, position.y + 0.5);
     });
     controls.enableDamping = !reduced.matches;
-    controls.update();
+    const cameraChanged = controls.update();
+    if (!cameraChanged && !needsRender && settled) return;
+    needsRender = !settled;
     renderer.render(scene, camera);
     canvas.dataset.rendered = "true";
   }
@@ -375,6 +385,9 @@ export function createDuckScene(
     if (!width || !height) return;
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
+    renderer.setPixelRatio(
+      renderPixelRatio(width, height, window.devicePixelRatio, software),
+    );
     renderer.setSize(width, height, false);
     home();
   }

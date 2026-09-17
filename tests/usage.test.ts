@@ -200,3 +200,12 @@ test("session ledger separates reported, estimated and unknown tokens, counts on
   assert.equal(getUsage().entries.length, 200);
   assert.equal(getUsage().requests, before + 213);
 });
+
+test("software rendering caps pixel work without reducing hardware quality", async () => {
+  const { renderPixelRatio } = await import("../lib/render-quality");
+  assert.equal(renderPixelRatio(1440, 900, 2, false), 1.5);
+  const scale = renderPixelRatio(1440, 900, 2, true);
+  assert.ok(1440 * scale <= 640);
+  assert.ok(900 * scale <= 480);
+  assert.equal(renderPixelRatio(320, 200, 2, true), 1);
+});
