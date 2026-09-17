@@ -32,10 +32,10 @@ Request errors are shown as **Failed**, not as a successful null extraction.
 Requires Node.js 22 or newer:
 
 ```sh
-npm ci
+pnpm install --frozen-lockfile
 cp .env.example .env.local
 # Edit .env.local and set TYPESAFE_API_KEY to your key.
-npm run dev
+pnpm dev
 ```
 
 Open http://localhost:3000/extraction (or the port printed by Next.js). The server
@@ -43,9 +43,9 @@ reads `TYPESAFE_API_KEY`; it is never sent to the browser. `.env.local` is ignor
 by Git. Do not use a `NEXT_PUBLIC_` variable for this key.
 
 ```sh
-npm test
-npm run typecheck
-npm run build
+pnpm test
+pnpm typecheck
+pnpm build
 ```
 
 The shared `/api/run` Next.js route validates requests, bounds request/response

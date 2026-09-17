@@ -6,14 +6,20 @@ input, or a usability fix.
 
 ## Next.js development
 
-Use Node.js 22+, run `npm ci`, copy `.env.example` to `.env.local`, and set your
-server-only TypeSafe key. Start with `npm run dev`. Before submitting changes:
+Use Node.js 22+ and pnpm. Run `corepack enable` once — it activates the pnpm
+version pinned in `package.json` — then `pnpm install --frozen-lockfile`, copy
+`.env.example` to `.env.local`, and set your server-only TypeSafe key. Start
+with `pnpm dev`.
+
+`npm install` and `yarn` are refused by a `preinstall` guard, and CI fails if a
+`package-lock.json` or `yarn.lock` is committed: two lockfiles drift apart
+without anything noticing. Before submitting changes:
 
 ```sh
-npm test
-npm run build
-npx playwright install chromium
-npm run test:e2e
+pnpm test
+pnpm build
+pnpm exec playwright install chromium
+pnpm test:e2e
 ```
 
 Browser tests mock Jev responses and do not consume API credits. The original

@@ -42,9 +42,11 @@ export default defineConfig({
   ],
   webServer: {
     command:
-      "npm run " +
+      "pnpm " +
       (production ? "start" : "dev") +
-      " -- --hostname 127.0.0.1 --port " +
+      // No `--` separator: pnpm forwards it to the script verbatim, and
+      // `next start -- --hostname` reads the flags as a project directory.
+      " --hostname 127.0.0.1 --port " +
       port,
     url: "http://127.0.0.1:" + port,
     reuseExistingServer: !production,
