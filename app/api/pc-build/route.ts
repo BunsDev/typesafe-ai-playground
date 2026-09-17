@@ -69,6 +69,8 @@ export async function POST(request: Request) {
   if (session.busy)
     return respond({ error: "This browser is already running a task." }, 409);
   session.busy = true;
+  session.phase = "Reading listings";
+  session.completedReads = 0;
   const signal = AbortSignal.any([request.signal, AbortSignal.timeout(550000)]);
   const read = async (url: string, signal: AbortSignal) => {
     meter.documentCalls++;
@@ -93,6 +95,7 @@ export async function POST(request: Request) {
       trace.error = String(error);
       throw error;
     } finally {
+      session.completedReads++;
       trace.elapsedMs = Math.round(performance.now() - began);
     }
   };
@@ -109,6 +112,9 @@ export async function POST(request: Request) {
         build: null,
         error: `No verified listings for: ${missing.join(", ")}. Cannot produce a complete PC build.`,
       });
+    session.phase = localOnly
+      ? "Selecting local baseline"
+      : "Ranking candidates";
     let build;
     try {
       build = localOnly
@@ -138,6 +144,7 @@ export async function POST(request: Request) {
         (exchange?.response as { usage?: Record<string, unknown> })?.usage ??
         null;
     }
+    session.phase = "Checking product pages";
     const checks = await verifySelectedParts(build, signal, read);
     let pricesVerified = true;
     for (const check of checks) {
@@ -195,5 +202,6 @@ export async function POST(request: Request) {
     });
   } finally {
     session.busy = false;
+    session.phase = "Finished";
   }
 }

@@ -1,5 +1,5 @@
 """Owned local browser-use session. JSONL protocol; no LLM or personal profile."""
-import asyncio, base64, glob, json, os, signal, sys
+import asyncio, base64, glob, json, os, re, signal, sys
 from urllib.parse import urlparse
 
 protocol = sys.stdout
@@ -22,7 +22,7 @@ async def main():
             try:
                 url = request['url']
                 parsed = urlparse(url)
-                if parsed.scheme != 'https' or parsed.netloc != 'www.newegg.com' or not parsed.path.startswith('/p/'):
+                if parsed.scheme != 'https' or parsed.netloc != 'www.newegg.com' or not re.fullmatch(r'/(?:[^/]+/)?p/(?:pl|[A-Za-z0-9-]+)', parsed.path):
                     raise ValueError('Only Newegg listing and product pages are supported.')
                 await browser.navigate_to(url)
                 page = await browser.get_current_page()

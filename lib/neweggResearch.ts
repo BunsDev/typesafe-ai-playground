@@ -24,6 +24,8 @@ export function parseNeweggProducts(html: string, category: PartCategory): PartC
     const title = card.find(".item-title").text().replace(/\s+/g, " ").trim();
     const text = card.text();
     if (/stealth|project zero|\bBTF\b|\bPZ\b|pre-installed.*power supply/i.test(title)) return;
+    if (["cpu", "motherboard", "cooler"].includes(category) && !/\bAM5\b/i.test(title)) return;
+    if (category === "motherboard" && !/\bDDR5\b/i.test(title)) return;
     if (category === "storage" && !/2\s?TB/i.test(title)) return;
     if (category === "memory" && (!/32\s?GB/i.test(title) || !/(?:2\s*x\s*16\s?GB|16\s?GB\s*x\s*2)/i.test(title) || /SO-?DIMM/i.test(title))) return;
     if (!title || !patterns[category].test(title) || /desktop (?:computer|pc)|gaming (?:desktop|pc)|refurbished|renewed|open box|used/i.test(title) || /out of stock|sold out|notify me|Sponsored/i.test(text) || !/add to cart/i.test(text)) return;

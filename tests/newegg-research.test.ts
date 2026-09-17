@@ -40,3 +40,11 @@ test("rechecks the main buy box, never another seller or a crossed-out price", a
   assert.equal(result.priceCents, 109999);
   assert.equal(result.available, true);
 });
+
+test("AM5 searches reject off-platform CPU, motherboard, and cooler listings", () => {
+  assert.equal(parseNeweggProducts(card("Ryzen 7 5700X Socket AM4 Desktop CPU Processor", "209"), "cpu").length, 0);
+  assert.equal(parseNeweggProducts(card("Ryzen 7 9800X3D Socket AM5 Desktop CPU Processor", "469"), "cpu").length, 1);
+  assert.equal(parseNeweggProducts(card("AM4 DDR4 ATX Motherboard", "149"), "motherboard").length, 0);
+  assert.equal(parseNeweggProducts(card("AM5 DDR5 ATX Motherboard", "149"), "motherboard").length, 1);
+  assert.equal(parseNeweggProducts(card("Intel CPU Cooler", "49"), "cooler").length, 0);
+});

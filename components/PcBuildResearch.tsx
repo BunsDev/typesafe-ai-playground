@@ -5,6 +5,19 @@ import type { SelectionExchange } from "../lib/pcSelection";
 import { ResearchMetrics } from "./ResearchMetrics";
 import type { ResearchMetrics as Metrics } from "../lib/researchMetrics";
 import { useEffect, useRef, useState } from "react";
+import {
+  Cpu,
+  CircuitBoard,
+  MemoryStick,
+  HardDrive,
+  Zap,
+  Box,
+  Wind,
+  Monitor,
+  ArrowUpRight,
+  Globe2,
+  Check,
+} from "lucide-react";
 import { createPortal } from "react-dom";
 import type {
   Build,
@@ -41,11 +54,13 @@ export function PcBuildResearch({
   onBusyChange,
   controlsHost,
   inspectorOpen = true,
+  onOpenInspector,
 }: {
   goal?: string;
   onBusyChange?: (busy: boolean) => void;
   controlsHost?: HTMLDivElement | null;
   inspectorOpen?: boolean;
+  onOpenInspector?: () => void;
 } = {}) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const viewport = useRef<HTMLDivElement | null>(null);
@@ -54,6 +69,8 @@ export function PcBuildResearch({
     screenshot?: string | null;
     url?: string;
     error?: string | null;
+    phase?: string;
+    completedReads?: number;
   }>({});
   const [result, setResult] = useState<Result | null>(null);
   const [busy, setBusy] = useState(false);
@@ -186,42 +203,90 @@ export function PcBuildResearch({
             alt="Current page in the local browser-use session"
           />
         ) : (
-          <div className="browser-start">
-            <h2>Your local browser, ready.</h2>
+          <div className="browser-start pc-welcome">
+            <div className="pc-welcome-icon">
+              <Globe2 size={24} />
+              <span>NEWEGG / PC BUILDER</span>
+            </div>
+            <h2>
+              {busy
+                ? "Finding your next build."
+                : "Your next build starts here."}
+            </h2>
             <p>
               {busy
                 ? "Opening Newegg in an isolated browser-use session…"
-                : "Find eight parts for a $2,500 gaming PC. Watch the local browser as it reads listings and checks the selected products."}
+                : "Eight parts. One budget. Every source linked. Let your browser do the research for your next gaming PC."}
             </p>
+            {!busy && (
+              <div className="pc-brief">
+                <span>
+                  <strong>$2,500</strong> USD budget
+                </span>
+                <i />
+                <span>
+                  <strong>1440p</strong> gaming
+                </span>
+                <i />
+                <span>
+                  <strong>Tower</strong> only
+                </span>
+              </div>
+            )}
+            {!busy && (
+              <div
+                className="pc-component-strip"
+                aria-label="Eight component categories"
+              >
+                {[
+                  [Monitor, "GPU"],
+                  [Cpu, "CPU"],
+                  [CircuitBoard, "Board"],
+                  [MemoryStick, "Memory"],
+                  [HardDrive, "Storage"],
+                  [Zap, "Power"],
+                  [Box, "Case"],
+                  [Wind, "Cooling"],
+                ].map(([Icon, label]) => {
+                  const Component = Icon as typeof Cpu;
+                  return (
+                    <div key={String(label)}>
+                      <Component size={19} strokeWidth={1.5} />
+                      <span>{String(label)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
             {!busy && (
               <ol
                 className="browser-onboarding"
                 aria-label="How this browser agent works"
               >
                 <li>
-                  <span>1</span>
+                  <span>01</span>
                   <div>
                     <strong>Give it a goal</strong>
                     <p>Use the PC preset or edit the request below.</p>
                   </div>
                 </li>
                 <li>
-                  <span>2</span>
+                  <span>02</span>
                   <div>
                     <strong>Watch it browse</strong>
                     <p>
-                      Your local browser reads Newegg. Jev ranks observed parts;
-                      code checks the budget.
+                      The browser reads listings. Jev ranks parts. Code checks
+                      the budget.
                     </p>
                   </div>
                 </li>
                 <li>
-                  <span>3</span>
+                  <span>03</span>
                   <div>
                     <strong>Review before buying</strong>
                     <p>
-                      Open Inspector for eight parts, source links, verification
-                      gaps, and a copyable debug report.
+                      Inspect the parts, check the sources, and copy the full
+                      debug report.
                     </p>
                   </div>
                 </li>
@@ -236,6 +301,18 @@ export function PcBuildResearch({
           </div>
         )}
       </div>
+      {busy && (
+        <div className="browser-progress" role="status">
+          <span className="browser-progress-pulse" />
+          <strong>{browser.phase || "Opening local browser"}</strong>
+          <span>{browser.completedReads ?? 0} / 17 page reads</span>
+          <progress
+            aria-label="Research page reads"
+            max={17}
+            value={browser.completedReads ?? 0}
+          />
+        </div>
+      )}
       <div className="browser-page-caption">
         <span>{browser.url || "Local browser-use · isolated session"}</span>
         <span role="status">
@@ -251,8 +328,32 @@ export function PcBuildResearch({
       </div>
       {result?.build && !inspectorOpen && (
         <div className="local-browser-result">
-          Build ready · {money(result.build.totalCents)}. Open Inspector to
-          review parts, verification, and diagnostics.
+          <div>
+            <span className="build-ready-icon">
+              <Check size={18} />
+            </span>
+            <div>
+              <strong>
+                {result.build.selectionMethod === "local-budget-baseline"
+                  ? "Local baseline ready for review"
+                  : "Your parts list is ready"}
+              </strong>
+              <p>
+                {money(result.build.totalCents)} ·{" "}
+                {money(result.build.remainingCents)} left ·{" "}
+                {result.pricesVerified
+                  ? "Price and stock checks passed"
+                  : "Verification gaps to review"}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="button primary"
+            onClick={onOpenInspector}
+          >
+            Review build <ArrowUpRight size={16} />
+          </button>
         </div>
       )}
       <aside

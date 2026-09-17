@@ -165,6 +165,7 @@ export function BrowserAgentLab() {
               onBusyChange={setBusy}
               controlsHost={controlsHost}
               inspectorOpen={inspectorOpen}
+              onOpenInspector={() => setInspectorOpen(true)}
             />
           </div>
         )}

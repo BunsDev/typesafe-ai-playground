@@ -43,6 +43,8 @@ export async function GET(request: Request) {
     return Response.json(
       {
         screenshot: session.screenshot,
+        phase: session.phase,
+        completedReads: session.completedReads,
         url: session.url,
         error: session.error,
       },

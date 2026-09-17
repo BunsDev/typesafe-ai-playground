@@ -4,6 +4,17 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import type { PublicDocument } from "./publicDocument";
 
+export function validateNeweggBrowserUrl(value: string) {
+  const target = new URL(value);
+  if (
+    target.origin !== "https://www.newegg.com" ||
+    target.username ||
+    target.password ||
+    !/^\/(?:[^/]+\/)?p\/(?:pl|[A-Z0-9-]+)$/i.test(target.pathname)
+  )
+    throw Error("Unsupported browser URL.");
+  return target;
+}
 export function requireLocalBrowser(request: Request) {
   const url = new URL(request.url);
   if (
@@ -50,6 +61,8 @@ class LocalBrowser {
   url = "";
   error: string | null = null;
   busy = false;
+  phase = "Ready";
+  completedReads = 0;
   constructor(viewport: { width: number; height: number }) {
     this.process = this.startProcess(viewport);
     this.timer = setTimeout(() => this.close(), 10 * 60_000);
@@ -94,12 +107,7 @@ class LocalBrowser {
     const run = this.queue.then(async () => {
       signal.throwIfAborted();
       if (this.closed) throw Error(this.error || "Local browser closed.");
-      const target = new URL(url);
-      if (
-        target.origin !== "https://www.newegg.com" ||
-        !target.pathname.startsWith("/p/")
-      )
-        throw Error("Unsupported browser URL.");
+      validateNeweggBrowserUrl(url);
       return new Promise<PublicDocument>((resolve, reject) => {
         const id = randomUUID();
         const deadline = setTimeout(
