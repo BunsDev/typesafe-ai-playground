@@ -123,7 +123,9 @@ const cleanProbabilities = (value: unknown, ids: string[]) =>
           ([id, score]) =>
             ids.includes(id) &&
             typeof score === "number" &&
-            Number.isFinite(score),
+            Number.isFinite(score) &&
+            score >= 0 &&
+            score <= 1,
         ),
       )
     : {};
