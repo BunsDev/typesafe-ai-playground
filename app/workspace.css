@@ -399,6 +399,24 @@
 .dashboard-shell .workspace .rerank-guide-body {
   padding: 0;
 }
+.dashboard-shell
+  .workspace
+  :is(.rerank-guide-grid > article, .rerank-guide-note) {
+  padding: var(--card-padding);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--card-radius);
+}
+.rerank-guide-grid > article {
+  display: flex;
+  flex-direction: column;
+}
+.rerank-guide-grid > article > svg {
+  flex-shrink: 0;
+}
+.rerank-guide-grid :is(.relevance-scale, .guide-example, .guide-inspect-hint) {
+  margin-top: auto;
+}
 .dashboard-shell .workspace .solver-groups {
   display: grid;
   gap: 10px;
