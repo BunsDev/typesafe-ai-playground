@@ -1305,3 +1305,106 @@
     padding: 16px;
   }
 }
+
+/* Short sections and aligned labels make the guide easy to scan. */
+.browser-help .browser-quick-guide {
+  padding: 0;
+  font-size: 13px;
+}
+.browser-quick-guide .guide-intro {
+  padding: 4px 0 20px;
+}
+.browser-quick-guide .guide-intro h2 {
+  font-size: 22px;
+  letter-spacing: -0.6px;
+}
+.browser-quick-guide .guide-intro p {
+  color: var(--muted);
+  max-width: 60ch;
+}
+.browser-quick-guide section {
+  padding: 20px 0;
+}
+.browser-quick-guide h3,
+.guide-flight > summary {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+.browser-quick-guide .guide-steps {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.browser-quick-guide .guide-steps li {
+  display: flex;
+  gap: 14px;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--soft);
+}
+.guide-steps li > span {
+  color: var(--accent);
+  font: 11px/1.8 var(--font-mono);
+  padding-top: 1px;
+}
+.browser-quick-guide .guide-steps p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.guide-fields {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+.guide-fields > div {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 16px;
+  align-items: baseline;
+}
+.guide-fields dt {
+  font-weight: 600;
+  font-size: 12px;
+}
+.guide-fields dd {
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.guide-fields code {
+  color: var(--ink);
+  font-size: 11px;
+}
+.guide-fields .guide-command {
+  display: block;
+  padding: 9px 12px;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+.guide-flight {
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+}
+.guide-flight > summary {
+  cursor: pointer;
+}
+@media (max-width: 540px) {
+  .browser-help {
+    padding: 18px;
+  }
+  .guide-fields > div {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+  .browser-quick-guide .guide-intro h2 {
+    font-size: 20px;
+  }
+}
