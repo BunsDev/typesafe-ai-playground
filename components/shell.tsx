@@ -120,13 +120,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
         id="playground-navigation"
         aria-label="Playground sidebar"
       >
-        <button
-          className="icon-button sidebar-mobile-close"
-          aria-label="Close navigation"
-          onClick={() => setMobileOpen(false)}
-        >
-          <X size={18} />
-        </button>
+        <div className="sidebar-title-row">
         <Link
           className="brand"
           href="/"
@@ -139,6 +133,28 @@ export function Shell({ children }: { children: React.ReactNode }) {
             TypeSafe AI<span className="brand-sub">COMMUNITY PLAYGROUND</span>
           </span>
         </Link>
+        <button
+          className="sidebar-toggle icon-button"
+          onClick={toggleSidebar}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-expanded={!collapsed}
+          aria-controls="playground-navigation"
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? (
+            <PanelLeftOpen size={17} />
+          ) : (
+            <PanelLeftClose size={17} />
+          )}
+        </button>
+        <button
+          className="icon-button sidebar-mobile-close"
+          aria-label="Close navigation"
+          onClick={() => setMobileOpen(false)}
+        >
+          <X size={18} />
+        </button>
+        </div>
         <nav aria-label="Workspaces">
           <Link
             href="/"
@@ -195,19 +211,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
             Docs <ArrowUpRight size={15} />
           </a>
         </div>
-        <button
-          className="sidebar-toggle"
-          onClick={toggleSidebar}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          aria-expanded={!collapsed}
-        >
-          {collapsed ? (
-            <PanelLeftOpen size={17} />
-          ) : (
-            <PanelLeftClose size={17} />
-          )}
-          <span>Collapse sidebar</span>
-        </button>
+
       </aside>
       <div className="app-body">
         <header className="workspace-topbar">

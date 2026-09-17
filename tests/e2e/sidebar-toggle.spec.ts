@@ -1,0 +1,32 @@
+import { test, expect } from "@playwright/test";
+test("rail toggle lives on the title row and persists without hiding workspace navigation", async ({ page }, info) => {
+  test.skip(info.project.name === "mobile", "Mobile uses its existing navigation drawer.");
+  await page.goto("/");
+  const row = page.locator(".sidebar-title-row");
+  const collapse = row.getByRole("button", { name: "Collapse sidebar", exact: true });
+  await expect(collapse).toBeVisible();
+  const brandBox = await row.getByRole("link").boundingBox();
+  const toggleBox = await collapse.boundingBox();
+  expect(toggleBox!.x).toBeGreaterThan(brandBox!.x);
+  expect(Math.abs(toggleBox!.y - brandBox!.y)).toBeLessThan(8);
+  await collapse.click();
+  await expect(page.locator(".app-shell")).toHaveClass(/nav-collapsed/);
+  const expand = row.getByRole("button", { name: "Expand sidebar", exact: true });
+  await expect(expand).toHaveAttribute("aria-expanded", "false");
+  await expect(page.getByRole("navigation", { name: "Workspaces" }).getByRole("link", { name: "Home", exact: true })).toBeVisible();
+  await page.reload();
+  await expect(expand).toBeVisible();
+  await expand.focus();
+  await page.keyboard.press("Enter");
+  await expect(collapse).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator(".app-shell")).not.toHaveClass(/nav-collapsed/);
+});
+test("mobile title row closes the drawer and returns focus to its trigger", async ({ page }, info) => {
+  test.skip(info.project.name !== "mobile", "Mobile drawer only.");
+  await page.goto("/");
+  const open = page.getByRole("button", { name: "Open navigation", exact: true });
+  await open.click();
+  await page.locator(".sidebar-title-row").getByRole("button", { name: "Close navigation", exact: true }).click();
+  await expect(open).toBeFocused();
+  await expect(open).toHaveAttribute("aria-expanded", "false");
+});
