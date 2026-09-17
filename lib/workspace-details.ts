@@ -38,6 +38,16 @@ export const workspaceDetails: Record<string, WorkspaceDetails> = {
     experiment:
       "Load the sample, pick a recipient, then raise the threshold and watch when the selection becomes uncertain.",
   },
+  "/youtube-extract": {
+    input:
+      "A public YouTube URL whose video already has a caption track. English is preferred, manual tracks before automatic ones; the track's origin is shown.",
+    process:
+      "Captions are split at gaps, terminal punctuation and speaker markers. Each chunk gets one request carrying a relevance score and a key-claim choice, with the bounded transcript as topic context. No transcription, translation or text generation runs.",
+    output:
+      "Chunks scoring at least 0.5, minus near-duplicates, restored to chronological order and joined by whitespace. Every word is original caption text. Missing or failed scores stay unknown and stop the run rather than being filled in.",
+    experiment:
+      "Extract a talk, then open the raw list and read the dropped passages: a high score cannot prove that nothing important was omitted.",
+  },
   "/extraction": {
     input:
       "Document text and the fields you select, such as date, counterparty, or amount. Use synthetic documents for experiments.",

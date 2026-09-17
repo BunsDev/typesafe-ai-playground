@@ -101,6 +101,18 @@ export const SOCIAL_PAGES = {
     ],
     result: "Scenario → action",
   },
+  "youtube-extract": {
+    path: "/youtube-extract",
+    title: "YouTube extract",
+    description: "Original words. Selected passages. Source-linked evidence.",
+    category: "EXTRACTIVE TEXT",
+    steps: [
+      "Fetch existing captions",
+      "Score with Jev",
+      "Verify at the source",
+    ],
+    result: "Captions → chronological extract",
+  },
   extraction: {
     path: "/extraction",
     title: "Document extraction",

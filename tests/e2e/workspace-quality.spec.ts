@@ -87,6 +87,7 @@ const routes = [
   "/microduck",
   "/doom",
   "/clean-room",
+  "/youtube-extract",
   "/jev-browser-agent",
 ];
 for (const path of routes) {
