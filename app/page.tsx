@@ -1,7 +1,6 @@
 import { pageMetadata } from "../lib/social";
-import { Examples } from "../components/examples";
+import { PlaygroundHome } from "../components/PlaygroundHome";
 export default function Page() {
-  return <Examples />;
+  return <PlaygroundHome />;
 }
-
-export const metadata = pageMetadata("examples");
+export const metadata = pageMetadata("home");

@@ -12,112 +12,15 @@ import {
   Menu,
   X,
   ArrowUpRight,
-  Gamepad2,
-  ArrowDownWideNarrow,
-  Laugh,
-  Blocks,
-  FileScan,
-  GitBranch,
-  Bird,
-  Crown,
-  Inbox,
-  GitPullRequest,
-  Network,
-  Scale,
-  Route,
-  Plug,
-  MessageSquare,
   Moon,
   Sun,
   Sparkles,
 } from "lucide-react";
-const pages = [
-  {
-    href: "/",
-    label: "Examples",
-    icon: Blocks,
-    detail: "Explore the possibilities",
-  },
-  {
-    href: "/conversation",
-    label: "Conversation lab",
-    icon: MessageSquare,
-    detail: "Find the right reply",
-  },
-  {
-    href: "/gate",
-    label: "Ask gate",
-    icon: Inbox,
-    detail: "Ask Jev, or ask a human?",
-  },
-  {
-    href: "/workflow",
-    label: "Workflow chat",
-    icon: GitBranch,
-    detail: "Turn context into a decision",
-  },
-  {
-    href: "/extraction",
-    label: "Document extraction",
-    icon: FileScan,
-    detail: "From source to structured data",
-  },
-  {
-    href: "/pr-review",
-    label: "PR review",
-    icon: GitPullRequest,
-    detail: "Review the risky parts",
-  },
-  {
-    href: "/ast-governance",
-    label: "AST governance",
-    icon: Network,
-    detail: "Trace change impact",
-  },
-  {
-    href: "/smt-solver",
-    label: "SMT solver",
-    icon: Scale,
-    detail: "Verify structured logic",
-  },
-  {
-    href: "/tool-router",
-    label: "Tool router",
-    icon: Route,
-    detail: "Route with policy",
-  },
-  {
-    href: "/langchain",
-    label: "LangChain",
-    icon: Plug,
-    detail: "Integrate Jev",
-  },
-  {
-    href: "/reranker",
-    label: "Vector reranker",
-    icon: ArrowDownWideNarrow,
-    detail: "Compare relevance",
-  },
-  {
-    href: "/doom",
-    label: "Jev plays Doom",
-    icon: Gamepad2,
-    detail: "Play with a classifier",
-  },
-  { href: "/memes", label: "Meme lab", icon: Laugh, detail: "Read the room" },
-  {
-    href: "/chess",
-    label: "Jev attempts chess",
-    icon: Crown,
-    detail: "A known limitation, on purpose",
-  },
-  {
-    href: "/microduck",
-    label: "MicroDuck arena",
-    icon: Bird,
-    detail: "Drive a robot with one choice",
-  },
-];
+import {
+  homePage,
+  playgroundGroups,
+  playgroundPages as pages,
+} from "../lib/playground";
 export function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const sidebarRef = useRef<HTMLElement>(null);
@@ -236,20 +139,43 @@ export function Shell({ children }: { children: React.ReactNode }) {
             TypeSafe AI<span className="brand-sub">COMMUNITY PLAYGROUND</span>
           </span>
         </Link>
-        <div className="nav-label">WORKSPACE</div>
         <nav aria-label="Workspaces">
-          {pages.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              aria-label={label}
-              title={label}
-              className={path === href ? "active" : ""}
-              aria-current={path === href ? "page" : undefined}
+          <Link
+            href="/"
+            prefetch={false}
+            aria-label="Home"
+            title="Home"
+            className={path === "/" ? "active" : ""}
+            aria-current={path === "/" ? "page" : undefined}
+          >
+            <homePage.icon size={18} />
+            <span>Home</span>
+          </Link>
+          {playgroundGroups.map((group) => (
+            <div
+              className="nav-group"
+              key={group.id}
+              role="group"
+              aria-labelledby={`nav-${group.id}`}
             >
-              <Icon size={18} />
-              <span>{label}</span>
-            </Link>
+              <div className="nav-label" id={`nav-${group.id}`}>
+                {group.label}
+              </div>
+              {group.examples.map(({ href, label, icon: Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  prefetch={false}
+                  aria-label={label}
+                  title={label}
+                  className={path === href ? "active" : ""}
+                  aria-current={path === href ? "page" : undefined}
+                >
+                  <Icon size={18} />
+                  <span>{label}</span>
+                </Link>
+              ))}
+            </div>
           ))}
         </nav>
         <div className="sidebar-bottom">

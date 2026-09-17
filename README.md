@@ -29,7 +29,7 @@ Open the address printed by Next.js, normally http://localhost:3000. To choose a
 
 | Workspace                             | What it does                                                                                                                       |
 | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| **Examples** `/`                      | 110 examples across 22 categories, including 41 A/B comparisons. Edit input and questions, run Jev, and inspect typed answers.      |
+| **Example builder** `/examples`                      | 110 examples across 22 categories, including 41 A/B comparisons. Edit input and questions, run Jev, and inspect typed answers.      |
 | **Conversation lab** `/conversation`  | Paste raw Discord or labeled chat, rank potential reply recipients, compare context, and evaluate conversation frames.              |
 | **Ask gate** `/gate`                  | Decide whether an incoming question needs a human, or whether the channel or the docs already answered it, with the exact line cited. |
 | **Workflow chat** `/workflow`         | Describe a case and apply editable decision rules. Missing evidence produces a follow-up question.                                  |
@@ -42,8 +42,10 @@ Open the address printed by Next.js, normally http://localhost:3000. To choose a
 | **Vector reranker** /reranker         | Compare vector order, batched Jev relevance, and an explicit lexical mock baseline. Inspect rank disagreements and source snippets. |
 | **Jev plays Doom** `/doom` | Play an original first-person 3D browser shooter, hand control to Jev, and compare against a seeded random baseline. |
 | **Meme lab** `/memes`                 | Test humor style, audience fit, tone, and likely confusion using captions or reviewed text from an image URL.                       |
-| **MicroDuck arena** `/microduck`      | Drive a grid robot one tick at a time: nine sensor fields in, one of seven actions out, against a random baseline.                  |
-| **Jev attempts chess** `/chess`       | A known limitation, on purpose: pick one legal move per turn with no lookahead, and get marked by the minimax that beats it.        |
+| **MicroDuck arena** `/microduck` | Drive robots across a fullscreen 3D test floor: orbit and zoom, inspect cargo and docks, and compare seven-action Jev control with a random baseline. |
+| **Jev attempts chess** `/chess` | A known limitation, on purpose: pick one legal move per turn with no lookahead, and get marked by the minimax that beats it. |
+
+The home screen (`/`) groups every prototype into Language & data, Agents & workflows, Code & governance, and Games & simulations. Search or filter the cards to find a demo; the sidebar uses the same groups and can collapse to icons. The original editable catalog lives at `/examples`, with existing saved drafts preserved.
 
 The supplied TypeSafe [banner](https://pbs.twimg.com/profile_banners/2014504062797152256/1789084216/1500x500) and [profile mark](https://pbs.twimg.com/profile_images/2100293691227447296/bVoZ2u00_400x400.jpg) are stored locally in public/brand. The social images use IBM Plex Sans, distributed with its [SIL Open Font License](public/brand/OFL.txt). This remains an unofficial community playground.
 

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Crown, Info, Play, RotateCcw, SkipForward } from "lucide-react";
+import { useUsage, usageBlocked } from "../lib/logUsageEntry";
 import { errorMessage, runJev } from "../lib/client";
 import {
   buildMovePayload,
@@ -33,6 +34,8 @@ import { Empty, ErrorNote, Export, Heading, RunButton } from "./ui";
 /** Half-moves before the page calls it a day, so a shuffling draw terminates. */
 const MOVE_LIMIT = 160;
 export function ChessLab() {
+  useUsage();
+  const quotaBlocked = usageBlocked();
   const [options, setOptions] = useState<LoopOptions>(defaultOptions);
   const [model, setModel] = useState("jev-latest");
   const [sans, setSans] = useState<string[]>([]);
@@ -290,7 +293,7 @@ export function ChessLab() {
               type="button"
               className="button"
               onClick={step}
-              disabled={busy || over || humanTurn}
+              disabled={busy || over || humanTurn || quotaBlocked}
             >
               <SkipForward size={14} /> One move
             </button>
