@@ -20,6 +20,34 @@ Selection excludes incomplete scores and relevance below 0.5, then sorts by desc
 
 The brief permits an empty connector and also requires every output word to trace to the transcript. This version uses the empty connector rule: existing source transitions stay, and whitespace joins the cleaned passages. It does not invent “Next” or “Finally,” or rewrite text to improve flow. The result is labeled an extract, not a true summary.
 
+## When it fails
+
+A failure names one cause rather than listing what might have gone wrong. The response carries `cause`, a `summary`, the `detail` behind it, a `fix`, and — when a bound was crossed — the `limit` that was hit with the value measured.
+
+| Cause | Means |
+| --- | --- |
+| `url_invalid` | The address did not parse as a YouTube video link; no request was made. |
+| `video_unavailable` | 404 or 410: private, deleted, region-blocked, or a wrong id. Captions were never reached. |
+| `rate_limited` | 429 against the server's address, not your key or account. |
+| `youtube_error` | Another non-success status from a fixed YouTube host. |
+| `page_too_large` | The watch page passed the 2 MiB read bound. |
+| `metadata_missing` | The page exposed no player key and no initial player response. |
+| `metadata_unreadable` | Player metadata began but did not close as balanced JSON. |
+| `no_caption_tracks` | The video genuinely publishes no captions. Nothing is transcribed as a fallback. |
+| `track_rejected` | A listed track's URL was not a plain timedtext address on www.youtube.com. |
+| `captions_empty` | The track fetched but held no readable cues. |
+| `timed_out` | The shared 20 second retrieval budget elapsed; no partial track is used. |
+| `cancelled` | Stopped before captions were read. |
+| `redirected` | A redirect was refused rather than followed. |
+| `limit_lines` | Over 5,000 caption lines. |
+| `limit_characters` | Over 60,000 characters. |
+| `limit_chunks` | Over 200 natural chunks; each chunk is one scored request. |
+| `limit_unit` | One chunk over 6,000 characters, which an unpunctuated run can reach alone. |
+
+`limit_chunks` and `limit_unit` were previously one message that named both, so a reader could not tell which bound was crossed. They are separate causes and report the measured value.
+
+The limits are listed in the workspace under **Limits before a run**, from the same source the checks use, so the stated numbers cannot drift from the enforced ones.
+
 ## Inspecting a run
 
 The length slider recomputes locally without Jev requests. The raw list shows kept/dropped reasons, scores, key claims, confidence, cleaned text, originals, and source links. Kept passages link directly to their video timestamps. Human comparison with both kept and dropped source passages is the verification method; neither confidence nor extraction proves completeness.
