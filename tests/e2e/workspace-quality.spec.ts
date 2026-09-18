@@ -43,6 +43,12 @@ test("router continues from the decision and distinguishes completion from a nex
     });
   });
   await page.goto("/tool-router");
+  await expect(
+    page.getByRole("heading", {
+      name: "See the decision, then follow the path",
+    }),
+  ).toBeVisible();
+  await expect(page.locator(".router-step-log")).toHaveCount(0);
   await page
     .getByRole("button", { name: "Run Routing Step", exact: true })
     .click();
@@ -81,6 +87,7 @@ const routes = [
   "/microduck",
   "/doom",
   "/clean-room",
+  "/youtube-extract",
   "/jev-browser-agent",
 ];
 for (const path of routes) {
@@ -108,13 +115,46 @@ for (const path of routes) {
       await page.goto(path);
       await expect(page.locator("h1")).toBeVisible();
       await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
-      if (path !== "/" && path !== "/jev-browser-agent") {
+      {
         await page
-          .getByRole("button", { name: "Workspace guide", exact: true })
+          .getByRole("button", {
+            name:
+              path === "/jev-browser-agent"
+                ? "Open browser guide"
+                : "Workspace guide",
+            exact: true,
+          })
           .click();
         const guide = page.getByRole("dialog", { name: /guide$/ });
         await expect(guide).toBeVisible();
-        await expect(guide.locator("li")).toHaveCount(3);
+        await expect(guide.locator(".workspace-guide-steps > li")).toHaveCount(
+          3,
+        );
+        for (const name of [
+          "What you provide",
+          "What happens",
+          "What you get",
+          "Try this",
+          "Execution limits",
+        ]) {
+          await expect(
+            guide.getByRole("heading", { name, exact: true }),
+          ).toBeVisible();
+        }
+        expect(
+          await guide.evaluate((el) => el.scrollWidth - el.clientWidth),
+        ).toBe(0);
+        await expect(
+          guide.getByRole("button", { name: "Close workspace guide" }),
+        ).toBeInViewport();
+        await expect(
+          guide.getByRole("button", { name: "Back to workspace" }),
+        ).toBeInViewport();
+        await page.screenshot({
+          path: info.outputPath(
+            `${path.slice(1) || "home"}-${theme}-guide.png`,
+          ),
+        });
         await page
           .getByRole("button", { name: "Back to workspace", exact: true })
           .click();
@@ -258,4 +298,81 @@ test("workflow onboarding stays at the start of its scroll area", async ({
   await expect(
     page.getByRole("heading", { name: "What happened?", exact: true }),
   ).toBeInViewport();
+});
+
+test("workspace breakdown explains inputs, decisions, results and limits", async ({
+  page,
+}) => {
+  await page.goto("/extraction");
+  await page
+    .getByRole("button", { name: "Workspace guide", exact: true })
+    .click();
+  const dialog = page.getByRole("dialog", {
+    name: "Document extraction guide",
+  });
+  for (const name of [
+    "What you provide",
+    "What happens",
+    "What you get",
+    "Try this",
+    "Execution limits",
+  ]) {
+    await expect(
+      dialog.getByRole("heading", { name, exact: true }),
+    ).toBeVisible();
+  }
+  await expect(dialog).toContainText("source candidates");
+  await expect(dialog.locator(".workspace-guide-steps > li")).toHaveCount(3);
+});
+
+test("guide stays usable on narrow and short screens without running the model", async ({
+  page,
+}) => {
+  let requests = 0;
+  await page.route("**/api/run", (route) => {
+    requests++;
+    return route.abort();
+  });
+  for (const viewport of [
+    { width: 320, height: 568 },
+    { width: 844, height: 390 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/extraction");
+    const source = page.locator(".source-panel textarea");
+    const initial = await source.inputValue();
+    const trigger = page.getByRole("button", {
+      name: "Workspace guide",
+      exact: true,
+    });
+    await trigger.click();
+    const dialog = page.getByRole("dialog", {
+      name: "Document extraction guide",
+    });
+    const close = dialog.getByRole("button", { name: "Close workspace guide" });
+    const back = dialog.getByRole("button", { name: "Back to workspace" });
+    await expect(close).toBeFocused();
+    await expect(close).toBeInViewport();
+    await expect(back).toBeInViewport();
+    expect(await dialog.evaluate((el) => el.scrollWidth - el.clientWidth)).toBe(
+      0,
+    );
+    await page.keyboard.press("Tab");
+    await expect(dialog.locator(".workspace-guide-body")).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(back).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(dialog.locator(".workspace-guide-body")).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(close).toBeFocused();
+    await dialog
+      .getByRole("heading", { name: "Execution limits" })
+      .scrollIntoViewIfNeeded();
+    await expect(close).toBeInViewport();
+    await expect(back).toBeInViewport();
+    await page.keyboard.press("Escape");
+    await expect(trigger).toBeFocused();
+    await expect(source).toHaveValue(initial);
+  }
+  expect(requests).toBe(0);
 });

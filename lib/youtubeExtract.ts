@@ -1,3 +1,4 @@
+import { TranscriptError, transcriptLimits } from "./youtubeErrors";
 import type { RunPayload } from "./api";
 export interface Caption {
   text: string;
@@ -53,8 +54,14 @@ export function cleanFillers(text: string): string {
     .trim();
 }
 export function chunkCaptions(lines: Caption[]): Chunk[] {
-  if (!Array.isArray(lines) || !lines.length || lines.length > 5000)
-    throw Error("Use a nonempty caption track with at most 5,000 lines.");
+  if (!Array.isArray(lines) || !lines.length)
+    throw Error("No readable caption text is available.");
+  if (lines.length > transcriptLimits.lines)
+    throw new TranscriptError("limit_lines", {
+      name: "caption lines",
+      allowed: transcriptLimits.lines,
+      actual: lines.length,
+    });
   const result: Chunk[] = [];
   let current: Chunk | null = null;
   let lastEnd = 0;
@@ -77,10 +84,12 @@ export function chunkCaptions(lines: Caption[]): Chunk[] {
     )
       throw Error("Invalid caption timing or text.");
     chars += line.text.length;
-    if (chars > 60000)
-      throw Error(
-        "Caption track exceeds 60,000 characters. Choose a shorter video.",
-      );
+    if (chars > transcriptLimits.characters)
+      throw new TranscriptError("limit_characters", {
+        name: "characters",
+        allowed: transcriptLimits.characters,
+        actual: chars,
+      });
     if (
       line.start - lastEnd > 1.5 ||
       /^\s*(?:>>|[\p{L}][\p{L} .'-]{0,35}:)/u.test(line.text)
@@ -109,10 +118,22 @@ export function chunkCaptions(lines: Caption[]): Chunk[] {
   });
   flush();
   if (!result.length) throw Error("No readable caption text is available.");
-  if (result.length > 200 || result.some((c) => c.original.length > 6000))
-    throw Error(
-      "Track exceeds 200 natural chunks or has a unit longer than 6,000 characters. Choose a shorter, punctuated track. Nothing was truncated.",
-    );
+  if (result.length > transcriptLimits.chunks)
+    throw new TranscriptError("limit_chunks", {
+      name: "natural chunks",
+      allowed: transcriptLimits.chunks,
+      actual: result.length,
+    });
+  const longest = result.reduce(
+    (max, c) => Math.max(max, c.original.length),
+    0,
+  );
+  if (longest > transcriptLimits.unitCharacters)
+    throw new TranscriptError("limit_unit", {
+      name: "characters in one chunk",
+      allowed: transcriptLimits.unitCharacters,
+      actual: longest,
+    });
   return result;
 }
 export function scoringPayload(
@@ -218,6 +239,11 @@ export function selectExtract(
   };
 }
 export function timestamp(seconds: number) {
-  const s = Math.floor(seconds);
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  const s = Math.max(0, Math.floor(seconds));
+  const parts = [Math.floor(s / 60) % 60, s % 60].map((n) =>
+    String(n).padStart(2, "0"),
+  );
+  // Past an hour the label has to carry it, or it disagrees with its own link.
+  if (s >= 3600) parts.unshift(String(Math.floor(s / 3600)));
+  return parts.join(":").replace(/^0(\d:)/, "$1");
 }

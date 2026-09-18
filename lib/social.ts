@@ -9,18 +9,6 @@ export const SOCIAL_PAGES = {
     steps: ["Ask a question", "Compose with Jev", "Inspect the source"],
     result: "Question → supported reply",
   },
-  "youtube-extract": {
-    path: "/youtube-extract",
-    title: "YouTube extract",
-    description: "Original words. Selected passages. Source-linked evidence.",
-    category: "EXTRACTIVE TEXT",
-    steps: [
-      "Fetch existing captions",
-      "Score with Jev",
-      "Verify at the source",
-    ],
-    result: "Captions → chronological extract",
-  },
   "clean-room": {
     path: "/clean-room",
     title: "Clean-room rebuild",
@@ -121,6 +109,18 @@ export const SOCIAL_PAGES = {
       "Choose the next action",
     ],
     result: "Scenario → action",
+  },
+  "youtube-extract": {
+    path: "/youtube-extract",
+    title: "YouTube extract",
+    description: "Original words. Selected passages. Source-linked evidence.",
+    category: "EXTRACTIVE TEXT",
+    steps: [
+      "Fetch existing captions",
+      "Score with Jev",
+      "Verify at the source",
+    ],
+    result: "Captions → chronological extract",
   },
   extraction: {
     path: "/extraction",

@@ -24,6 +24,44 @@ export const workspaceGuides: Record<string, WorkspaceGuide> = {
       "Jev chooses meanings and code composes language. Demo uses local rules. Hashes verify integrity, not truth. No downstream actions execute.",
     flow: ["Question", "Jev decisions", "Composed response"],
   },
+  "/": {
+    steps: [
+      [
+        "Choose a question",
+        "Browse the four workspace groups, or search by the task you want to explore.",
+      ],
+      [
+        "Open an example",
+        "Each card shows the input and the kind of result. Start with a preset before changing the context.",
+      ],
+      [
+        "Inspect the outcome",
+        "Use the workspace guide to understand the decision, its evidence, and its execution limits.",
+      ],
+    ],
+    boundary:
+      "This is an independent community playground. Live model outputs, seeded demos, and solver checks are labeled separately; none proves general model quality.",
+    flow: ["Pick a task", "Try an example", "Inspect evidence"],
+  },
+  "/jev-browser-agent": {
+    steps: [
+      [
+        "Set a goal",
+        "Choose a preset and review the task. PC research requires the local browser runtime. Live Jev ranking needs a key; any local price-only baseline is labeled.",
+      ],
+      [
+        "Follow the observations",
+        "The browser reads the page; Jev selects from observed candidates or allowed actions. Pause or stop to inspect the run.",
+      ],
+      [
+        "Check the evidence",
+        "Open Inspector for source links, prices, verification gaps, and the debug report. A completed run is not a performance benchmark.",
+      ],
+    ],
+    boundary:
+      "PC research navigates real pages locally but never adds to a cart or purchases. Flight actions occur in a synthetic sandbox. Missing evidence remains a gap; any price-only fallback is labeled.",
+    flow: ["Goal", "Observe & choose", "Checked evidence"],
+  },
   "/youtube-extract": {
     steps: [
       [
@@ -74,7 +112,7 @@ export const workspaceGuides: Record<string, WorkspaceGuide> = {
       ],
       [
         "Inspect the ranking",
-        "Review the selected message, other candidates, and the confidence threshold.",
+        "Review the selected message, other candidates, and the reply-probability threshold.",
       ],
     ],
     boundary:
@@ -147,7 +185,7 @@ export const workspaceGuides: Record<string, WorkspaceGuide> = {
       ],
       [
         "Inspect the stop",
-        "Review policy blocks and approval checkpoints. Expand the inspector for candidates, scores, and the full graph.",
+        "Review policy blocks and approval checkpoints. Expand the inspector for candidates and the full graph. Open Decision details or Step evidence for scores.",
       ],
     ],
     boundary:

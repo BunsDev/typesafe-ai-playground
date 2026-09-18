@@ -41,12 +41,12 @@ The home page groups the prototypes into Language & data, Agents & workflows, Co
 | **Jev Chat** `/jev-chat` | Explore Jev-driven scripted composition, cited source passages, fictional scenes, saved threads, and verifiable response graphs. See the [chat guide](docs/jev-chat.md). |
 | **Workflow chat** `/workflow` | Apply editable case rules and request missing facts before recommending an action. |
 | **Document extraction** `/extraction` | Find source candidates locally, then ask Jev to choose candidates or `null`. |
+| **YouTube extract** `/youtube-extract` | Select original caption passages with Jev relevance scores, live usage metrics, and timestamp-linked source verification. See [contract and limits](docs/youtube-extract.md). |
 | **PR review** `/pr-review` | Classify public PR/diff hunks and inspect policy-gated review queues. |
 | **AST governance** `/ast-governance` | Explore changed symbols, callers, deterministic policy, and ambiguous findings. |
 | **SMT solver** `/smt-solver` | Compare Jev classifications with real server-side Z3 checks and decomposition. |
 | **Tool router** `/tool-router` | Inspect closed-set routing with simulated tools, policy blocks, and mock approval gates. |
 | **LangChain** `/langchain` | Invoke a real LangChain tool adapter with mocked or live Jev predictions. |
-| **YouTube extract** `/youtube-extract` | Select original caption passages with Jev relevance scores, live usage metrics, and timestamp-linked source verification. See [contract and limits](docs/youtube-extract.md). |
 | **Vector reranker** `/reranker` | Compare vector order, batched Jev relevance, and a labeled lexical mock baseline. |
 | **Clean-room rebuild** `/clean-room` | Run three complete local rebuild demos, or use the CLI with live Jev classification and deterministic code generation. Export the app and verification evidence. |
 | **Browser agent** `/jev-browser-agent` | Research a Newegg PC build in a local browser-use session with Jev closed choices, or run the synthetic flight demo. No text-generation model required. |

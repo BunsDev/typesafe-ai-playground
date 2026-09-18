@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { WorkspaceGuide } from "./WorkspaceGuide";
 import { useState, type CSSProperties } from "react";
 import { ArrowRight, Search, X } from "lucide-react";
 import { bentoSpans, flowEnds, playgroundGroups } from "../lib/playground";
@@ -37,6 +38,9 @@ export function PlaygroundHome() {
             Explore Jev through {total} hands-on examples. Give it context,
             define the choices, and watch a decision take shape.
           </p>
+          <div className="home-guide">
+            <WorkspaceGuide />
+          </div>
         </div>
         <div
           className="home-signal"
