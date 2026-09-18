@@ -38,6 +38,7 @@ The home page groups the prototypes into Language & data, Agents & workflows, Co
 | **Example builder** `/examples` | Editable typed questions, a shared example catalog, and declared A/B input changes. |
 | **Conversation lab** `/conversation` | Parse conversations, rank possible reply recipients, and compare full-context versus isolated-message judgments. |
 | **Ask gate** `/gate` | Triage questions against earlier messages or pasted documentation, retaining supporting citations. |
+| **Jev Chat** `/jev-chat` | Explore Jev-driven scripted composition, cited source passages, fictional scenes, saved threads, and verifiable response graphs. See the [chat guide](docs/jev-chat.md). |
 | **Workflow chat** `/workflow` | Apply editable case rules and request missing facts before recommending an action. |
 | **Document extraction** `/extraction` | Find source candidates locally, then ask Jev to choose candidates or `null`. |
 | **YouTube extract** `/youtube-extract` | Select original caption passages with Jev relevance scores, live usage metrics, and timestamp-linked source verification. See [contract and limits](docs/youtube-extract.md). |

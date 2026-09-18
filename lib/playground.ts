@@ -34,6 +34,14 @@ export const playgroundGroups = [
         flow: "Context → typed answer",
       },
       {
+        href: "/jev-chat",
+        label: "Jev Chat",
+        icon: MessageSquare,
+        detail:
+          "Explore Jev-driven response composition, source passages, constrained fiction, and visible decisions.",
+        flow: "Question → composed response",
+      },
+      {
         href: "/conversation",
         label: "Conversation lab",
         icon: MessageSquare,

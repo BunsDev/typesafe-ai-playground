@@ -5,6 +5,25 @@ export type WorkspaceGuide = {
   flow: [string, string, string];
 };
 export const workspaceGuides: Record<string, WorkspaceGuide> = {
+  "/jev-chat": {
+    steps: [
+      [
+        "Choose a topic",
+        "Explore Jev, try synthetic support, add your own notes, or compose a fictional scene.",
+      ],
+      [
+        "Start a conversation",
+        "Local demo needs no key. Select Live Jev before the first message to use the model.",
+      ],
+      [
+        "Inspect the response",
+        "Open composition details for sources, alternatives, uncertainty, and content integrity. Export chats to keep a copy.",
+      ],
+    ],
+    boundary:
+      "Jev chooses meanings and code composes language. Demo uses local rules. Hashes verify integrity, not truth. No downstream actions execute.",
+    flow: ["Question", "Jev decisions", "Composed response"],
+  },
   "/": {
     steps: [
       [
