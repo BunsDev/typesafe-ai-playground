@@ -724,6 +724,7 @@ export async function respond(
     ...(selected.story ? { story: selected.story } : {}),
     trace: {
       engine: ENGINE_VERSION,
+      personality: input.personality ?? "default",
       contextHash,
       selectedPlan: selected.id,
       candidates: plans.map((p) => ({

@@ -4,7 +4,11 @@ Open `/jev-chat` for a chat workspace using Jev and scripted language compositio
 
 ## Conversation experience
 
-Choose Meet Jev, Support desk, Your notes, or Story studio. Starter cards fill the composer without sending. Enter sends; Shift + Enter adds a line. Choose Local demo or Live Jev before the first message. Engine and mode remain fixed within a thread; response detail can change between turns. Existing saved threads retain their baseline engine.
+Choose Meet Jev, Support desk, Your notes, or Story studio. Starter cards fill the composer without sending. Enter sends; Shift + Enter adds a line. Choose Local demo or Live Jev before the first message. Engine and mode remain fixed within a thread; response detail and personality can change between turns in Compose. Existing saved threads retain their baseline engine.
+
+The **Personality** selector offers **Default**, **Friendly**, **Playful**, and **Professional**. It changes authored greetings, acknowledgements, help introductions, and source framing in both demo and live mode. The choice is saved per conversation, included in exports and response traces, and inherited by new conversations. Changing it affects future replies; older replies retain their original text and trace. Existing chats without a personality use Default. Baseline keeps its original replies.
+
+Personality uses fixed language choices, not a free-form system prompt. Quoted evidence, clarification wording, story tone and constraints, calculations, and confidence gates stay intact. Live response evaluation sees the actual personalized candidates within the same two-request budget. A friendly or playful introduction does not establish that the following content is correct.
 
 Local demo uses deterministic intent and lexical evidence rules. Factual note answers require literal question-term coverage, with limited checks for requested counts and times. Identical statement patterns with different numeric values trigger clarification while preserving entities and conditions. These rules cannot establish general semantic support or detect arbitrary contradictions; unfamiliar paraphrases may need clarification. Local demo does not call Jev. Live mode uses the existing TypeSafe key setup and `/api/run`; no other model provider, embedding model, or text-generation API is involved. Live conversations have at most two Jev requests per turn. Calls still use the shared usage recording, personal-key precedence, rate limits, cancellation, redaction, and quota behavior.
 

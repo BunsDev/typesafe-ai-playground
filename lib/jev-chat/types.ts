@@ -1,4 +1,5 @@
 import type { RunPayload } from "../api";
+import type { Personality } from "./personality";
 import type { ResponseGraph } from "./graph";
 import type { StoryFrame } from "./story";
 import type { StoryDecision } from "./creative";
@@ -36,6 +37,7 @@ export type EngineInput = {
   notes: string;
   mode: "live" | "demo";
   style: Style;
+  personality?: Personality;
   seed?: number;
 };
 export type Evidence = {
@@ -110,6 +112,7 @@ export type EngineResult = {
   story?: StoryFrame;
   trace: {
     engine: string;
+    personality?: Personality;
     contextHash: string;
     selectedPlan: string;
     candidates: { id: string; title: string; text: string }[];

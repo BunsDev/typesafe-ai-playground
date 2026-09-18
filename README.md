@@ -25,7 +25,7 @@ cp .env.example .env.local
 pnpm dev
 ```
 
-Open the address printed by Next.js, normally `http://localhost:3000`. Use `pnpm dev --port 3001` to select another port. You can browse/edit examples without a key; explicitly mocked demos and local solver/simulation paths do not require live Jev calls. Controls labeled **Live Jev** need a configured key.
+Open the dedicated development address, `http://localhost:3042`. `pnpm dev` keeps this port by default; use `pnpm dev --port 3001` to explicitly select another port. You can browse/edit examples without a key; explicitly mocked demos and local solver/simulation paths do not require live Jev calls. Controls labeled **Live Jev** need a configured key.
 
 The server environment key is not sent to the browser. Never prefix it with `NEXT_PUBLIC_`, put it in a component, or commit `.env.local`. A browser-supplied personal key follows a different path, documented below.
 
@@ -38,7 +38,7 @@ The home page groups the prototypes into Language & data, Agents & workflows, Co
 | **Example builder** `/examples` | Editable typed questions, a shared example catalog, and declared A/B input changes. |
 | **Conversation lab** `/conversation` | Parse conversations, rank possible reply recipients, and compare full-context versus isolated-message judgments. |
 | **Ask gate** `/gate` | Triage questions against earlier messages or pasted documentation, retaining supporting citations. |
-| **Jev Chat** `/jev-chat` | Explore Jev-driven scripted composition, cited source passages, fictional scenes, saved threads, and verifiable response graphs. See the [chat guide](docs/jev-chat.md). |
+| **Jev Chat** `/jev-chat` | Explore Jev-driven scripted composition with selectable personalities, cited source passages, fictional scenes, saved threads, and verifiable response graphs. See the [chat guide](docs/jev-chat.md). |
 | **Workflow chat** `/workflow` | Apply editable case rules and request missing facts before recommending an action. |
 | **Document extraction** `/extraction` | Find source candidates locally, then ask Jev to choose candidates or `null`. |
 | **YouTube extract** `/youtube-extract` | Select original caption passages with Jev relevance scores, live usage metrics, and timestamp-linked source verification. See [contract and limits](docs/youtube-extract.md). |

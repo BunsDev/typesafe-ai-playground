@@ -5,6 +5,7 @@ import { buildContext } from "./knowledge";
 import { verifyCalculation } from "./quantities";
 import { CALCULATION_PREFIX, calculationSections } from "./reasoning";
 import { isStoryPlanId, readStoryFrame, renderStory } from "./story";
+import { personalityIds } from "./personality";
 const finite = z.number().finite().nonnegative();
 const text = z.string().max(24000);
 const provenance = z.enum(["authored", "source", "hypothetical"]);
@@ -65,6 +66,7 @@ const resultSchema = z.object({
   story: z.unknown().optional(),
   trace: z.object({
     engine: z.string().max(80),
+    personality: z.enum(personalityIds).optional(),
     contextHash: z.string().regex(/^[a-f0-9]{64}$/),
     selectedPlan: z.string().max(80),
     candidates: z
