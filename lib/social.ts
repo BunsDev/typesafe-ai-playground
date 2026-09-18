@@ -1,5 +1,26 @@
 import type { Metadata } from "next";
 export const SOCIAL_PAGES = {
+  "jev-chat": {
+    path: "/jev-chat",
+    title: "Jev Chat",
+    description:
+      "Conversation, by choice. Jev decisions, scripted composition, source passages, and verifiable response graphs.",
+    category: "JEV-ONLY CONVERSATION",
+    steps: ["Ask a question", "Compose with Jev", "Inspect the source"],
+    result: "Question → supported reply",
+  },
+  "youtube-extract": {
+    path: "/youtube-extract",
+    title: "YouTube extract",
+    description: "Original words. Selected passages. Source-linked evidence.",
+    category: "EXTRACTIVE TEXT",
+    steps: [
+      "Fetch existing captions",
+      "Score with Jev",
+      "Verify at the source",
+    ],
+    result: "Captions → chronological extract",
+  },
   "clean-room": {
     path: "/clean-room",
     title: "Clean-room rebuild",

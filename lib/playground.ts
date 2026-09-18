@@ -34,6 +34,14 @@ export const playgroundGroups = [
         flow: "Context → typed answer",
       },
       {
+        href: "/jev-chat",
+        label: "Jev Chat",
+        icon: MessageSquare,
+        detail:
+          "Explore Jev-driven response composition, source passages, constrained fiction, and visible decisions.",
+        flow: "Question → composed response",
+      },
+      {
         href: "/conversation",
         label: "Conversation lab",
         icon: MessageSquare,
@@ -48,6 +56,14 @@ export const playgroundGroups = [
         detail:
           "Select dates, vendors and amounts from values actually present in a document.",
         flow: "Document → selected fields",
+      },
+      {
+        href: "/youtube-extract",
+        label: "YouTube extract",
+        icon: FileScan,
+        detail:
+          "Select original caption passages with Jev scores, cost tracking and timestamp-linked verification.",
+        flow: "Video captions → chronological extract",
       },
       {
         href: "/reranker",

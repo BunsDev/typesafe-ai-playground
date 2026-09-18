@@ -5,6 +5,44 @@ export type WorkspaceGuide = {
   flow: [string, string, string];
 };
 export const workspaceGuides: Record<string, WorkspaceGuide> = {
+  "/jev-chat": {
+    steps: [
+      [
+        "Choose a topic",
+        "Explore Jev, try synthetic support, add your own notes, or compose a fictional scene.",
+      ],
+      [
+        "Start a conversation",
+        "Local demo needs no key. Select Live Jev before the first message to use the model.",
+      ],
+      [
+        "Inspect the response",
+        "Open composition details for sources, alternatives, uncertainty, and content integrity. Export chats to keep a copy.",
+      ],
+    ],
+    boundary:
+      "Jev chooses meanings and code composes language. Demo uses local rules. Hashes verify integrity, not truth. No downstream actions execute.",
+    flow: ["Question", "Jev decisions", "Composed response"],
+  },
+  "/youtube-extract": {
+    steps: [
+      [
+        "Load captions",
+        "Paste a public YouTube URL with an existing caption track.",
+      ],
+      [
+        "Score passages",
+        "Jev scores relevance and classifies key claims. Adjust extract length locally.",
+      ],
+      [
+        "Verify omissions",
+        "Inspect all scored chunks and open timestamp links to compare with the source.",
+      ],
+    ],
+    boundary:
+      "Source-only extract, not a generated summary. Scores cannot prove that nothing important was omitted. Public caption retrieval may be blocked.",
+    flow: ["Captions", "Jev scores", "Extract"],
+  },
   "/examples": {
     steps: [
       [

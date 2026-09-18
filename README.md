@@ -38,6 +38,7 @@ The home page groups the prototypes into Language & data, Agents & workflows, Co
 | **Example builder** `/examples` | Editable typed questions, a shared example catalog, and declared A/B input changes. |
 | **Conversation lab** `/conversation` | Parse conversations, rank possible reply recipients, and compare full-context versus isolated-message judgments. |
 | **Ask gate** `/gate` | Triage questions against earlier messages or pasted documentation, retaining supporting citations. |
+| **Jev Chat** `/jev-chat` | Explore Jev-driven scripted composition, cited source passages, fictional scenes, saved threads, and verifiable response graphs. See the [chat guide](docs/jev-chat.md). |
 | **Workflow chat** `/workflow` | Apply editable case rules and request missing facts before recommending an action. |
 | **Document extraction** `/extraction` | Find source candidates locally, then ask Jev to choose candidates or `null`. |
 | **PR review** `/pr-review` | Classify public PR/diff hunks and inspect policy-gated review queues. |
@@ -45,6 +46,7 @@ The home page groups the prototypes into Language & data, Agents & workflows, Co
 | **SMT solver** `/smt-solver` | Compare Jev classifications with real server-side Z3 checks and decomposition. |
 | **Tool router** `/tool-router` | Inspect closed-set routing with simulated tools, policy blocks, and mock approval gates. |
 | **LangChain** `/langchain` | Invoke a real LangChain tool adapter with mocked or live Jev predictions. |
+| **YouTube extract** `/youtube-extract` | Select original caption passages with Jev relevance scores, live usage metrics, and timestamp-linked source verification. See [contract and limits](docs/youtube-extract.md). |
 | **Vector reranker** `/reranker` | Compare vector order, batched Jev relevance, and a labeled lexical mock baseline. |
 | **Clean-room rebuild** `/clean-room` | Run three complete local rebuild demos, or use the CLI with live Jev classification and deterministic code generation. Export the app and verification evidence. |
 | **Browser agent** `/jev-browser-agent` | Research a Newegg PC build in a local browser-use session with Jev closed choices, or run the synthetic flight demo. No text-generation model required. |
