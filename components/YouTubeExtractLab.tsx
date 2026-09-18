@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Heading, RunButton, ErrorNote } from "./ui";
+import { limitNotes, type TranscriptFailure } from "../lib/youtubeErrors";
 import { API_KEY_EVENT, apiKeyRevision } from "../lib/api-key";
 import { runJev, errorMessage, percent } from "../lib/client";
 import { estimateCost, reportedTokens } from "../lib/estimateCost";
@@ -21,7 +22,11 @@ export function YouTubeExtractLab() {
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [failure, setFailure] = useState<TranscriptFailure | null>(null);
   const [status, setStatus] = useState("Ready");
+  const [phase, setPhase] = useState<
+    "idle" | "retrieving" | "scoring" | "scored" | "stopped" | "cancelled"
+  >("idle");
   const [source, setSource] = useState<Transcript | null>(null);
   const [chunks, setChunks] = useState<ScoredChunk[]>([]);
   const [raw, setRaw] = useState(false);
@@ -82,6 +87,8 @@ export function YouTubeExtractLab() {
     setElapsed(0);
     setStatus("Ready");
     setError("");
+    setFailure(null);
+    setPhase("idle");
   }
   async function run() {
     if (controller.current) return;
@@ -92,7 +99,8 @@ export function YouTubeExtractLab() {
     const active = () => !abort.signal.aborted && revision === apiKeyRevision();
     setBusy(true);
     started.current = performance.now();
-    setStatus("Fetching existing captions…");
+    setPhase("retrieving");
+    setStatus("Step 1 of 3 · Retrieving the existing caption track");
     let inFlight = false;
     try {
       videoId(url);
@@ -103,7 +111,10 @@ export function YouTubeExtractLab() {
         signal: abort.signal,
       });
       const data = await response.json();
-      if (!response.ok) throw Error(data.error ?? "Caption retrieval failed.");
+      if (!response.ok) {
+        if (data?.cause && data?.detail) setFailure(data as TranscriptFailure);
+        throw Error(data?.error ?? "Caption retrieval failed.");
+      }
       if (!active()) return;
       const transcript = data as Transcript;
       if (transcript.videoId !== videoId(url))
@@ -120,7 +131,10 @@ export function YouTubeExtractLab() {
       for (const c of natural) {
         if (!active()) break;
         if (!c.text) continue;
-        setStatus(`Scoring chunk ${c.id + 1} of ${natural.length} · Live Jev`);
+        setPhase("scoring");
+        setStatus(
+          `Step 2 of 3 · Scoring chunk ${c.id + 1} of ${natural.length} — one Jev request each`,
+        );
         setCalls((v) => v + 1);
         setPending(true);
         inFlight = true;
@@ -150,18 +164,31 @@ export function YouTubeExtractLab() {
             `Chunk ${c.id + 1} returned incomplete scoring. The run is incomplete; unknown chunks are not selected.`,
           );
       }
-      if (active()) setStatus("Complete · human verification required");
+      if (active()) {
+        setPhase("scored");
+        setStatus(
+          "Step 3 of 3 · Scored. Selection runs locally; compare kept and dropped passages against the source.",
+        );
+      }
     } catch (e) {
       if (active()) {
         setError(errorMessage(e));
-        setStatus("Incomplete · scoring stopped");
+        setPhase("stopped");
+        setStatus(
+          "Stopped · scoring did not finish, so unknown chunks are not selected",
+        );
       }
     } finally {
       if (inFlight) {
         setUnknown((v) => v + 1);
         setPending(false);
       }
-      if (!active()) setStatus("Cancelled · partial results only");
+      if (!active()) {
+        setPhase("cancelled");
+        setStatus(
+          "Cancelled · partial results only, nothing selected from unscored chunks",
+        );
+      }
       setElapsed(performance.now() - started.current);
       setBusy(false);
       controller.current = null;
@@ -201,9 +228,27 @@ export function YouTubeExtractLab() {
               }}
             />
             <p className="muted">
-              Public captions only. Caption access can be blocked by YouTube.
-              Running sends caption text to TypeSafe.
+              Public captions only, never transcription or translation. Caption
+              access can be blocked by YouTube. Running sends caption text to
+              TypeSafe.
             </p>
+            <details className="disclosure extract-limits">
+              <summary>Limits before a run</summary>
+              <dl>
+                {limitNotes.map((limit) => (
+                  <div key={limit.label}>
+                    <dt>
+                      {limit.label} <strong>{limit.value}</strong>
+                    </dt>
+                    <dd>{limit.note}</dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="muted">
+                A track over any of these fails and names which one. Nothing is
+                truncated to fit.
+              </p>
+            </details>
             <RunButton
               busy={busy}
               disabled={!ready || !url.trim()}
@@ -230,6 +275,40 @@ export function YouTubeExtractLab() {
             inspection, not used as a selection gate.
           </p>
           <ErrorNote message={error} />
+          {failure && (
+            <div
+              className="extract-failure"
+              role="group"
+              aria-label="Failure detail"
+            >
+              <dl>
+                <div>
+                  <dt>Cause</dt>
+                  <dd>
+                    <code>{failure.cause}</code>
+                  </dd>
+                </div>
+                {failure.limit && (
+                  <div>
+                    <dt>Limit</dt>
+                    <dd>
+                      {failure.limit.actual.toLocaleString()} of{" "}
+                      {failure.limit.allowed.toLocaleString()}{" "}
+                      {failure.limit.name}
+                    </dd>
+                  </div>
+                )}
+                <div>
+                  <dt>Why</dt>
+                  <dd>{failure.detail}</dd>
+                </div>
+                <div>
+                  <dt>Next</dt>
+                  <dd>{failure.fix}</dd>
+                </div>
+              </dl>
+            </div>
+          )}
         </div>
       </section>
       <section className="panel" aria-label="Run metrics">
@@ -275,9 +354,7 @@ export function YouTubeExtractLab() {
       </section>
       <section className="panel">
         <div className="panel-heading">
-          <h2>
-            {status.startsWith("Complete") ? "Extract" : "Extract preview"}
-          </h2>
+          <h2>{phase === "scored" ? "Extract" : "Extract preview"}</h2>
         </div>
         <div className="panel-content">
           {source && (

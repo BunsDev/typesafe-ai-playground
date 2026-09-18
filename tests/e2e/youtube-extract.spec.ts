@@ -42,7 +42,7 @@ test("source-only extract, live metrics, local length changes, raw evidence and 
   await page.getByLabel("YouTube URL").fill("https://youtu.be/abcdefghijk");
   await page.getByRole("button", { name: "Create extract · Live Jev" }).click();
   await expect(
-    page.getByRole("status").filter({ hasText: "Complete · human" }),
+    page.getByRole("status").filter({ hasText: "Step 3 of 3" }),
   ).toBeVisible();
   await expect(page.getByTestId("extract-text")).toHaveText(
     "Water stores heat.",
