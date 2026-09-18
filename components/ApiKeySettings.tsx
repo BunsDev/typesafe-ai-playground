@@ -1,8 +1,11 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { KeyRound, X } from "lucide-react";
 import { API_KEY_EVENT, readApiKey, saveApiKey } from "../lib/api-key";
 export function ApiKeySettings() {
+  const id = useId();
+  const titleId = `${id}-api-key-title`,
+    inputId = `${id}-personal-api-key`;
   const dialog = useRef<HTMLDialogElement>(null);
   const [saved, setSaved] = useState(false);
   const [draft, setDraft] = useState("");
@@ -35,12 +38,12 @@ export function ApiKeySettings() {
       <dialog
         ref={dialog}
         className="api-key-dialog"
-        aria-labelledby="api-key-title"
+        aria-labelledby={titleId}
         onCancel={close}
         onClose={() => setDraft("")}
       >
         <div className="api-key-heading">
-          <h2 id="api-key-title">Your TypeSafe API key</h2>
+          <h2 id={titleId}>Your TypeSafe API key</h2>
           <button
             className="icon-button"
             aria-label="Close API key settings"
@@ -67,11 +70,11 @@ export function ApiKeySettings() {
             }
           }}
         >
-          <label htmlFor="personal-api-key">
+          <label htmlFor={inputId}>
             {saved ? "Replace API key" : "API key"}
           </label>
           <input
-            id="personal-api-key"
+            id={inputId}
             type="password"
             autoComplete="off"
             autoCapitalize="none"

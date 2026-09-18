@@ -7,6 +7,14 @@ const config: NextConfig = {
     "playwright-core",
   ],
   outputFileTracingIncludes: {
+    "/api/native-browser": [
+      "./scripts/local-browser.py",
+      "./lib/nativeBrowser/dom-runtime.js",
+    ],
+    "/api/native-browser/run": [
+      "./scripts/local-browser.py",
+      "./lib/nativeBrowser/dom-runtime.js",
+    ],
     "/api/solve": [
       "./node_modules/z3-solver/build/**/*",
       "./node_modules/async-mutex/**/*",

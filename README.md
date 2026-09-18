@@ -102,6 +102,8 @@ The [reranker](docs/reranker.md) compares supplied vector order, Jev relevance, 
 
 ### Browser agent
 
+The [native command workspace](docs/native-browser.md) at `/jev-browser-agent/native` adds delta-only page updates, batched field actions, exact local text values, and per-action usage reports. It includes two synthetic browser benchmarks and live Newegg navigation. Jev makes every policy decision; provider failures pause execution. Live token targets remain unverified while the configured provider key returns HTTP 402.
+
 The [browser agent](docs/jev-browser-agent.md) fills the workspace with a browser, a goal composer at the bottom, and diagnostics in Inspector. The default Newegg task uses a local, isolated [browser-use](https://github.com/browser-use/browser-use) session, and Jev selects parts from a closed candidate set; nothing is purchased. The optional flight sandbox ports [browser-use/jev-ultrafast](https://github.com/browser-use/jev-ultrafast): each request chooses an operation and compatible targets from an indexed element table, actions are checked for freshness before they run, and an independent verifier decides whether the goal was met.
 
 ### Meme lab and image handling

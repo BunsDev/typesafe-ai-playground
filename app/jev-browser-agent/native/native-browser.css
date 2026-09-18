@@ -1,0 +1,266 @@
+body:has(.native-browser-studio) .sidebar,
+body:has(.native-browser-studio) .topbar,
+body:has(.native-browser-studio) .workspace-topbar,
+body:has(.native-browser-studio) .mobile-menu,
+body:has(.native-browser-studio) .app-footer {
+  display: none;
+}
+body:has(.native-browser-studio) .app-shell {
+  display: block;
+}
+body:has(.native-browser-studio) main {
+  margin: 0;
+  padding: 0;
+  max-width: none;
+}
+.native-browser-studio {
+  min-height: 100dvh;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--ink);
+  background: var(--bg);
+}
+.native-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 36px;
+}
+.native-toolbar strong {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.native-toolbar > span {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+}
+.native-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 16px;
+  flex: 1;
+  min-height: 460px;
+}
+.native-viewport {
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--panel);
+}
+.native-viewport > img {
+  display: block;
+  width: 100%;
+  object-fit: contain;
+  min-height: 0;
+  max-height: 70dvh;
+  flex: 1;
+}
+.native-viewport > footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  padding: 8px 14px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.native-viewport > footer > span:first-child {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.native-welcome {
+  margin: auto;
+  padding: clamp(24px, 4vw, 70px);
+  max-width: 1060px;
+}
+.native-welcome > svg {
+  color: var(--accent);
+  margin-bottom: 24px;
+}
+.native-welcome h1 {
+  font-size: clamp(28px, 3vw, 48px);
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+  margin-bottom: 20px;
+}
+.native-welcome > p {
+  max-width: 62ch;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.7;
+}
+.native-welcome ol {
+  list-style: none;
+  padding: 0;
+  margin: 32px 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.native-welcome li {
+  padding: 18px;
+  border-radius: 12px;
+  background: var(--soft);
+  border: 1px solid var(--line);
+}
+.native-welcome li span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+  margin-top: 8px;
+}
+.native-inspector {
+  min-width: 0;
+  max-height: 72dvh;
+  overflow-y: auto;
+  padding: 8px;
+  font-size: 12px;
+}
+.native-inspector h2 {
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+.native-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.native-metrics dt,
+.native-hint {
+  color: var(--muted);
+  font-size: 11px;
+}
+.native-metrics dd {
+  margin: 4px 0 0;
+  font-size: 21px;
+  font-variant-numeric: tabular-nums;
+}
+.native-inspector p {
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+  margin: 14px 0;
+}
+.native-inspector details {
+  border-top: 1px solid var(--line);
+  padding: 14px 0;
+}
+.native-inspector summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.native-inspector pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 11px;
+}
+.native-inspector textarea {
+  width: 100%;
+  margin-top: 8px;
+}
+.native-cycle {
+  margin-top: 14px;
+}
+.native-composer {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 16px;
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+.native-composer label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.native-composer select {
+  width: min(100%, 380px);
+}
+.native-composer textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 64px;
+}
+.native-composer small,
+.native-composer-actions p {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+.native-composer-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+}
+.native-composer .button {
+  flex-shrink: 0;
+}
+@media (max-width: 900px) {
+  .native-stage {
+    grid-template-columns: 1fr;
+  }
+  .native-inspector {
+    max-height: none;
+  }
+  .native-metrics {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .native-toolbar > span {
+    flex-basis: 100%;
+    margin-left: 34px;
+  }
+  .native-toolbar {
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+}
+@media (min-width: 901px) {
+  .native-browser-studio {
+    height: 100dvh;
+    min-height: 0;
+  }
+  .native-stage {
+    min-height: 0;
+  }
+  .native-inspector {
+    max-height: none;
+  }
+  .native-viewport {
+    overflow-y: auto;
+  }
+  .native-welcome {
+    flex-shrink: 0;
+  }
+  .native-viewport > footer {
+    position: sticky;
+    bottom: 0;
+    background: var(--panel);
+  }
+}
+@media (max-width: 540px) {
+  .native-browser-studio {
+    padding: 10px;
+  }
+  .native-welcome ol {
+    grid-template-columns: 1fr;
+  }
+  .native-welcome {
+    padding: 22px;
+  }
+  .native-composer-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

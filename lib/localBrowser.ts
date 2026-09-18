@@ -2,7 +2,15 @@ import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { createInterface } from "node:readline";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
+import { readFile } from "node:fs/promises";
 import type { PublicDocument } from "./publicDocument";
+import type { NativeDomCommand, NativeDomReply } from "./nativeBrowser/dom";
+type BrowserReply = {
+  url: string;
+  screenshot: string;
+  body?: string;
+  value?: unknown;
+};
 
 export function validateNeweggBrowserUrl(value: string) {
   const target = new URL(value);
@@ -50,6 +58,7 @@ class LocalBrowser {
         path.join(process.cwd(), "scripts/local-browser.py"),
         String(viewport.width),
         String(viewport.height),
+        this.nativeOrigin ?? "",
       ],
       {
         stdio: ["pipe", "pipe", "pipe"],
@@ -59,7 +68,7 @@ class LocalBrowser {
   }
   private pending = new Map<
     string,
-    { resolve: (value: PublicDocument) => void; reject: (error: Error) => void }
+    { resolve: (value: BrowserReply) => void; reject: (error: Error) => void }
   >();
   private queue: Promise<unknown> = Promise.resolve();
   private closed = false;
@@ -71,7 +80,10 @@ class LocalBrowser {
   used = false;
   phase = "Ready";
   completedReads = 0;
-  constructor(viewport: { width: number; height: number }) {
+  constructor(
+    viewport: { width: number; height: number },
+    private nativeOrigin?: string,
+  ) {
     this.process = this.startProcess(viewport);
     this.timer = setTimeout(() => this.close(), 10 * 60_000);
     this.timer.unref();
@@ -92,11 +104,7 @@ class LocalBrowser {
           this.error = null;
           this.screenshot = message.result.screenshot;
           this.url = message.result.url;
-          pending.resolve({
-            url: message.result.url,
-            body: message.result.body,
-            contentType: "text/html",
-          });
+          pending.resolve(message.result);
         }
       } catch {
         /* Ignore non-protocol library output. */
@@ -111,12 +119,14 @@ class LocalBrowser {
       this.close("Local browser session ended. Start a new run."),
     );
   }
-  read = (url: string, signal: AbortSignal): Promise<PublicDocument> => {
+  private command = (
+    payload: object,
+    signal: AbortSignal,
+  ): Promise<BrowserReply> => {
     const run = this.queue.then(async () => {
       signal.throwIfAborted();
       if (this.closed) throw Error(this.error || "Local browser closed.");
-      validateNeweggBrowserUrl(url);
-      return new Promise<PublicDocument>((resolve, reject) => {
+      return new Promise<BrowserReply>((resolve, reject) => {
         const id = randomUUID();
         const deadline = setTimeout(
           () => this.close("Local browser read timed out."),
@@ -138,11 +148,43 @@ class LocalBrowser {
             reject(error);
           },
         });
-        this.process.stdin.write(JSON.stringify({ id, url }) + "\n");
+        this.process.stdin.write(JSON.stringify({ id, ...payload }) + "\n");
       });
     });
     this.queue = run.catch(() => {});
     return run;
+  };
+  read = async (url: string, signal: AbortSignal): Promise<PublicDocument> => {
+    validateNeweggBrowserUrl(url);
+    const reply = await this.command({ url }, signal);
+    if (typeof reply.body !== "string")
+      throw Error("Local browser returned no document.");
+    return { url: reply.url, body: reply.body, contentType: "text/html" };
+  };
+  navigateNative = async (url: string, signal: AbortSignal) => {
+    const target = new URL(url);
+    if (
+      !this.nativeOrigin ||
+      target.origin !== this.nativeOrigin ||
+      target.username ||
+      target.password ||
+      (target.origin !== "https://www.newegg.com" &&
+        target.pathname !== "/browser-agent-benchmark")
+    )
+      throw Error("Native navigation is outside this session's allowed task.");
+    await this.command({ native: { url: target.href } }, signal);
+  };
+  native = async (command: NativeDomCommand, signal: AbortSignal) => {
+    if (!this.nativeOrigin)
+      throw Error("This session does not support native actions.");
+    // Inject trusted source verbatim; compiled functions can capture bundler helpers.
+    const source = await readFile(
+      path.join(process.cwd(), "lib/nativeBrowser/dom-runtime.js"),
+      "utf8",
+    );
+    const script = `() => (${source.replace("export async function nativeBrowserDom", "async function nativeBrowserDom")})(${JSON.stringify(command)})`;
+    return (await this.command({ native: { script } }, signal))
+      .value as NativeDomReply;
   };
   close(reason = "Local browser closed.") {
     if (this.closed) return;
@@ -151,7 +193,13 @@ class LocalBrowser {
     clearTimeout(this.timer);
     this.process.stdin.end();
     const process = this.process;
-    const kill = setTimeout(() => process.kill(), 5000);
+    // Stop an active evaluation promptly; EOF alone waits for its batch to finish.
+    process.kill("SIGTERM");
+    const kill = setTimeout(() => {
+      if (process.exitCode === null && process.signalCode === null)
+        process.kill("SIGKILL");
+    }, 5000);
+    process.once("exit", () => clearTimeout(kill));
     kill.unref();
     for (const pending of this.pending.values()) pending.reject(Error(reason));
     this.pending.clear();
@@ -162,7 +210,24 @@ const globalStore = globalThis as typeof globalThis & {
   localBrowserStarts?: number[];
 };
 const sessions = (globalStore.localBrowsers ??= new Map());
-export function createLocalBrowser(viewport = { width: 1440, height: 900 }) {
+export function createLocalBrowser(
+  viewport = { width: 1440, height: 900 },
+  nativeOrigin?: string,
+) {
+  if (nativeOrigin) {
+    const origin = new URL(nativeOrigin);
+    if (
+      origin.origin !== nativeOrigin ||
+      origin.username ||
+      origin.password ||
+      (nativeOrigin !== "https://www.newegg.com" &&
+        !(
+          origin.protocol === "http:" &&
+          ["localhost", "127.0.0.1", "[::1]"].includes(origin.hostname)
+        ))
+    )
+      throw Error("Native browser origin is not supported.");
+  }
   const now = Date.now();
   const starts = (globalStore.localBrowserStarts ?? []).filter(
     (time) => now - time < 60_000,
@@ -174,7 +239,7 @@ export function createLocalBrowser(viewport = { width: 1440, height: 900 }) {
     throw Error("Close an existing local browser before starting another.");
   starts.push(now);
   const id = randomUUID();
-  sessions.set(id, new LocalBrowser(viewport));
+  sessions.set(id, new LocalBrowser(viewport, nativeOrigin));
   const expiry = setTimeout(() => {
     sessions.get(id)?.close();
     sessions.delete(id);
