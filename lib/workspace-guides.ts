@@ -43,6 +43,25 @@ export const workspaceGuides: Record<string, WorkspaceGuide> = {
       "PC research navigates real pages locally but never adds to a cart or purchases. Flight actions occur in a synthetic sandbox. Missing evidence remains a gap; any price-only fallback is labeled.",
     flow: ["Goal", "Observe & choose", "Checked evidence"],
   },
+  "/youtube-extract": {
+    steps: [
+      [
+        "Load captions",
+        "Paste a public YouTube URL with an existing caption track.",
+      ],
+      [
+        "Score passages",
+        "Jev scores relevance and classifies key claims. Adjust extract length locally.",
+      ],
+      [
+        "Verify omissions",
+        "Inspect all scored chunks and open timestamp links to compare with the source.",
+      ],
+    ],
+    boundary:
+      "Source-only extract, not a generated summary. Scores cannot prove that nothing important was omitted. Public caption retrieval may be blocked.",
+    flow: ["Captions", "Jev scores", "Extract"],
+  },
   "/examples": {
     steps: [
       [

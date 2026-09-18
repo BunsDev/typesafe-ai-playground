@@ -50,6 +50,14 @@ export const playgroundGroups = [
         flow: "Document → selected fields",
       },
       {
+        href: "/youtube-extract",
+        label: "YouTube extract",
+        icon: FileScan,
+        detail:
+          "Select original caption passages with Jev scores, cost tracking and timestamp-linked verification.",
+        flow: "Video captions → chronological extract",
+      },
+      {
         href: "/reranker",
         label: "Vector reranker",
         icon: ArrowDownWideNarrow,

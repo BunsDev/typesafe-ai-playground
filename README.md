@@ -40,6 +40,7 @@ The home page groups the prototypes into Language & data, Agents & workflows, Co
 | **Ask gate** `/gate` | Triage questions against earlier messages or pasted documentation, retaining supporting citations. |
 | **Workflow chat** `/workflow` | Apply editable case rules and request missing facts before recommending an action. |
 | **Document extraction** `/extraction` | Find source candidates locally, then ask Jev to choose candidates or `null`. |
+| **YouTube extract** `/youtube-extract` | Select original caption passages with Jev relevance scores, live usage metrics, and timestamp-linked source verification. See [contract and limits](docs/youtube-extract.md). |
 | **PR review** `/pr-review` | Classify public PR/diff hunks and inspect policy-gated review queues. |
 | **AST governance** `/ast-governance` | Explore changed symbols, callers, deterministic policy, and ambiguous findings. |
 | **SMT solver** `/smt-solver` | Compare Jev classifications with real server-side Z3 checks and decomposition. |
