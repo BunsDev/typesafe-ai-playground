@@ -1,4 +1,5 @@
 import { capabilityVerbs, guideEvidence } from "./knowledge";
+import { personalityPhrasing, type Personality } from "./personality";
 import type { SourceExcerpt } from "./source-excerpts";
 import type {
   Analysis,
@@ -42,7 +43,10 @@ const helpKey = (text: string) =>
     .toLowerCase()
     .replace(/\s+/g, " ")
     .replace(/[.!?]+$/, "");
-function guidePlan(question: string): Plan | null {
+function guidePlan(
+  question: string,
+  personality: Personality = "default",
+): Plan | null {
   const entries: Record<string, string[]> = {
     "explain how jev works": ["mechanism", "hashes"],
     "how does jev work": ["mechanism", "hashes"],
@@ -55,16 +59,21 @@ function guidePlan(question: string): Plan | null {
     `help_${ids[0]}`,
     "explain",
     "Documented chat help",
-    ids.map((id) =>
-      authored(guideEvidence.find((entry) => entry.id === id)!.text),
-    ),
+    [
+      ...(personalityPhrasing[personality].help
+        ? [authored(personalityPhrasing[personality].help)]
+        : []),
+      ...ids.map((id) =>
+        authored(guideEvidence.find((entry) => entry.id === id)!.text),
+      ),
+    ],
     [],
     helpOptions,
   );
 }
 /** Exact owned help commands only. Extra instructions stay on the normal path. */
 export function scriptedHelp(context: Context): Plan | null {
-  const direct = guidePlan(context.question);
+  const direct = guidePlan(context.question, context.input.personality);
   if (direct) return direct;
   if (
     ![
@@ -85,7 +94,10 @@ export function scriptedHelp(context: Context): Plan | null {
   if (wasFallback) {
     let user = index - 1;
     while (user >= 0 && preceding[user].role !== "user") user--;
-    const recovered = user >= 0 ? guidePlan(preceding[user].text) : null;
+    const recovered =
+      user >= 0
+        ? guidePlan(preceding[user].text, context.input.personality)
+        : null;
     if (recovered)
       return {
         ...recovered,
@@ -168,10 +180,11 @@ function sourcePlan(
   const selected = evidence.slice(0, limit);
   const sources = selected.filter((e) => e.provenance === "source");
   const sections: Section[] = [];
+  const phrasing = personalityPhrasing[context.input.personality ?? "default"];
   if (intent === "compare") {
     sections.push(
       authored(
-        "Here is the available evidence side by side. These are source statements; they do not establish an overall winner.",
+        `${phrasing.compare} These are source statements; they do not establish an overall winner.`,
       ),
     );
     selected.forEach((e, i) => {
@@ -181,20 +194,13 @@ function sourcePlan(
       );
     });
   } else if (intent === "summarize") {
-    sections.push(
-      authored("Selected points from your notes, in their original wording:"),
-    );
+    sections.push(authored(phrasing.summarize));
     selected.forEach((e) => sections.push(quote(e)));
   } else {
-    if (intent === "support")
-      sections.push(authored("For this synthetic support scenario:"));
+    if (intent === "support") sections.push(authored(phrasing.support));
     else if (sources.length)
       sections.push(
-        authored(
-          sources.length === 1
-            ? "Your notes state:"
-            : "These passages address the question:",
-        ),
+        authored(sources.length === 1 ? phrasing.source : phrasing.sources),
       );
     selected.forEach((e) => sections.push(quote(e)));
   }
@@ -257,7 +263,11 @@ function excerptPlan(
     selected.some((excerpt) => excerpt.sourceId === source.id),
   );
   if (analysis.intent === "compare" && sources.length < 2) return null;
-  const sections: Section[] = [authored("Exact excerpts from your notes:")];
+  const sections: Section[] = [
+    authored(
+      personalityPhrasing[context.input.personality ?? "default"].excerpts,
+    ),
+  ];
   for (const excerpt of selected)
     sections.push({
       text: excerpt.text,
@@ -292,6 +302,7 @@ export function composePlans(context: Context, analysis: Analysis): Plan[] {
       ),
     ];
   const { intent } = analysis;
+  const phrasing = personalityPhrasing[context.input.personality ?? "default"];
   if (intent === "capabilities" || intent === "greet")
     return [
       plan(
@@ -300,7 +311,7 @@ export function composePlans(context: Context, analysis: Analysis): Plan[] {
         "Available capabilities",
         [
           authored(
-            `${intent === "greet" ? "Hello. " : ""}I can ${joinList(capabilityVerbs)}.`,
+            `${intent === "greet" ? phrasing.greeting : ""}${phrasing.capabilities} ${joinList(capabilityVerbs)}.`,
           ),
           authored(
             "Choose a starting point, or tell me what you want to explore. For factual questions beyond the guide, add the source material in Your notes.",
@@ -313,9 +324,7 @@ export function composePlans(context: Context, analysis: Analysis): Plan[] {
   if (intent === "acknowledge")
     return [
       plan("acknowledge", intent, "Acknowledgement", [
-        authored(
-          "You’re welcome. We can continue with a follow-up or explore a new question.",
-        ),
+        authored(phrasing.acknowledge),
       ]),
     ];
   if (intent === "create")

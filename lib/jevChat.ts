@@ -1,4 +1,5 @@
 import type { EngineResult, Style } from "./jev-chat/types";
+import { isPersonality, type Personality } from "./jev-chat/personality";
 import { parseSavedResult, verifySavedResult } from "./jev-chat/persistence";
 import type { RunPayload } from "./api";
 export type ChatSpace = "guide" | "support" | "notes" | "creative";
@@ -40,6 +41,7 @@ export type ChatSession = {
   messages: ChatMessage[];
   engine?: "compose" | "baseline";
   style?: Style;
+  personality?: Personality;
 };
 export const CHAT_STORAGE = "jev-chat-sessions-v1";
 export const MAX_CHAT_STORAGE = 1_500_000;
@@ -399,6 +401,7 @@ export function newChat(
     messages: [],
     engine: "compose",
     style: "balanced",
+    personality: "default",
   };
 }
 /** Rebuild an allowlisted shape; storage is untrusted and credentials are not chat state. */
@@ -492,6 +495,7 @@ export function restoreChats(raw: string | null): ChatSession[] {
           style: ["concise", "balanced", "detailed"].includes(s.style)
             ? s.style
             : "balanced",
+          personality: isPersonality(s.personality) ? s.personality : "default",
         });
     }
     return sessions;

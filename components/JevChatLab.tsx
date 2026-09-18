@@ -4,7 +4,13 @@ import Link from "next/link";
 import { respond } from "../lib/jev-chat/engine";
 import { readChatStorage, serializeChats } from "../lib/jev-chat/storage";
 import type { EngineResult } from "../lib/jev-chat/types";
+import {
+  personalityIds,
+  personalityLabels,
+  type Personality,
+} from "../lib/jev-chat/personality";
 import { JevResponseDetails } from "./JevResponseDetails";
+import { JevChatProse } from "./JevChatProse";
 import {
   ArrowUp,
   ArrowUpRight,
@@ -192,6 +198,7 @@ export function JevChatLab() {
     const next = newChat(chat?.space, chat?.mode);
     next.engine = chat?.engine ?? "compose";
     next.style = chat?.style ?? "balanced";
+    next.personality = chat?.personality ?? "default";
     setChats((all) => [next, ...all]);
     setActiveId(next.id);
     setHistory(false);
@@ -263,6 +270,7 @@ export function JevChatLab() {
             notes: chat.notes,
             mode: chat.mode,
             style: chat.style ?? "balanced",
+            personality: chat.personality ?? "default",
           },
           {
             transport: runJev,
@@ -529,24 +537,43 @@ export function JevChatLab() {
               </select>
             </label>
             {chat.engine === "compose" && (
-              <label>
-                Detail{" "}
-                <select
-                  aria-label="Response detail"
-                  value={chat.style ?? "balanced"}
-                  disabled={busy}
-                  onChange={(e) =>
-                    patch({
-                      style: e.target.value as
-                        "concise" | "balanced" | "detailed",
-                    })
-                  }
-                >
-                  <option value="concise">Concise</option>
-                  <option value="balanced">Balanced</option>
-                  <option value="detailed">Detailed</option>
-                </select>
-              </label>
+              <>
+                <label>
+                  Detail{" "}
+                  <select
+                    aria-label="Response detail"
+                    value={chat.style ?? "balanced"}
+                    disabled={busy}
+                    onChange={(e) =>
+                      patch({
+                        style: e.target.value as
+                          "concise" | "balanced" | "detailed",
+                      })
+                    }
+                  >
+                    <option value="concise">Concise</option>
+                    <option value="balanced">Balanced</option>
+                    <option value="detailed">Detailed</option>
+                  </select>
+                </label>
+                <label>
+                  Personality{" "}
+                  <select
+                    aria-label="Chat personality"
+                    value={chat.personality ?? "default"}
+                    disabled={busy}
+                    onChange={(e) =>
+                      patch({ personality: e.target.value as Personality })
+                    }
+                  >
+                    {personalityIds.map((id) => (
+                      <option key={id} value={id}>
+                        {personalityLabels[id]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </>
             )}
           </div>
           <div className="jc-scroll" ref={scroll}>
@@ -638,15 +665,13 @@ export function JevChatLab() {
                     key={message.id}
                     className={`jc-message jc-${message.role}`}
                   >
-                    <div className="jc-avatar">
-                      {message.role === "user" ? (
-                        "You"
-                      ) : (
-                        <MessageSquare size={17} />
-                      )}
-                    </div>
                     <div className="jc-message-body">
                       <div className="jc-message-author">
+                        {message.role === "assistant" && (
+                          <span className="jc-avatar" aria-hidden="true">
+                            <MessageSquare size={15} />
+                          </span>
+                        )}
                         {message.role === "user" ? "You" : "Jev"}
                         {message.engineResult && (
                           <span>
@@ -676,9 +701,13 @@ export function JevChatLab() {
                           </span>
                         )}
                       </div>
-                      <p className="jc-message-text">{message.text}</p>
+                      <JevChatProse
+                        text={message.text}
+                        sections={message.engineResult?.sections}
+                        source={message.decision?.source}
+                      />
                       {message.engineResult && (
-                        <>
+                        <div className="jc-response-footer">
                           <JevResponseDetails
                             notes={chat.notes}
                             result={message.engineResult}
@@ -699,7 +728,7 @@ export function JevChatLab() {
                               <Copy size={14} />
                             )}
                           </button>
-                        </>
+                        </div>
                       )}
                       {message.decision && (
                         <>
@@ -1097,6 +1126,18 @@ export function JevChatLab() {
                       makes no Jev request. Set an API key in the playground
                       header, then choose Live Jev before the first message. The
                       baseline preserves the original whole-reply selector.
+                    </p>
+                  </details>
+                  <details>
+                    <summary>Choose a personality</summary>
+                    <p>
+                      In Compose, choose Default, Friendly, Playful, or
+                      Professional. The setting applies to future replies and is
+                      saved with this conversation. It changes greetings,
+                      acknowledgements, and introductions to help and sources.
+                      Source quotes, clarification wording, story tone, and
+                      calculations stay intact. New conversations inherit your
+                      current choice.
                     </p>
                   </details>
                   <details>

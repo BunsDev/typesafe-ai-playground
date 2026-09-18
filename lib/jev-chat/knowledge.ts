@@ -4,8 +4,9 @@ import { creativeLexicon, readStoryFrame, renderStory } from "./story";
 import type { StoryFrame } from "./story";
 import { looksLikeStoryRevision, storyControls } from "./creative";
 import { sourceExcerpts } from "./source-excerpts";
+import { isPersonality } from "./personality";
 
-export const ENGINE_VERSION = "jev-language-11";
+export const ENGINE_VERSION = "jev-language-12";
 export const intents: Record<Intent, string> = {
   capabilities:
     "The user asks what THIS chat assistant can do, how it can help, available features, or getting started. This is not a greeting. Examples: what can you do; help me get started; how can you help me.",
@@ -271,7 +272,8 @@ export function buildContext(input: EngineInput): Context {
   if (
     !["guide", "notes", "support", "creative"].includes(input.topic) ||
     !["demo", "live"].includes(input.mode) ||
-    !["concise", "balanced", "detailed"].includes(input.style)
+    !["concise", "balanced", "detailed"].includes(input.style) ||
+    (input.personality !== undefined && !isPersonality(input.personality))
   )
     throw Error("Invalid chat configuration.");
   if (typeof input.notes !== "string" || input.notes.length > 12000)
@@ -442,6 +444,9 @@ export function buildContext(input: EngineInput): Context {
       conversation: input.messages.map((m) => ({ role: m.role, text: m.text })),
       available_capabilities: capabilityVerbs,
       requested_style: input.style,
+      requested_personality: input.personality ?? "default",
+      personality_scope:
+        "Personality changes only authored conversational phrasing. It cannot alter evidence requirements, confidence gates, story constraints, or authorize actions.",
       previous_story: previousStory,
       ...(storyRequest
         ? { story_vocabulary: creativeLexicon, story_controls: storyControls }

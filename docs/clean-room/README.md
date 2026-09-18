@@ -15,7 +15,7 @@ Each demo starts an independent local target, observes it through Chromium, rebu
 ```sh
 pnpm exec playwright install chromium
 pnpm dev
-# Open http://localhost:3000/clean-room
+# Open http://localhost:3042/clean-room
 ```
 
 Or run from the terminal:

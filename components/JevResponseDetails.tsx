@@ -11,6 +11,7 @@ import {
 import { verifyGraph } from "../lib/jev-chat/graph";
 import { verifySavedResult } from "../lib/jev-chat/persistence";
 import type { EngineResult } from "../lib/jev-chat/types";
+import { personalityLabels } from "../lib/jev-chat/personality";
 import { download, percent } from "../lib/client";
 
 export function JevResponseDetails({
@@ -130,6 +131,12 @@ export function JevResponseDetails({
             <span>Verify</span>
           </div>
           <dl>
+            <div>
+              <dt>Personality</dt>
+              <dd>
+                {personalityLabels[result.trace.personality ?? "default"]}
+              </dd>
+            </div>
             {result.story && (
               <>
                 <div>
