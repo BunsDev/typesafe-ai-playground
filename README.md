@@ -15,8 +15,8 @@ A community playground for **TypeSafe AI's Jev**: edit classification experiment
 Use **Node.js 22+** and the exact pnpm version pinned in [package.json](package.json), currently `10.34.5`. Use pnpm only: the repository's local guard rejects other package managers, and `pnpm-lock.yaml` is the single JavaScript dependency lockfile.
 
 ```sh
-git clone https://github.com/BunsDev/typesafe-ai-playground.git
-cd typesafe-ai-playground
+git clone https://github.com/TypeSafeAI/typesafe-playground.git
+cd typesafe-playground
 # Install/activate the pnpm version declared in package.json.
 # Where Corepack is installed, `corepack enable` enables its shims.
 pnpm install --frozen-lockfile
@@ -171,7 +171,7 @@ Use original synthetic scenarios, stable ids, and clear questions. See [CONTRIBU
 
 Thanks again to **[@nickthompson480](https://github.com/nickthompson480)** for the original playground, and to TypeSafe AI for Jev. This extension retains the [MIT license](LICENSE). TypeSafe brand artwork is stored in `public/brand`; IBM Plex font licensing is retained in [public/brand/OFL.txt](public/brand/OFL.txt). Branding does not imply vendor endorsement.
 
-Other `BunsDev` community projects serve distinct roles: [Clarity Judge](https://github.com/BunsDev/clarity-judge) evaluates writing against named checks; [Jev Tool & Model Router](https://github.com/BunsDev/typesafe-router) provides source-level routing logic; [TypeSafe UI](https://github.com/BunsDev/typesafe-ui) provides reusable interface patterns. They are not automatically wired together or officially supported as a suite.
+Other community projects serve distinct roles: [Clarity Judge](https://github.com/TypeSafeAI/clarity-judge) evaluates writing against named checks; [Jev Tool & Model Router](https://github.com/BunsDev/typesafe-router) provides source-level routing logic; [TypeSafe UI](https://github.com/TypeSafeAI/typesafe-ui) provides reusable interface patterns. They are not automatically wired together or officially supported as a suite.
 
 The intended GitHub About description and discovery topics are recorded in [repository-metadata.json](repository-metadata.json). Editing that file does not apply GitHub settings automatically, and discovery topics are not release tags.
 
